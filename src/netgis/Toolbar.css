@@ -1,0 +1,145 @@
+.netgis-toolbars
+{
+	position: absolute;
+	left: 0mm;
+	right: 0mm;
+	top: 0mm;
+}
+
+.netgis-toolbar
+{
+	position: absolute;
+	left: 0mm;
+	right: 0mm;
+	/*min-width: 100%; /* NOTE: https://stackoverflow.com/questions/10891293/prevent-float-left-div-from-going-to-a-new-line */
+	top: 12mm;
+	min-height: 12mm;
+	line-height: 12mm;
+	font-size: 0mm;
+	white-space: nowrap;
+	overflow-x: auto;
+	overflow-y: hidden;
+	z-index: 1;
+	
+	-webkit-transform: none;
+	transform: none;
+	transition: transform 150ms ease;
+}
+
+.netgis-toolbar.netgis-hide
+{
+	-webkit-transform: translateY( -24mm );
+	transform: translateY( -24mm );
+	transition: transform 150ms ease;
+	will-change: transform;
+}
+
+.netgis-toolbar > div
+{
+	height: 12mm;
+	white-space: nowrap;
+}
+
+.netgis-toolbar > div > *
+{
+	display: inline-block;
+	font-size: 4mm;
+	/*float: left; /* TODO: float cause line breaks */
+}
+
+.netgis-toolbar button
+{
+	/*padding: 0mm 4mm;*/
+	padding: 0mm 4mm 0mm 0mm;
+}
+
+.netgis-toolbar > div > button
+{
+	line-height: 12mm;
+}
+
+.netgis-toolbar button i
+{
+	/*margin-right: 4mm;*/
+	width: 12mm;
+}
+
+.netgis-toolbar button:last-child
+{
+	padding-right: 0mm;
+}
+
+.netgis-toolbar button:last-child span
+{
+	margin-right: 4mm;
+}
+
+/*.netgis-toolbar button i:last-child
+{
+	margin-right: 0mm;
+}*/
+
+.netgis-toolbar label
+{
+	display: inline-block;
+	height: 12mm;
+	padding: 0mm 4mm;
+	cursor: pointer;
+}
+
+.netgis-toolbar input[type=checkbox]
+{
+	margin-right: 2mm;
+}
+
+.netgis-toolbar input[type=number]
+{
+	margin-left: 2mm;
+	width: 20mm;
+}
+
+.netgis-toolbar input[type=text]
+{
+	/*margin-left: 2mm;*/
+	width: 60mm;
+}
+
+/* TODO: refactor to abstract common dropdown list style ( see head menu ) */
+
+.netgis-toolbar .netgis-search-list
+{
+	position: fixed;
+	min-width: 68mm; /* 60mm + 4mm + 4mm ( input width + padding ) */
+	/*osition: absolute;
+	left: 0mm;
+	min-width: 100%;*/
+	/*height: 5.0em;*/
+	padding: 0mm;
+	margin: 0mm;
+	margin-left: -4mm;
+	z-index: 1;
+	list-style-type: none;
+	overflow: hidden;
+	box-shadow: 0mm 0.5mm 0.5mm 0mm rgba( 0, 0, 0, 0.2 )/*, 0mm 1mm 2.5mm 0mm rgba( 0, 0, 0, 0.1 )*/ !important;
+}
+
+.netgis-toolbar .netgis-search-list.netgis-hide
+{
+	display: none;
+}
+
+.netgis-toolbar .netgis-search-list li
+{
+	width: 100%;
+	padding: 0mm;
+	margin: 0mm;
+}
+
+.netgis-toolbar .netgis-search-list li button
+{
+	width: 100%;
+	height: 12mm;
+	padding: 0mm 4mm 0mm 4mm;
+	white-space: nowrap;
+	text-align: left;
+}

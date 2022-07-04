@@ -1,0 +1,102 @@
+.netgis-map
+{
+	position: absolute;
+	left: 0mm;
+	right: 0mm;
+	top: 12mm;
+	bottom: 0mm;
+	
+	background: #f2efe9;
+}
+
+/* Drag and Drop */
+
+/*
+.netgis-map.drop
+{
+	border: 10mm solid red;
+}
+*/
+
+.netgis-drop-target
+{
+	position: absolute;
+	left: 0mm;
+	right: 0mm;
+	top: 0mm;
+	bottom: 0mm;
+	line-height: 40mm;
+	text-align: center;
+	z-index: 1;
+	pointer-events: none;
+	background: rgba( 0, 0, 0, 0.5 );
+	color: #fff;
+}
+
+.netgis-drop-target.netgis-hide
+{
+	display: none;
+}
+
+/* Modes */
+
+.netgis-map
+{
+	cursor: default;
+}
+
+.netgis-map .netgis-toolbar,
+.netgis-map .netgis-dialog
+{
+	cursor: auto;
+}
+
+.netgis-map.netgis-mode-view,
+.netgis-map.netgis-mode-search-place
+{
+	cursor: default;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+.netgis-map.netgis-mode-panning
+{
+	cursor: move;
+	cursor: all-scroll;
+	cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.netgis-map.netgis-mode-zooming-in
+{
+	cursor: zoom-in;
+}
+
+.netgis-map.netgis-mode-zooming-out
+{
+	cursor: zoom-out;
+}
+
+.netgis-map.netgis-mode-draw-points,
+.netgis-map.netgis-mode-draw-lines,
+.netgis-map.netgis-mode-draw-polygons,
+.netgis-map.netgis-mode-cut-feature-draw,
+.netgis-map.netgis-mode-modify-features
+{
+	cursor: pointer;
+	cursor: crosshair;
+}
+
+.netgis-map.netgis-mode-delete-features,
+.netgis-map.netgis-mode-cut-feature-begin,
+.netgis-map.netgis-mode-buffer-feature-begin
+{
+	cursor: pointer;
+}
+
+.netgis-map.netgis-mode-buffer-feature-edit
+{
+	cursor: default;
+}

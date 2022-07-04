@@ -1,0 +1,118 @@
+.netgis-menu
+{
+	position: absolute;
+	left: 0mm;
+	right: 0mm;
+	top: 0mm;
+	height: 12mm;
+	/*min-height: 12mm;*/
+	
+	/*min-height: 12mm;*/
+	line-height: 12mm;
+	/*overflow-x: auto;
+	overflow-y: hidden;*/
+	
+	white-space: nowrap;
+	font-size: 0mm;
+	
+	z-index: 1000;
+	
+	background: lightsalmon;
+}
+
+.netgis-menu > div
+{
+	height: 12mm;
+	/*min-height: 12mm;*/
+	white-space: nowrap;
+	/*font-size: 0mm;*/
+}
+
+/*.netgis-menu > * */
+.netgis-menu > div > *
+{
+	display: inline-block;
+	height: 100%;
+	/*font-size: 4mm;*/
+	margin: 0mm;
+	/*padding: 0mm 4mm;*/
+	/*float: left;*/
+	
+	font-size: 4mm;
+}
+
+.netgis-menu .netgis-right
+{
+	float: right;
+	padding-right: 0mm;
+	padding-left: 4mm;
+}
+
+.netgis-menu span
+{
+	padding: 0mm 4mm 0mm 0mm;
+}
+
+.netgis-menu button i
+{
+	font-size: 5mm;
+	width: 12mm;
+	line-height: 12mm;
+	text-align: center;
+}
+
+.netgis-dropdown
+{
+	position: relative;
+	padding: 0mm;
+	/*bottom: 2px;*/
+}
+
+.netgis-dropdown .netgis-dropdown-content
+{
+	display: none;
+	/*position: fixed;*/
+	position: absolute;
+	/*top: 12mm;*/
+	min-width: 100%;
+	/*min-width: 40mm;*/
+	padding: 0mm;
+	margin: 0mm;
+	margin-top: -1px;
+	z-index: 1;
+	
+	font-size: 4mm;
+	list-style-type: none;
+}
+
+/*.netgis-dropdown:hover
+{
+	z-index: 10;
+}*/
+
+.netgis-dropdown:hover .netgis-dropdown-content
+{
+	display: block;
+}
+
+.netgis-dropdown .netgis-dropdown-content i
+{
+	font-size: 4mm;
+	color: #bbb;
+}
+
+.netgis-dropdown button
+{
+	width: 100%;
+	/* padding: 0mm 4mm; */
+	padding: 0mm 4mm 0mm 0mm;
+	white-space: nowrap;
+	text-align: left;
+}
+
+/*.netgis-dropdown i
+{
+	width: 12mm;
+	line-height: 12mm;
+	text-align: center;
+}*/

@@ -1,0 +1,68 @@
+/* TODO: rename to config.css ? */
+
+/* Font */
+
+.netgis-client, .netgis-client button
+{
+	font-family: Verdana, sans-serif;
+	font-size: 4mm;
+}
+
+/* Colors */
+
+/* TODO: !important on colors necessary ? */
+
+.netgis-primary { background-color: #a7233f !important; color: white !important; }
+.netgis-hover-primary:hover { background-color: #c82a4b !important; color: white !important; }
+.netgis-hover-light:hover { background-color: #f4f4f4 !important; }
+.netgis-text-primary { color: #a7233f !important; }
+.netgis-hover-text-primary:hover { color: #c82a4b !important; }
+.netgis-dialog { background: #fff; color: #000; }
+.netgis-dropdown:hover > button { background-color: #c82a4b !important; }
+
+/* Effects */
+
+.netgis-shadow
+{
+	box-shadow: 0mm 0.5mm 1mm 0mm rgba( 0, 0, 0, 0.2 ), 0mm 1mm 2.5mm 0mm rgba( 0, 0, 0, 0.1 ) !important;
+}
+
+.netgis-shadow-large
+{
+	box-shadow: 0mm 1mm 2mm 0mm rgba( 0, 0, 0, 0.3 ), 0mm 2mm 5mm 0mm rgba( 0, 0, 0, 0.15 ) !important;
+}
+
+.netgis-text-shadow
+{
+	text-shadow: 0mm 0mm 1mm rgba( 0, 0, 0, 1.0 );
+}
+
+/* Elements */
+/*
+.netgis-client button
+{
+	min-height: 12mm;
+	min-width: 12mm;
+	/*padding: 0mm;*
+	border: none;
+	background: none;
+	/*color: white;*
+	cursor: pointer;
+}
+*/
+
+.netgis-client button
+{
+	border: none;
+	background: none;
+	cursor: pointer;
+}
+
+/* Format */
+
+.netgis-clip-text
+{
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}

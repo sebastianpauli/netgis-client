@@ -1,0 +1,47 @@
+.netgis-client
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;	
+	background: #aaa;
+}
+
+.netgis-client *
+{
+	box-sizing: border-box;
+}
+
+.netgis-client .netgis-loader
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: 9999;
+	text-align: center;
+	font-size: 12mm;
+}
+
+.netgis-client .netgis-loader.netgis-hide
+{
+	display: none;
+}
+
+.netgis-client .netgis-loader i
+{
+	position: absolute;
+	top: 50%;
+	transform: translateY( -50% );
+	animation: netgis-spin 2s linear infinite;
+}
+
+@keyframes netgis-spin
+{
+    0% { transform: rotate( 0deg ); }
+    100% { transform: rotate( 360deg ); }
+}
+
+.netgis-client button
+{
+	/*outline: none;*/
+}
