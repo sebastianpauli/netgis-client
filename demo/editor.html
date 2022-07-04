@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+
+	<head>
+		
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+		<title>NetGIS Client</title>
+		
+		<!-- Library Styles -->
+		<link rel="stylesheet" type="text/css" href="/libs/fontawesome/5.12.0/css/all.min.css" />
+		<link rel="stylesheet" type="text/css" href="/libs/openlayers/6.14.1/ol.css" />
+
+		<!-- Custom Styles -->
+		<link rel="stylesheet" type="text/css" href="../src/netgis/Client.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis/Map.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis/Attribution.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis/Controls.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis/LayerTree.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis/Toolbar.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis/Menu.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis/Modal.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis/Theme.css" />
+		
+		<!--<link rel="stylesheet" type="text/css" href="../dist/netgis.min.css" />-->
+		
+		<!-- Implementation Style -->
+		<style>
+			
+			#container
+			{
+				position: absolute;
+				left: 0mm;
+				top: 0mm;
+				width: 100%;
+				height: 100%;
+			}
+			
+		</style>
+		
+	</head>
+	
+	<body>
+		
+		<!-- Client Container -->
+		<main id="container" data-editable="true">
+		</main>
+		
+		<!-- Library Scripts -->
+		<script type="text/javascript" src="/libs/openlayers/6.14.1/ol.js"></script>
+		<script type="text/javascript" src="/libs/proj4js/2.6.0/proj4.js"></script>
+		<script type="text/javascript" src="/libs/jsts/1.6.1/jsts.min.js"></script>
+		<script type="text/javascript" src="/libs/shapefilejs/4.0.2/shp.js"></script>
+		<script type="text/javascript" src="/libs/jspdf/1.3.2/jspdf.min.js"></script>
+		<script type="text/javascript" src="/libs/gifjs/0.2.0/gif.js"></script>
+		
+		<!-- Custom Scripts -->
+		<script type="text/javascript" src="../src/netgis/Util.js"></script>
+		<script type="text/javascript" src="../src/netgis/Events.js"></script>
+		<script type="text/javascript" src="../src/netgis/Modes.js"></script>
+		<script type="text/javascript" src="../src/netgis/LayerTypes.js"></script>
+		<script type="text/javascript" src="../src/netgis/Client.js"></script>
+		<script type="text/javascript" src="../src/netgis/Menu.js"></script>
+		<script type="text/javascript" src="../src/netgis/Map.js"></script>
+		<script type="text/javascript" src="../src/netgis/MapOpenLayers.js"></script>
+		<script type="text/javascript" src="../src/netgis/Controls.js"></script>
+		<script type="text/javascript" src="../src/netgis/Attribution.js"></script>
+		<script type="text/javascript" src="../src/netgis/LayerTree.js"></script>
+		<script type="text/javascript" src="../src/netgis/Toolbar.js"></script>
+		<script type="text/javascript" src="../src/netgis/Modal.js"></script>
+		<script type="text/javascript" src="../src/netgis/SearchPlace.js"></script>
+		<script type="text/javascript" src="../src/netgis/OWS.js"></script>
+		<script type="text/javascript" src="../src/netgis/SLD.js"></script>
+		
+		<!--<script type="text/javascript" src="../dist/netgis.min.js"></script>-->
+		
+		<!-- Implementation Script -->
+		<script type="text/javascript">
+			
+			var client = new netgis.Client( "container" );
+			client.debug = true;
+			
+		</script>
+		
+	</body>
+	
+</html>

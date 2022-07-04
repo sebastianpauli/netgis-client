@@ -1,0 +1,11 @@
+.netgis-attribution
+{
+	position: absolute;
+	left: 0mm;
+	bottom: 0mm;
+	padding: 1mm;
+	background: rgba( 255, 255, 255, 0.5 );
+	/*color: #a7233f;*/
+	font-size: 0.8em !important;
+	z-index: 100;
+}
