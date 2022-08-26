@@ -88,9 +88,6 @@ netgis.SearchParcel.prototype.load = function()
 	// Initial State
 	this.reset();
 	
-	// Test
-	this.requestParcel( "072856", "1" );
-	
 	// Attach To Client
 	this.client.root.appendChild( this.root );
 	
