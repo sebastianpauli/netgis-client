@@ -20,6 +20,8 @@ netgis.MapOpenLayers = function()
 	this.snap = null;
 	this.snapFeatures = null;
 	this.editLayer = null;
+	this.parcelLayer = null;
+	
 	this.hover = null;
 	this.selected = null;
 	this.sketch = null;
@@ -65,6 +67,7 @@ netgis.MapOpenLayers.prototype.load = function()
 	this.client.on( netgis.Events.SNAP_OFF, this.onSnapOff.bind( this ) );
 	this.client.on( netgis.Events.LAYER_SHOW, this.onLayerShow.bind( this ) );
 	this.client.on( netgis.Events.LAYER_HIDE, this.onLayerHide.bind( this ) );
+	this.client.on( netgis.Events.MAP_ZOOM_WKT, this.onZoomWKT.bind( this ) );
 	this.client.on( netgis.Events.MAP_SET_EXTENT, this.onSetExtent.bind( this ) );
 	this.client.on( netgis.Events.MAP_CHANGE_ZOOM, this.onChangeZoom.bind( this ) );
 	this.client.on( netgis.Events.BUFFER_CHANGE, this.onBufferChange.bind( this ) );
@@ -73,10 +76,13 @@ netgis.MapOpenLayers.prototype.load = function()
 	this.client.on( netgis.Events.IMPORT_GEOJSON, this.onImportGeoJSON.bind( this ) );
 	this.client.on( netgis.Events.IMPORT_GML, this.onImportGML.bind( this ) );
 	this.client.on( netgis.Events.IMPORT_SHAPEFILE, this.onImportShapefile.bind( this ) );
+	this.client.on( netgis.Events.IMPORT_WKT, this.onImportWKT.bind( this ) );
 	this.client.on( netgis.Events.EXPORT_PDF, this.onExportPDF.bind( this ) );
 	this.client.on( netgis.Events.EXPORT_JPEG, this.onExportJPEG.bind( this ) );
 	this.client.on( netgis.Events.EXPORT_PNG, this.onExportPNG.bind( this ) );
 	this.client.on( netgis.Events.EXPORT_GIF, this.onExportGIF.bind( this ) );
+	this.client.on( netgis.Events.PARCEL_SHOW_PREVIEW, this.onParcelShowPreview.bind( this ) );
+	this.client.on( netgis.Events.PARCEL_HIDE_PREVIEW, this.onParcelHidePreview.bind( this ) );
 };
 
 netgis.MapOpenLayers.prototype.createMap = function()
@@ -129,8 +135,13 @@ netgis.MapOpenLayers.prototype.createMap = function()
 
 netgis.MapOpenLayers.prototype.createDefaultLayers = function()
 {
+	//TODO: why id as z index ?
+	
 	this.editLayer = new ol.layer.Vector( { source: new ol.source.Vector( { features: [] } ), style: this.styleEdit.bind( this ), zIndex: this.editLayerID } );
 	this.map.addLayer( this.editLayer );
+	
+	this.parcelLayer = new ol.layer.Vector( { source: new ol.source.Vector( { features: [] } ), style: this.styleParcel.bind( this ), zIndex: this.editLayerID + 10 } );
+	this.map.addLayer( this.parcelLayer );
 	
 	this.editEventsOn();
 };
@@ -240,6 +251,8 @@ netgis.MapOpenLayers.prototype.createInteractions = function()
 		new ol.interaction.DragPan(),
 		new ol.interaction.MouseWheelZoom()
 	];
+	
+	this.interactions[ netgis.Modes.SEARCH_PARCEL ] = this.interactions[ netgis.Modes.VIEW ];
 };
 
 netgis.MapOpenLayers.prototype.createLayer = function( data )
@@ -477,6 +490,22 @@ netgis.MapOpenLayers.prototype.styleSketch = function( feature )
 	return [ style, vertex ];
 };
 
+netgis.MapOpenLayers.prototype.styleParcel = function()
+{
+	//var radius = this.client.config.styles.editLayer.pointRadius;
+	
+	var style = new ol.style.Style
+	(
+		{
+			//image: new ol.style.Circle( { radius: radius, fill: new ol.style.Fill( { color: this.client.config.styles.editLayer.stroke } ) } ),
+			fill: new ol.style.Fill( { color: this.client.config.styles.parcel.fill } ),
+			stroke: new ol.style.Stroke( { color: this.client.config.styles.parcel.stroke, width: this.client.config.styles.parcel.strokeWidth } )
+		}
+	);
+	
+	return style;
+};
+
 netgis.MapOpenLayers.prototype.getGeometryPoints = function( feature )
 {
 	var geometry = feature.getGeometry();
@@ -592,6 +621,8 @@ netgis.MapOpenLayers.prototype.setMode = function( mode )
 			this.map.addInteraction( interactions[ i ] );
 		}
 	}
+	
+	//TODO: set to default pan interactions when none found for mode ?
 	
 	if ( this.snap )
 	{
@@ -811,6 +842,17 @@ netgis.MapOpenLayers.prototype.onChangeZoom = function( e )
 {
 	var delta = e;
 	this.view.animate( { zoom: this.view.getZoom() + delta, duration: 200 } );
+};
+
+netgis.MapOpenLayers.prototype.onZoomWKT = function( e )
+{
+	var parser = new ol.format.WKT();
+	var geom = parser.readGeometry( e );
+	var padding = 40;
+	
+	this.view.fit( geom, { duration: 300, padding: [ padding, padding, padding, padding ] } );
+	
+	//TODO: take visible panels into account when zooming
 };
 
 netgis.MapOpenLayers.prototype.onPointerMove = function( e )
@@ -1284,6 +1326,15 @@ netgis.MapOpenLayers.prototype.addImportedFeatures = function( features )
 	*/
 };
 
+netgis.MapOpenLayers.prototype.onImportWKT = function( e )
+{
+	var parser = new ol.format.WKT();
+	var geom = parser.readGeometry( e );
+	var feature = new ol.Feature( { geometry: geom } );
+	
+	this.addImportedFeatures( [ feature ] );
+};
+
 netgis.MapOpenLayers.prototype.onExportPDF = function( e )
 {
 	this.exportImage( "pdf", e.resx, e.resy, e.mode, e.margin );
@@ -1302,6 +1353,21 @@ netgis.MapOpenLayers.prototype.onExportPNG = function( e )
 netgis.MapOpenLayers.prototype.onExportGIF = function( e )
 {
 	this.exportImage( "gif", e.resx, e.resy );
+};
+
+netgis.MapOpenLayers.prototype.onParcelShowPreview = function( e )
+{
+	var parser = new ol.format.WKT();
+	var geom = parser.readGeometry( e.geom );
+	var feature = new ol.Feature( { geometry: geom } );
+	
+	this.parcelLayer.getSource().clear();
+	this.parcelLayer.getSource().addFeature( feature );
+};
+
+netgis.MapOpenLayers.prototype.onParcelHidePreview = function( e )
+{
+	this.parcelLayer.getSource().clear();
 };
 
 netgis.MapOpenLayers.prototype.getWidth = function()

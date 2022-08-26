@@ -7,7 +7,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-		<title>NetGIS Client</title>
+		<title>Editor Demo | NetGIS Client</title>
 		
 		<!-- Library Styles -->
 		<link rel="stylesheet" type="text/css" href="/libs/fontawesome/5.12.0/css/all.min.css" />
@@ -19,6 +19,7 @@
 		<link rel="stylesheet" type="text/css" href="../src/netgis/Attribution.css" />
 		<link rel="stylesheet" type="text/css" href="../src/netgis/Controls.css" />
 		<link rel="stylesheet" type="text/css" href="../src/netgis/LayerTree.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis/SearchParcel.css" />
 		<link rel="stylesheet" type="text/css" href="../src/netgis/Toolbar.css" />
 		<link rel="stylesheet" type="text/css" href="../src/netgis/Menu.css" />
 		<link rel="stylesheet" type="text/css" href="../src/netgis/Modal.css" />
@@ -71,6 +72,7 @@
 		<script type="text/javascript" src="../src/netgis/Toolbar.js"></script>
 		<script type="text/javascript" src="../src/netgis/Modal.js"></script>
 		<script type="text/javascript" src="../src/netgis/SearchPlace.js"></script>
+		<script type="text/javascript" src="../src/netgis/SearchParcel.js"></script>
 		<script type="text/javascript" src="../src/netgis/OWS.js"></script>
 		<script type="text/javascript" src="../src/netgis/SLD.js"></script>
 		
@@ -79,7 +81,13 @@
 		<!-- Implementation Script -->
 		<script type="text/javascript">
 			
-			var client = new netgis.Client( "container" );
+			var config = netgis.Client.prototype.createDefaultConfig();
+			config.projections.push( [ "EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs" ] );
+			config.map.projection = "EPSG:25832";
+			config.map.center = [ 327642, 5514459 ];
+			config.map.zoom = 12;
+			
+			var client = new netgis.Client( "container", config );
 			client.debug = true;
 			
 		</script>

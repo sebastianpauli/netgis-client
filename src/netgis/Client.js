@@ -14,7 +14,7 @@ var netgis = netgis || {};
  */
 netgis.Client = function( container, config )
 {
-	this.build = "20220704";
+	this.build = "20220826";
 	this.debug = false;
 	
 	if ( netgis.util.isString( container ) )
@@ -83,6 +83,8 @@ netgis.Client = function( container, config )
 
 netgis.Client.prototype.createDefaultConfig = function()
 {
+	//TODO: should this be a static method of a config module ?
+	
 	var config =
 	{
 		map:
@@ -110,7 +112,8 @@ netgis.Client.prototype.createDefaultConfig = function()
 			editLayer: { fill: "rgba( 255, 0, 0, 0.5 )", stroke: "#ff0000", strokeWidth: 3, pointRadius: 6 },
 			select: { fill: "rgba( 0, 127, 255, 0.5 )", stroke: "#007fff", strokeWidth: 3, pointRadius: 6 },
 			sketch: { fill: "rgba( 0, 127, 0, 0.5 )", stroke: "#007f00", strokeWidth: 3, pointRadius: 6 },
-			modify: { fill: "rgba( 0, 127, 0, 0.5 )", stroke: "#007f00", strokeWidth: 3, pointRadius: 6 }
+			modify: { fill: "rgba( 0, 127, 0, 0.5 )", stroke: "#007f00", strokeWidth: 3, pointRadius: 6 },
+			parcel: { fill: "rgba( 127, 255, 255, 0.5 )", stroke: "#7fffff", strokeWidth: 3 }
 		}
 	};
 	
@@ -164,6 +167,7 @@ netgis.Client.prototype.createModules = function()
 	this.add( new netgis.Toolbar() );
 	this.add( new netgis.Menu() );
 	this.add( new netgis.SearchPlace() );
+	this.add( new netgis.SearchParcel() );
 	this.add( new netgis.Modal() );
 };
 

@@ -14,6 +14,7 @@
 
 .netgis-primary { background-color: #a7233f !important; color: white !important; }
 .netgis-hover-primary:hover { background-color: #c82a4b !important; color: white !important; }
+.netgis-light { background-color: #f4f4f4 !important; }
 .netgis-hover-light:hover { background-color: #f4f4f4 !important; }
 .netgis-text-primary { color: #a7233f !important; }
 .netgis-hover-text-primary:hover { color: #c82a4b !important; }

@@ -1,3 +1,6 @@
+
+/* TODO: refactor into common panel class */
+
 .netgis-layer-list
 {
 	position: absolute;
@@ -16,6 +19,8 @@
 
 .netgis-layer-list.netgis-hide
 {
+	display: initial;
+	
 	-webkit-transform: translateX( 110% );
 	transform: translateX( 110% );
 	transition: transform 150ms ease;

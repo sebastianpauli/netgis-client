@@ -2,6 +2,9 @@
 
 var netgis = netgis || {};
 
+//TODO: refactor common panel class
+//TODO: refactor common tree view class
+
 netgis.LayerTree = function()
 {
 	this.client = null;
@@ -27,6 +30,9 @@ netgis.LayerTree.prototype.load = function()
 	this.client.on( netgis.Events.LAYER_LIST_TOGGLE, this.onLayerListToggle.bind( this ) );
 	this.client.on( netgis.Events.LAYER_CREATED, this.onLayerCreated.bind( this ) );
 	this.client.on( netgis.Events.EDIT_FEATURES_CHANGE, this.onEditFeaturesChange.bind( this ) );
+	
+	//TODO: kind of hack to hide if parcel search open
+	this.client.on( netgis.Events.SET_MODE, this.onSetMode.bind( this ) );
 };
 
 netgis.LayerTree.prototype.clearAll = function()
@@ -377,4 +383,12 @@ netgis.LayerTree.prototype.onEditFeaturesChange = function( e )
 			this.client.invoke( netgis.Events.LAYER_SHOW, { id: id } );
 		}
 	};
+};
+
+netgis.LayerTree.prototype.onSetMode = function( e )
+{
+	if ( e === netgis.Modes.SEARCH_PARCEL )
+	{
+		this.root.classList.add( "netgis-hide" );
+	}
 };

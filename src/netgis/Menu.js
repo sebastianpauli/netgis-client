@@ -28,6 +28,10 @@ netgis.Menu.prototype.load = function()
 	////this.root.appendChild( search );
 	wrapper.appendChild( search );
 	
+	var searchParcel = this.createButton( 'Flurstücke<i class="fas fa-vector-square" style="position: relative; top: 0.3mm;"></i>', true );
+	searchParcel.addEventListener( "click", this.onSearchParcelClick.bind( this ) );
+	wrapper.appendChild( searchParcel );
+	
 	/*var title = this.createButton( '<span>GeoPortal</span>', false );
 	title.classList.remove( "netgis-hover-primary" ); //TODO: createText function?
 	//title.style.padding = "0mm";
@@ -187,6 +191,11 @@ netgis.Menu.prototype.onBufferFeatureClick = function( e )
 netgis.Menu.prototype.onSearchPlaceClick = function( e )
 {
 	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.SEARCH_PLACE );
+};
+
+netgis.Menu.prototype.onSearchParcelClick = function( e )
+{
+	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.SEARCH_PARCEL );
 };
 
 netgis.Menu.prototype.onSearchDataClick = function( e )
