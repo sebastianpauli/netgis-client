@@ -1112,10 +1112,15 @@ netgis.MapOpenLayers.prototype.updateEditOutput = function()
 {
 	var features = this.editLayer.getSource().getFeatures();
 	
-	// Output
+	var proj = this.client.config.map.projection;
 	var format = new ol.format.GeoJSON();
-	//var output = format.writeFeatures( features );
-	var output = format.writeFeaturesObject( features );
+	var output = format.writeFeaturesObject( features, { dataProjection: proj, featureProjection: proj } );
+	
+	output[ "crs" ] =
+	{
+		"type": "name",
+		"properties": { "name": "urn:ogc:def:crs:" + proj.replace( ":", "::" ) }
+	};
 	
 	if ( ! this.editEventsSilent )
 		this.client.invoke( netgis.Events.EDIT_FEATURES_CHANGE, output );
@@ -1135,15 +1140,9 @@ netgis.MapOpenLayers.prototype.updateEditLayerItem = function()
 
 netgis.MapOpenLayers.prototype.onEditFeaturesLoaded = function( e )
 {
-	var json = e;
-	var format = new ol.format.GeoJSON();
-	var features = format.readFeatures( json );
-	
-	this.editLayer.getSource().addFeatures( features );
-	//this.snapFeatures.push( e.feature );
-	
-	if ( features.length > 0 )
-		this.view.fit( this.editLayer.getSource().getExtent(), { padding: [ 40, 40, 40, 40 ] } );
+	var json = e;	
+	var self = this;
+	window.setTimeout( function() { self.createLayerGeoJSON( "Import", json ); }, 10 );
 };
 
 netgis.MapOpenLayers.prototype.onDragEnter = function( e )
@@ -1250,7 +1249,6 @@ netgis.MapOpenLayers.prototype.onImportShapefile = function( e )
 
 netgis.MapOpenLayers.prototype.createLayerGeoJSON = function( title, data )
 {	
-	//var format = new ol.format.GeoJSON( { dataProjection: "EPSG:4326", featureProjection: this.client.config.map.projection /*"EPSG:3857"*/ } );
 	var format = new ol.format.GeoJSON();
 	var projection = format.readProjection( data );
 	var features = format.readFeatures( data, { featureProjection: this.client.config.map.projection } );
@@ -1258,7 +1256,26 @@ netgis.MapOpenLayers.prototype.createLayerGeoJSON = function( title, data )
 	//NOTE: proj4.defs[ "EPSG:4326" ]
 	//NOTE: netgis.util.foreach( proj4.defs, function( k,v ) { console.info( "DEF:", k, v ); } )
 	
-	//console.info( "Projection:", projection.getCode() );
+	var projcode = projection.getCode();
+	
+	switch ( projcode )
+	{
+		case "EPSG:3857":
+		case "EPSG:4326":
+		case this.client.config.map.projection:
+		{
+			// Projection OK
+			//console.info( "Import Projection:", projcode );
+			break;
+		}
+		
+		default:
+		{
+			// Projection Not Supported
+			console.warn( "Unsupported Import Projection:", projcode );
+			break;
+		}
+	}	
 
 	this.addImportedFeatures( features );
 };
@@ -1270,17 +1287,140 @@ netgis.MapOpenLayers.prototype.createLayerGML = function( title, data )
 	
 	console.warn( "GML support is experimental!" );
 	
-	var format = new ol.format.WFS( /*{ srsName: "EPSG:4326", featureType: "ogr:RLP_OG_utf8_epsg4326" }*/ );
+	//var format = new ol.format.GML3( { srsName: "EPSG::25832", featureType: "Test", featureNS: "http://www.opengis.net/gml" } );
+	//var format = new ol.format.GML( { featureNS: "ogr" } );
+	//var format = new ol.format.WFS( /*{ srsName: "EPSG:4326", featureType: "ogr:RLP_OG_utf8_epsg4326" }*/ );
 	//var format = new ol.format.GML( { featureNS: "ogr", featureType: "ogr:RLP_OG_utf8_epsg4326" } );
 	//var format = new ol.format.WFS();
 	//var format = new ol.format.WFS( { featureNS: "ogr", featureType: "RLP_OG_utf8_epsg4326" } );
-	var projection = format.readProjection( data );
+	//var projection = format.readProjection( data );
 	//var features = format.readFeatures( data, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" } );
-	var features = format.readFeatures( data, { featureProjection: this.client.config.map.projection } );
+	
+	//var features = format.readFeatures( data, { dataProjection: this.client.config.map.projection, featureProjection: this.client.config.map.projection } );
 
-	console.info( "GML:", projection, features );
+	//console.info( "GML:", projection, features, features[ 0 ].getGeometry() );
+
+	var features = [];
+	
+	var parser = new DOMParser();
+	var xml = parser.parseFromString( data, "text/xml" );
+	
+	// Features
+	var featureMembers = xml.getElementsByTagName( "gml:featureMember" );
+	
+	for ( var f = 0; f < featureMembers.length; f++ )
+	{
+		var props = {};
+		
+		var node = featureMembers[ f ];
+		var child = node.children[ 0 ];
+		
+		// Attributes
+		for ( var a = 0; a < child.attributes.length; a++ )
+		{
+			var attribute = child.attributes[ a ];
+			props[ attribute.nodeName ] = attribute.nodeValue;
+		}
+		
+		for ( var c = 0; c < child.children.length; c++ )
+		{
+			var childNode = child.children[ c ];
+			
+			if ( childNode.nodeName === "ogr:geometryProperty" ) continue;
+			
+			var parts = childNode.nodeName.split( ":" );
+			var k = parts[ parts.length - 1 ];
+			var v = childNode.innerHTML;
+			
+			props[ k ] = v;
+		}
+		
+		// Geometry
+		var geomprop = child.getElementsByTagName( "ogr:geometryProperty" )[ 0 ];
+		
+		//for ( var g = 0; g < geomprop.children.length; g++ )
+		{
+			var geom = geomprop.children[ 0 ];
+			var proj = geom.getAttribute( "srsName" );
+			
+			if ( proj && proj !== "EPSG:4326" && proj !== this.client.config.map.projection )
+				console.warn( "Unsupported Import Projection:", proj );
+			
+			switch ( geom.nodeName )
+			{
+				case "gml:Polygon":
+				{
+					props[ "geometry" ] = this.gmlParsePolygon( geom, proj );
+					break;
+				}
+				
+				case "gml:MultiPolygon":
+				{
+					props[ "geometry" ] = this.gmlParseMultiPolygon( geom, proj );
+					break;
+				}
+			}
+		}
+		
+		var feature = new ol.Feature( props );
+		features.push( feature );
+	}
 
 	this.addImportedFeatures( features );
+};
+
+netgis.MapOpenLayers.prototype.gmlParsePolygon = function( node, proj )
+{
+	var rings = [];
+	
+	var linearRings = node.getElementsByTagName( "gml:LinearRing" );
+	
+	for ( var r = 0; r < linearRings.length; r++ )
+	{
+		var ring = linearRings[ r ];
+		var coords = ring.getElementsByTagName( "gml:coordinates" )[ 0 ].innerHTML;
+		rings.push( this.gmlParseCoordinates( coords, proj ) );
+	}
+	
+	return new ol.geom.Polygon( rings );
+};
+
+netgis.MapOpenLayers.prototype.gmlParseMultiPolygon = function( node, proj )
+{
+	var polygons = [];
+					
+	var polygonMembers = node.getElementsByTagName( "gml:polygonMember" );
+
+	for ( var p = 0; p < polygonMembers.length; p++ )
+	{
+		var polygonMember = polygonMembers[ p ];
+		var polygonNode = polygonMember.getElementsByTagName( "gml:Polygon" )[ 0 ];
+		polygons.push( this.gmlParsePolygon( polygonNode, proj ) );
+	}
+	
+	return new ol.geom.MultiPolygon( polygons );
+};
+
+netgis.MapOpenLayers.prototype.gmlParseCoordinates = function( s, proj )
+{
+	var coords = s.split( " " );
+						
+	for ( var c = 0; c < coords.length; c++ )
+	{
+		// Split
+		coords[ c ] = coords[ c ].split( "," );
+
+		// Parse
+		for ( var xy = 0; xy < coords[ c ].length; xy++ )
+		{
+			coords[ c ][ xy ] = Number.parseFloat( coords[ c ][ xy ] );
+		}
+		
+		// Transform
+		if ( proj ) coords[ c ] = ol.proj.transform( coords[ c ], proj, this.client.config.map.projection );
+	}
+	
+	return coords;
 };
 
 netgis.MapOpenLayers.prototype.createLayerShapefile = function( title, shapeData )
@@ -1308,22 +1448,20 @@ netgis.MapOpenLayers.prototype.addImportedFeatures = function( features )
 	this.editLayer.getSource().addFeatures( features );
 	this.editEventsSilent = false;
 	this.updateEditOutput();
-
-	/*
-	// Create New Layer
-	var id = this.importLayerID;
-	this.importLayerID += 1;
-
-	var layer = new ol.layer.Vector( { source: new ol.source.Vector( { features: features } ), zIndex: id } );
-	this.map.addLayer( layer );
-	this.layers[ id ] = layer;
-	this.addSnapLayer( layer );
-
+	
+	// Zoom Imported Features
 	if ( features.length > 0 )
-		this.view.fit( layer.getSource().getExtent(), {} );
-
-	this.client.invoke( netgis.Events.LAYER_CREATED, { id: id, title: title, checked: true, folder: "import" } );
-	*/
+	{
+		var extent = features[ 0 ].getGeometry().getExtent();
+		
+		for ( var f = 1; f < features.length; f++ )
+		{
+			ol.extent.extend( extent, features[ f ].getGeometry().getExtent() );
+		}
+		
+		var padding = 40;
+		this.view.fit( extent, { duration: 300, padding: [ padding, padding, padding, padding ] } );
+	}
 };
 
 netgis.MapOpenLayers.prototype.onImportWKT = function( e )
