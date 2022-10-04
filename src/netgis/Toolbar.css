@@ -17,8 +17,6 @@
 	line-height: 12mm;
 	font-size: 0mm;
 	white-space: nowrap;
-	overflow-x: auto;
-	overflow-y: hidden;
 	z-index: 1;
 	
 	-webkit-transform: none;
@@ -108,12 +106,8 @@
 
 .netgis-toolbar .netgis-search-list
 {
-	position: fixed;
+	position: absolute;
 	min-width: 68mm; /* 60mm + 4mm + 4mm ( input width + padding ) */
-	/*osition: absolute;
-	left: 0mm;
-	min-width: 100%;*/
-	/*height: 5.0em;*/
 	padding: 0mm;
 	margin: 0mm;
 	margin-left: -4mm;
