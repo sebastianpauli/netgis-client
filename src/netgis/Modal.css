@@ -131,7 +131,8 @@
 	cursor: not-allowed;
 }
 
-.netgis-modal-content input
+.netgis-modal-content input,
+.netgis-modal-content select
 {
 	width: 100%;
 }

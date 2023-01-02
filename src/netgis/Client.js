@@ -191,6 +191,7 @@ netgis.Client.prototype.load = function()
 
 			if ( this.output.value && this.output.value.length > 0 )
 			{
+				//console.info( "INPUT:", this.output.value );
 				var json = JSON.parse( this.output.value );
 				this.invoke( netgis.Events.EDIT_FEATURES_LOADED, json );
 			}
@@ -288,6 +289,7 @@ netgis.Client.prototype.onHtmlResponse = function( data )
 netgis.Client.prototype.onEditFeaturesChange = function( e )
 {
 	var geojson = JSON.stringify( e );
+	//console.info( "OUTPUT:", geojson );
 	this.output.value = geojson;
 };
 

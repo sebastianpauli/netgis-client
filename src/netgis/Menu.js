@@ -72,6 +72,8 @@ netgis.Menu.prototype.load = function()
 		//fileItems.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>KML', this.onImportKMLClick.bind( this ) ) );
 		importItem.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>GML', this.onImportGMLClick.bind( this ) ) );
 		importItem.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>Shapefile', this.onImportShapefileClick.bind( this ) ) );
+		importItem.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>Spatialite', this.onImportSpatialiteClick.bind( this ) ) );
+		importItem.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>GeoPackage', this.onImportGeopackageClick.bind( this ) ) );
 		
 		// Export
 		var exportMenu = this.createMenu( '<i class="fas fa-caret-down"></i>Export' );
@@ -226,6 +228,16 @@ netgis.Menu.prototype.onImportKMLClick = function( e )
 netgis.Menu.prototype.onImportGMLClick = function( e )
 {
 	this.client.invoke( netgis.Events.IMPORT_GML_SHOW, null );
+};
+
+netgis.Menu.prototype.onImportSpatialiteClick = function( e )
+{
+	this.client.invoke( netgis.Events.IMPORT_SPATIALITE_SHOW, null );
+};
+
+netgis.Menu.prototype.onImportGeopackageClick = function( e )
+{
+	this.client.invoke( netgis.Events.IMPORT_GEOPACKAGE_SHOW, null );
 };
 
 netgis.Menu.prototype.onExportPDFClick = function( e )
