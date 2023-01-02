@@ -24,55 +24,20 @@ netgis.LayerTree.prototype.load = function()
 	this.list.className = "root";
 	this.root.appendChild( this.list );
 	
-	this.initDefaultFolders();
-	
-	this.tools = document.createElement( "div" );
-	this.tools.className = "netgis-layer-tools";
-	this.tools.innerHTML = "<hr/>";
-	this.root.appendChild( this.tools );
-	
-	this.buttonAddService = document.createElement( "button" );
-	//this.buttonAddService.className = "netgis-primary netgis-hover-primary netgis-shadow";
-	this.buttonAddService.className = "netgis-text-primary netgis-hover-primary";
-	//this.buttonAddService.innerHTML = "<i class='fas fa-plus' style='color: #000'></i> Dienst hinzufügen";
-	this.buttonAddService.innerHTML = "<i class='fas fa-folder-plus'></i> Dienst hinzufügen";
-	//this.buttonAddService.innerHTML = "<i class='fas fa-cloud-upload-alt'></i> Dienst hinzufügen";
-	this.buttonAddService.addEventListener( "click", this.onAddServiceClick.bind( this ) );
-	this.tools.appendChild( this.buttonAddService );
-	
 	this.client.root.appendChild( this.root );
 	
 	this.client.on( netgis.Events.CONTEXT_UPDATE, this.onContextUpdate.bind( this ) );
 	this.client.on( netgis.Events.LAYER_LIST_TOGGLE, this.onLayerListToggle.bind( this ) );
 	this.client.on( netgis.Events.LAYER_CREATED, this.onLayerCreated.bind( this ) );
 	this.client.on( netgis.Events.EDIT_FEATURES_CHANGE, this.onEditFeaturesChange.bind( this ) );
-	this.client.on( netgis.Events.ADD_SERVICE_WMS, this.onAddServiceWMS.bind( this ) );
-	this.client.on( netgis.Events.ADD_SERVICE_WFS, this.onAddServiceWFS.bind( this ) );
 	
 	//TODO: kind of hack to hide if parcel search open
 	this.client.on( netgis.Events.SET_MODE, this.onSetMode.bind( this ) );
 };
 
-netgis.LayerTree.prototype.initDefaultFolders = function()
-{
-	this.folderDraw = this.createFolder( "Zeichnung" );
-	this.folderDraw.classList.add( "netgis-hide" );
-	this.list.appendChild( this.folderDraw );
-	
-	this.folderImport = this.createFolder( "Importierte Ebenen" );
-	this.folderImport.classList.add( "netgis-hide" );
-	this.list.appendChild( this.folderImport );
-	
-	this.folderServices = this.createFolder( "Eigene Dienste" );
-	this.folderServices.classList.add( "netgis-hide" );
-	this.list.appendChild( this.folderServices );
-};
-
 netgis.LayerTree.prototype.clearAll = function()
 {
 	this.list.innerHTML = "";
-	
-	this.initDefaultFolders();
 };
 
 netgis.LayerTree.prototype.createFolder = function( title )
@@ -136,9 +101,6 @@ netgis.LayerTree.prototype.createLayer = function( id, title, checked )
 	
 	var text = document.createTextNode( title );
 	label.appendChild( text );
-	
-	var appendix = document.createElement( "span" );
-	label.appendChild( appendix );
 	
 	return item;
 };
@@ -380,26 +342,21 @@ netgis.LayerTree.prototype.onLayerCreated = function( e )
 	//TODO: this is a hack to get special folders working	
 	if ( e.folder === "import" )
 	{
-		/*if ( ! this.folderImport )
+		if ( ! this.folderImport )
 		{
 			this.folderImport = this.createFolder( "Importierte Ebenen" );
 			this.list.insertBefore( this.folderImport, this.folderDraw ? this.folderDraw.nextSibling : this.list.firstChild );
 		}
-		*/
-	   
-		this.folderImport.classList.remove( "netgis-hide" );
-	   
+		
 		folder = this.folderImport;
 	}
 	else if ( e.folder === "draw" )
 	{
-		/*if ( ! this.folderDraw )
+		if ( ! this.folderDraw )
 		{
 			this.folderDraw = this.createFolder( "Zeichnung" );
 			this.list.insertBefore( this.folderDraw, this.list.firstChild );
-		}*/
-		
-		this.folderDraw.classList.remove( "netgis-hide" );
+		}
 		
 		folder = this.folderDraw;
 	}
@@ -425,43 +382,7 @@ netgis.LayerTree.prototype.onEditFeaturesChange = function( e )
 			this.updateFolderChecks( this.folderDraw );
 			this.client.invoke( netgis.Events.LAYER_SHOW, { id: id } );
 		}
-		
-		// Update Area
-		var label = list.getElementsByTagName( "label" )[ 0 ];
-		var spans = label.getElementsByTagName( "span" );
-		var appendix = spans[ spans.length - 1 ];
-		
-		if ( e.area && e.area > 0.0 )
-		{
-			appendix.innerText = " (Fläche: " + netgis.util.formatArea( e.area, true ) + ")";
-		}
-		else
-		{
-			appendix.innerText = "";
-		}
 	};
-};
-
-netgis.LayerTree.prototype.onAddServiceWMS = function( e )
-{
-	var item = this.createLayer( e.id, e.title, true );
-	
-	this.folderServices.classList.remove( "netgis-hide" );
-	this.addToFolder( this.folderServices, item, true );
-	this.updateFolderChecks( this.folderServices );
-	
-	this.client.invoke( netgis.Events.LAYER_SHOW, { id: e.id } );
-};
-
-netgis.LayerTree.prototype.onAddServiceWFS = function( e )
-{
-	var item = this.createLayer( e.id, e.title, true );
-	
-	this.folderServices.classList.remove( "netgis-hide" );
-	this.addToFolder( this.folderServices, item, true );
-	this.updateFolderChecks( this.folderServices );
-	
-	this.client.invoke( netgis.Events.LAYER_SHOW, { id: e.id } );
 };
 
 netgis.LayerTree.prototype.onSetMode = function( e )
@@ -470,9 +391,4 @@ netgis.LayerTree.prototype.onSetMode = function( e )
 	{
 		this.root.classList.add( "netgis-hide" );
 	}
-};
-
-netgis.LayerTree.prototype.onAddServiceClick = function( e )
-{
-	this.client.invoke( netgis.Events.ADD_SERVICE_SHOW, null );
 };

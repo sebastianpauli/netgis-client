@@ -157,27 +157,3 @@
 {
 	opacity: 0.5;
 }
-
-.netgis-layer-tools
-{
-	padding: 4mm;
-	padding-top: 0mm;
-	text-align: center;
-}
-
-.netgis-layer-tools hr
-{
-	margin: 4mm 0mm;
-	color: #eee;
-	border-color: #eee;
-}
-
-.netgis-layer-tools button
-{
-	padding: 2mm 4mm;
-}
-
-.netgis-layer-tools button i
-{
-	margin-right: 1mm;
-}

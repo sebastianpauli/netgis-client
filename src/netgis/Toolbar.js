@@ -18,38 +18,20 @@ netgis.Toolbar.prototype.load = function()
 	
 	if ( this.client.editable )
 	{
-		var bufferDefaultRadius = 1000;
-		var bufferDefaultSegments = 3;
-		
-		if ( netgis.util.isDefined( config.tools ) )
-		{
-			if ( netgis.util.isDefined( config.tools.buffer.defaultRadius ) ) bufferDefaultRadius = config.tools.buffer.defaultRadius;
-			if ( netgis.util.isDefined( config.tools.buffer.defaultSegments ) ) bufferDefaultSegments = config.tools.buffer.defaultSegments;
-		}	
-		
 		// Draw
 		this.toolbars[ netgis.Modes.DRAW_POINTS ] = this.createToolbar();
 		this.append( this.toolbars[ netgis.Modes.DRAW_POINTS ], this.createToolbarButton( '<i class="fas fa-times"></i><span>Punkte zeichnen:</span>', this.onToolbarClose.bind( this ) ) );
 		this.append( this.toolbars[ netgis.Modes.DRAW_POINTS ], this.createToolbarCheckbox( "Einrasten", this.onSnapChange.bind( this ) ) );
-		this.append( this.toolbars[ netgis.Modes.DRAW_POINTS ], this.createToolbarCheckbox( "Puffern", this.onDrawBufferChange.bind( this ) ) );
-		this.append( this.toolbars[ netgis.Modes.DRAW_POINTS ], this.createToolbarInput( "Radius (Meter):", bufferDefaultRadius, this.onDrawBufferRadiusChange.bind( this ) ) );
-		this.append( this.toolbars[ netgis.Modes.DRAW_POINTS ], this.createToolbarInput( "Segmente:", bufferDefaultSegments, this.onDrawBufferSegmentsChange.bind( this ) ) );
 		this.root.appendChild( this.toolbars[ netgis.Modes.DRAW_POINTS ] );
 
 		this.toolbars[ netgis.Modes.DRAW_LINES ] = this.createToolbar();
 		this.append( this.toolbars[ netgis.Modes.DRAW_LINES ], this.createToolbarButton( '<i class="fas fa-times"></i><span>Linien zeichnen:</span>', this.onToolbarClose.bind( this ) ) );
 		this.append( this.toolbars[ netgis.Modes.DRAW_LINES ], this.createToolbarCheckbox( "Einrasten", this.onSnapChange.bind( this ) ) );
-		this.append( this.toolbars[ netgis.Modes.DRAW_LINES ], this.createToolbarCheckbox( "Puffern", this.onDrawBufferChange.bind( this ) ) );
-		this.append( this.toolbars[ netgis.Modes.DRAW_LINES ], this.createToolbarInput( "Radius (Meter):", bufferDefaultRadius, this.onDrawBufferRadiusChange.bind( this ) ) );
-		this.append( this.toolbars[ netgis.Modes.DRAW_LINES ], this.createToolbarInput( "Segmente:", bufferDefaultSegments, this.onDrawBufferSegmentsChange.bind( this ) ) );
 		this.root.appendChild( this.toolbars[ netgis.Modes.DRAW_LINES ] );
-		
-		this.showDrawBufferOptions( false );
 
 		this.toolbars[ netgis.Modes.DRAW_POLYGONS ] = this.createToolbar();
 		this.append( this.toolbars[ netgis.Modes.DRAW_POLYGONS ], this.createToolbarButton( '<i class="fas fa-times"></i><span>Polygone zeichnen:</span>', this.onToolbarClose.bind( this ) ) );
 		this.append( this.toolbars[ netgis.Modes.DRAW_POLYGONS ], this.createToolbarCheckbox( "Einrasten", this.onSnapChange.bind( this ) ) );
-		this.append( this.toolbars[ netgis.Modes.DRAW_POLYGONS ], this.createToolbarCheckbox( "Tracing", this.onTracingChange.bind( this ) ) );
 		this.root.appendChild( this.toolbars[ netgis.Modes.DRAW_POLYGONS ] );
 
 		// Edit
@@ -78,8 +60,17 @@ netgis.Toolbar.prototype.load = function()
 		//var wrapper = document.createElement( "div" );
 		//this.toolbars[ netgis.Modes.BUFFER_FEATURE_EDIT ].appendChild( wrapper );
 		
+		var bufferDefaultRadius = 1000;
+		var bufferDefaultSegments = 3;
+		
+		if ( netgis.util.isDefined( config.tools ) )
+		{
+			if ( netgis.util.isDefined( config.tools.buffer.defaultRadius ) ) bufferDefaultRadius = config.tools.buffer.defaultRadius;
+			if ( netgis.util.isDefined( config.tools.buffer.defaultSegments ) ) bufferDefaultSegments = config.tools.buffer.defaultSegments;
+		}	
+		
 		this.append( this.toolbars[ netgis.Modes.BUFFER_FEATURE_EDIT ], this.createToolbarButton( '<i class="fas fa-times"></i><span>Feature puffern:</span>', this.onBufferCancel.bind( this ) ) );
-		this.append( this.toolbars[ netgis.Modes.BUFFER_FEATURE_EDIT ], this.createToolbarInput( "Radius (Meter):", bufferDefaultRadius, this.onBufferChange.bind( this ) ) );
+		this.append( this.toolbars[ netgis.Modes.BUFFER_FEATURE_EDIT ], this.createToolbarInput( "Radius in Meter:", bufferDefaultRadius, this.onBufferChange.bind( this ) ) );
 		this.append( this.toolbars[ netgis.Modes.BUFFER_FEATURE_EDIT ], this.createToolbarInput( "Segmente:", bufferDefaultSegments, this.onBufferChange.bind( this ) ) );
 		this.append( this.toolbars[ netgis.Modes.BUFFER_FEATURE_EDIT ], this.createToolbarButton( '<i class="fas fa-check"></i><span>OK</span>', this.onBufferAccept.bind( this ) ) );
 		
@@ -259,19 +250,6 @@ netgis.Toolbar.prototype.onSetMode = function( e )
 		case netgis.Modes.BUFFER_FEATURE_EDIT:
 		{
 			this.updateBuffer();
-			break;
-		}
-		
-		case netgis.Modes.DRAW_POINTS:
-		case netgis.Modes.DRAW_LINES:
-		{
-			var checkbox = this.toolbars[ netgis.Modes.DRAW_POINTS ].getElementsByTagName( "input" )[ 1 ];
-			
-			if ( checkbox.checked )
-			{
-				this.client.invoke( netgis.Events.DRAW_BUFFER_ON, null );
-			}
-			
 			break;
 		}
 	}
@@ -466,83 +444,4 @@ netgis.Toolbar.prototype.onSnapChange = function( e )
 	this.toolbars[ netgis.Modes.DRAW_POLYGONS ].getElementsByTagName( "input" )[ 0 ].checked = on;
 	
 	this.client.invoke( on ? netgis.Events.SNAP_ON : netgis.Events.SNAP_OFF, null );
-};
-
-netgis.Toolbar.prototype.onTracingChange = function( e )
-{
-	var input = e.target;
-	var on = input.checked;
-	
-	var snapInput = this.toolbars[ netgis.Modes.DRAW_POLYGONS ].getElementsByTagName( "input" )[ 0 ];
-	var snap = snapInput.checked;
-	
-	if ( on && !snap )
-	{
-		snapInput.checked = on;
-		this.client.invoke( netgis.Events.SNAP_ON, null );
-	}
-	
-	this.client.invoke( on ? netgis.Events.TRACING_ON : netgis.Events.TRACING_OFF, null );
-};
-
-netgis.Toolbar.prototype.onDrawBufferChange = function( e )
-{
-	var input = e.target;
-	var on = input.checked;
-	
-	this.toolbars[ netgis.Modes.DRAW_POINTS ].getElementsByTagName( "input" )[ 1 ].checked = on;
-	this.toolbars[ netgis.Modes.DRAW_LINES ].getElementsByTagName( "input" )[ 1 ].checked = on;
-	
-	this.client.invoke( on ? netgis.Events.DRAW_BUFFER_ON : netgis.Events.DRAW_BUFFER_OFF, null );
-	
-	this.showDrawBufferOptions( on );
-};
-
-netgis.Toolbar.prototype.onDrawBufferRadiusChange = function( e )
-{
-	var input = e.target;
-	var radius = Number.parseFloat( input.value );
-	
-	this.client.invoke( netgis.Events.DRAW_BUFFER_RADIUS_CHANGE, radius );
-	
-	var pointsInput = this.toolbars[ netgis.Modes.DRAW_POINTS ].getElementsByTagName( "input" )[ 2 ];
-	if ( input !== pointsInput ) pointsInput.value = radius;
-	
-	var linesInput = this.toolbars[ netgis.Modes.DRAW_LINES ].getElementsByTagName( "input" )[ 2 ];
-	if ( input !== linesInput ) linesInput.value = radius;
-};
-
-netgis.Toolbar.prototype.onDrawBufferSegmentsChange = function( e )
-{
-	var input = e.target;
-	var segs = Number.parseInt( input.value );
-	
-	this.client.invoke( netgis.Events.DRAW_BUFFER_SEGMENTS_CHANGE, segs );
-	
-	var pointsInput = this.toolbars[ netgis.Modes.DRAW_POINTS ].getElementsByTagName( "input" )[ 3 ];
-	if ( input !== pointsInput ) pointsInput.value = segs;
-	
-	var linesInput = this.toolbars[ netgis.Modes.DRAW_LINES ].getElementsByTagName( "input" )[ 3 ];
-	if ( input !== linesInput ) linesInput.value = segs;
-};
-
-netgis.Toolbar.prototype.showDrawBufferOptions = function( on )
-{
-	var pointsItems = this.toolbars[ netgis.Modes.DRAW_POINTS ].children[ 0 ].children;
-	var linesItems = this.toolbars[ netgis.Modes.DRAW_LINES ].children[ 0 ].children;
-	
-	if ( on )
-	{
-		pointsItems[ 3 ].classList.remove( "netgis-hide" );
-		pointsItems[ 4 ].classList.remove( "netgis-hide" );
-		linesItems[ 3 ].classList.remove( "netgis-hide" );
-		linesItems[ 4 ].classList.remove( "netgis-hide" );
-	}
-	else
-	{
-		pointsItems[ 3 ].classList.add( "netgis-hide" );
-		pointsItems[ 4 ].classList.add( "netgis-hide" );
-		linesItems[ 3 ].classList.add( "netgis-hide" );
-		linesItems[ 4 ].classList.add( "netgis-hide" );
-	}
 };

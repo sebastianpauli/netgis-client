@@ -21,9 +21,6 @@ netgis.Modal = function()
 	this.exportJPEG = null;
 	this.exportPNG = null;
 	this.exportGIF = null;
-	this.addService = null;
-	
-	this.addServiceID = 10000;
 };
 
 netgis.Modal.prototype.load = function()
@@ -42,12 +39,6 @@ netgis.Modal.prototype.load = function()
 	this.importShapefile = this.createImportShapefile();
 	this.root.appendChild( this.importShapefile );
 	
-	this.importSpatialite = this.createImportSpatialite();
-	this.root.appendChild( this.importSpatialite );
-	
-	this.importGeopackage = this.createImportGeopackage();
-	this.root.appendChild( this.importGeopackage );
-	
 	// Export
 	this.exportPDF = this.createExportPDF();
 	this.root.appendChild( this.exportPDF );
@@ -61,10 +52,6 @@ netgis.Modal.prototype.load = function()
 	this.exportGIF = this.createExportGIF();
 	this.root.appendChild( this.exportGIF );
 	
-	// Layers
-	this.addService = this.createAddService();
-	this.root.appendChild( this.addService );
-	
 	// Done
 	this.client.root.appendChild( this.root );
 	
@@ -72,15 +59,11 @@ netgis.Modal.prototype.load = function()
 	this.client.on( netgis.Events.IMPORT_GEOJSON_SHOW, this.onImportGeoJSONShow.bind( this ) );
 	this.client.on( netgis.Events.IMPORT_GML_SHOW, this.onImportGMLShow.bind( this ) );
 	this.client.on( netgis.Events.IMPORT_SHAPEFILE_SHOW, this.onImportShapefileShow.bind( this ) );
-	this.client.on( netgis.Events.IMPORT_SPATIALITE_SHOW, this.onImportSpatialiteShow.bind( this ) );
-	this.client.on( netgis.Events.IMPORT_GEOPACKAGE_SHOW, this.onImportGeopackageShow.bind( this ) );
 	
 	this.client.on( netgis.Events.EXPORT_PDF_SHOW, this.onExportPDFShow.bind( this ) );
 	this.client.on( netgis.Events.EXPORT_JPEG_SHOW, this.onExportJPEGShow.bind( this ) );
 	this.client.on( netgis.Events.EXPORT_PNG_SHOW, this.onExportPNGShow.bind( this ) );
 	this.client.on( netgis.Events.EXPORT_GIF_SHOW, this.onExportGIFShow.bind( this ) );
-	
-	this.client.on( netgis.Events.ADD_SERVICE_SHOW, this.onAddServiceShow.bind( this ) );
 };
 
 netgis.Modal.prototype.createImportGeoJSON = function()
@@ -115,30 +98,6 @@ netgis.Modal.prototype.createImportShapefile = function()
 	this.createInputFile( container, "Datei auswählen / ablegen:", "application/zip", this.onImportShapefileChange.bind( this ) );
 	this.createSpace( container );
 	this.createButton( container, "<i class='fas fa-check'></i>Importieren", this.onImportShapefileAccept.bind( this ) );
-	
-	return container;
-};
-
-netgis.Modal.prototype.createImportSpatialite = function()
-{
-	var container = this.createContainer( "Import Spatialite" );
-	
-	this.createText( container, "Unterstützte Koordinatensysteme:", "<ul><li>World Geodetic System 1984 (EPSG:4326)</li><li>ETRS89 / UTM zone 32N (EPSG:25832)</li></ul>" );
-	this.createInputFile( container, "Datei auswählen / ablegen:", ".sqlite", this.onImportSpatialiteChange.bind( this ) );
-	this.createSpace( container );
-	this.createButton( container, "<i class='fas fa-check'></i>Importieren", this.onImportSpatialiteAccept.bind( this ) );
-	
-	return container;
-};
-
-netgis.Modal.prototype.createImportGeopackage = function()
-{
-	var container = this.createContainer( "Import GeoPackage" );
-	
-	this.createText( container, "Unterstützte Koordinatensysteme:", "<ul><li>World Geodetic System 1984 (EPSG:4326)</li><li>ETRS89 / UTM zone 32N (EPSG:25832)</li></ul>" );
-	this.createInputFile( container, "Datei auswählen / ablegen:", ".gpkg", this.onImportGeopackageChange.bind( this ) );
-	this.createSpace( container );
-	this.createButton( container, "<i class='fas fa-check'></i>Importieren", this.onImportGeopackageAccept.bind( this ) );
 	
 	return container;
 };
@@ -190,29 +149,6 @@ netgis.Modal.prototype.createExportGIF = function()
 	this.createSpace( container );
 	this.createButton( container, "<i class='fas fa-check'></i>Exportieren", this.onExportGIFAccept.bind( this ) );
 
-	return container;
-};
-
-netgis.Modal.prototype.createAddService = function()
-{
-	var container = this.createContainer( "Dienst hinzufügen" );
-	
-	this.createInputText( container, "WMS/WFS URL:" );
-	this.createSpace( container );
-	this.createButton( container, "<i class='fas fa-cloud-download-alt'></i>Dienst laden", this.onAddServiceLoad.bind( this ) );
-	
-	/*var details = document.createElement( "div" );
-	details.className = "netgis-hide";
-	container.appendChild( details );*/
-	
-	this.createSpace( container );
-	this.createInputHidden( container );
-	this.createText( container, "Bezeichnung:", "" );
-	this.createInputSelect( container, "Kartenebene:", [] );
-	this.createInputSelect( container, "Format:", [] );
-	this.createSpace( container );
-	this.createButton( container, "<i class='fas fa-check'></i>Dienst hinzufügen", this.onAddServiceAccept.bind( this ) );
-	
 	return container;
 };
 
@@ -307,25 +243,6 @@ netgis.Modal.prototype.createButton = function( container, title, callback )
 	return button;
 };
 
-netgis.Modal.prototype.createInputHidden = function( container )
-{
-	var row = document.createElement( "tr" );
-	row.className = "netgis-hidden";
-	
-	var cell = document.createElement( "td" );
-	row.appendChild( cell );
-	
-	var input = document.createElement( "input" );
-	input.setAttribute( "type", "hidden" );
-	cell.appendChild( input );
-	
-	var content = container.getElementsByClassName( "netgis-modal-content" )[ 0 ];
-	var table = content.getElementsByTagName( "table" )[ 0 ];
-	table.appendChild( row );
-	
-	return input;
-};
-
 netgis.Modal.prototype.createInputText = function( container, title )
 {
 	var row = document.createElement( "tr" );
@@ -341,40 +258,11 @@ netgis.Modal.prototype.createInputText = function( container, title )
 	
 	var cell = document.createElement( "td" );
 	cell.className = "netgis-padding";
-	row.appendChild( cell );
 	
 	var input = document.createElement( "input" );
 	input.setAttribute( "type", "text" );
 	cell.appendChild( input );
-	
-	label.htmlFor = input;
-	
-	var content = container.getElementsByClassName( "netgis-modal-content" )[ 0 ];
-	var table = content.getElementsByTagName( "table" )[ 0 ];
-	table.appendChild( row );
-	
-	return input;
-};
-
-netgis.Modal.prototype.createInputSelect = function( container, title, keyValues )
-{
-	var row = document.createElement( "tr" );
-	//row.className = "netgis-hover-light";
-	
-	var head = document.createElement( "th" );
-	head.className = "netgis-padding";
-	
-	var label = document.createElement( "label" );
-	label.innerHTML = title;
-	head.appendChild( label );
-	row.appendChild( head );
-	
-	var cell = document.createElement( "td" );
-	cell.className = "netgis-padding";
 	row.appendChild( cell );
-	
-	var input = document.createElement( "select" );
-	cell.appendChild( input );
 	
 	label.htmlFor = input;
 	
@@ -615,74 +503,6 @@ netgis.Modal.prototype.onImportShapefileAccept = function( e )
 	this.hide();
 };
 
-netgis.Modal.prototype.onImportSpatialiteShow = function( e )
-{
-	var input = this.importShapefile.getElementsByTagName( "input" )[ 0 ];
-	var button = this.importShapefile.getElementsByTagName( "button" )[ 1 ];
-	input.value = "";
-	button.disabled = true;
-	
-	this.show( this.importSpatialite );
-};
-
-netgis.Modal.prototype.onImportSpatialiteChange = function( e )
-{
-	var input = this.importSpatialite.getElementsByTagName( "input" )[ 0 ];
-	var button = this.importSpatialite.getElementsByTagName( "button" )[ 1 ];
-	
-	if ( input.value && input.value.length > 0 )
-	{
-		button.disabled = false;
-	}
-	else
-	{
-		button.disabled = true;
-	}
-};
-
-netgis.Modal.prototype.onImportSpatialiteAccept = function( e )
-{
-	var input = this.importSpatialite.getElementsByTagName( "input" )[ 0 ];
-	var file = input.files[ 0 ];
-	this.client.invoke( netgis.Events.IMPORT_SPATIALITE, file );
-	
-	this.hide();
-};
-
-netgis.Modal.prototype.onImportGeopackageShow = function( e )
-{
-	var input = this.importGeopackage.getElementsByTagName( "input" )[ 0 ];
-	var button = this.importGeopackage.getElementsByTagName( "button" )[ 1 ];
-	input.value = "";
-	button.disabled = true;
-	
-	this.show( this.importGeopackage );
-};
-
-netgis.Modal.prototype.onImportGeopackageChange = function( e )
-{
-	var input = this.importGeopackage.getElementsByTagName( "input" )[ 0 ];
-	var button = this.importGeopackage.getElementsByTagName( "button" )[ 1 ];
-	
-	if ( input.value && input.value.length > 0 )
-	{
-		button.disabled = false;
-	}
-	else
-	{
-		button.disabled = true;
-	}
-};
-
-netgis.Modal.prototype.onImportGeopackageAccept = function( e )
-{
-	var input = this.importGeopackage.getElementsByTagName( "input" )[ 0 ];
-	var file = input.files[ 0 ];
-	this.client.invoke( netgis.Events.IMPORT_GEOPACKAGE, file );
-	
-	this.hide();
-};
-
 netgis.Modal.prototype.onExportPDFShow = function( e )
 {
 	var inputs = this.exportPDF.getElementsByTagName( "input" );
@@ -767,238 +587,6 @@ netgis.Modal.prototype.onExportGIFAccept = function( e )
 	var resx = Number.parseInt( inputs[ 0 ].value );
 	var resy = Number.parseInt( inputs[ 1 ].value );
 	this.client.invoke( netgis.Events.EXPORT_GIF, { resx: resx, resy: resy } );
-	
-	this.hide();
-};
-
-netgis.Modal.prototype.onAddServiceShow = function( e )
-{
-	//this.addService.getElementsByTagName( "input" )[ 0 ].value = "";
-	
-	this.show( this.addService );
-	
-	// Hide Details
-	var rows = this.addService.getElementsByTagName( "tr" );
-	
-	for ( var r = 3; r < rows.length; r++ )
-	{
-		rows[ r ].classList.add( "netgis-hide" );
-	}
-};
-
-netgis.Modal.prototype.onAddServiceLoad = function( e )
-{
-	var inputs = this.addService.getElementsByTagName( "input" );
-	var url = inputs[ 0 ].value;
-	
-	// Get Base URL
-	var qmark = url.indexOf( "?" );
-	if ( qmark > -1 ) url = url.substr( 0, qmark );
-	
-	var getCaps = url + "?request=GetCapabilities";
-	
-	netgis.util.request( getCaps, this.onAddServiceCapsResponse.bind( this ) );
-	
-	console.info( "Add Service Load:", url );
-};
-
-netgis.Modal.prototype.onAddServiceCapsResponse = function( e )
-{
-	var parser = new DOMParser();
-	var xml = parser.parseFromString( e, "text/xml" );
-	var caps = xml.documentElement;
-	
-	var rows = this.addService.getElementsByTagName( "tr" );
-	var rowTitle = rows[ 5 ];
-	
-	var inputs = this.addService.getElementsByTagName( "input" );
-	var inputType = inputs[ 1 ];
-	
-	var selects = this.addService.getElementsByTagName( "select" );
-	var selectLayer = selects[ 0 ];
-	var selectFormat = selects[ 1 ];
-	
-	for ( var i = selectLayer.options.length - 1; i >= 0; i-- ) selectLayer.options.remove( i );
-	for ( var i = selectFormat.options.length - 1; i >= 0; i-- ) selectFormat.options.remove( i );
-	
-	switch ( caps.nodeName )
-	{
-		// WMS
-		case "WMS_Capabilities":
-		{
-			inputType.value = "wms";
-			
-			var version = caps.getAttribute( "version" );
-			var service = caps.getElementsByTagName( "Service" )[ 0 ];
-			var title = service.getElementsByTagName( "Title" )[ 0 ].textContent;
-			rowTitle.children[ 1 ].innerHTML = title;
-			
-			var layerItems = caps.getElementsByTagName( "Layer" );
-			var layers = [];
-			
-			for ( var l = 0; l < layerItems.length; l++ )
-			{
-				var item = layerItems[ l ];
-				var layerName = item.getElementsByTagName( "Name" )[ 0 ].textContent;
-				var layerTitle = item.getElementsByTagName( "Title" )[ 0 ].textContent;
-				
-				layers.push( { name: layerName, title: layerTitle } );
-				
-				var option = document.createElement( "option" );
-				option.text = layerTitle;
-				option.value = layerName;
-				selectLayer.options.add( option ); 
-			}
-			
-			var getMap = caps.getElementsByTagName( "GetMap" )[ 0 ];
-			var formatItems = getMap.getElementsByTagName( "Format" );
-			var formats = [];
-			
-			for ( var f = 0; f < formatItems.length; f++ )
-			{
-				var item = formatItems[ f ];
-				var format = item.textContent;
-				
-				formats.push( format );
-				
-				var option = document.createElement( "option" );
-				option.text = format;
-				option.value = format;
-				selectFormat.options.add( option );
-			}
-			
-			break;
-		}
-		
-		// WFS
-		case "WFS_Capabilities":
-		case "wfs:WFS_Capabilities":
-		{
-			inputType.value = "wfs";
-			
-			var version = caps.getAttribute( "version" );
-			var service = caps.getElementsByTagName( "ows:ServiceIdentification" )[ 0 ];
-			var title = service.getElementsByTagName( "ows:Title" )[ 0 ].textContent;
-			rowTitle.children[ 1 ].innerHTML = title;
-			
-			var featureTypeItems = caps.getElementsByTagName( "FeatureType" );
-			var types = [];
-			
-			for ( var l = 0; l < featureTypeItems.length; l++ )
-			{
-				var item = featureTypeItems[ l ];
-				var typeName = item.getElementsByTagName( "Name" )[ 0 ].textContent;
-				var typeTitle = item.getElementsByTagName( "Title" )[ 0 ].textContent;
-				
-				types.push( { name: typeName, title: typeTitle } );
-				
-				var option = document.createElement( "option" );
-				option.text = typeTitle;
-				option.value = typeName;
-				selectLayer.options.add( option ); 
-			}
-			
-			var operations = caps.getElementsByTagName( "ows:Operation" );
-			var getFeature = null;
-			
-			for ( var o = 0; o < operations.length; o++ )
-			{
-				if ( operations[ o ].getAttribute( "name" ) === "GetFeature" )
-				{
-					getFeature = operations[ o ];
-					break;
-				}
-			}
-			
-			if ( getFeature )
-			{
-				var parameters = getFeature.getElementsByTagName( "ows:Parameter" );
-				
-				for ( var p = 0; p < parameters.length; p++ )
-				{
-					var parameter = parameters[ p ];
-					
-					if ( parameter.getAttribute( "name" ) === "outputFormat" )
-					{
-						var formatItems = parameter.getElementsByTagName( "ows:Value" );
-
-						for ( var f = 0; f < formatItems.length; f++ )
-						{
-							var item = formatItems[ f ];
-							var format = item.textContent;
-
-							var option = document.createElement( "option" );
-							option.text = format;
-							option.value = format;
-							selectFormat.options.add( option );
-						}
-						
-						break;
-					}
-				}
-			}
-			
-			selectFormat.value = "application/json";
-			
-			break;
-		}
-	}
-	
-	// Show Details
-	var rows = this.addService.getElementsByTagName( "tr" );
-	
-	for ( var r = 3; r < rows.length; r++ )
-	{
-		rows[ r ].classList.remove( "netgis-hide" );
-	}
-};
-
-netgis.Modal.prototype.onAddServiceAccept = function( e )
-{
-	/*var inputs = this.exportPDF.getElementsByTagName( "input" );
-	var resx = Number.parseInt( inputs[ 0 ].value );
-	var resy = Number.parseInt( inputs[ 1 ].value );
-	var margin = Number.parseInt( inputs[ 2 ].value );
-	var mode = inputs[ 3 ].checked;
-	this.client.invoke( netgis.Events.EXPORT_PDF, { resx: resx, resy: resy, mode: mode, margin: margin } );*/
-	
-	var inputs = this.addService.getElementsByTagName( "input" );
-	var selects = this.addService.getElementsByTagName( "select" );
-	
-	var url = inputs[ 0 ].value;
-	var type = inputs[ 1 ].value;
-	
-	var selectLayer = selects[ 0 ];
-	var selectFormat = selects[ 1 ];
-	
-	var layerOption = selectLayer.options.item( selectLayer.options.selectedIndex );
-	var formatOption = selectFormat.options.item( selectFormat.options.selectedIndex );
-	
-	var id = this.addServiceID++;
-	
-	var params =
-	{
-		id: id,
-		url: url,
-		title: layerOption.text,
-		name: layerOption.value,
-		format: formatOption.value
-	};
-	
-	switch ( type )
-	{
-		case "wms":
-		{
-			this.client.invoke( netgis.Events.ADD_SERVICE_WMS, params );
-			break;
-		}
-		
-		case "wfs":
-		{
-			this.client.invoke( netgis.Events.ADD_SERVICE_WFS, params );
-			break;
-		}
-	}
 	
 	this.hide();
 };

@@ -139,59 +139,6 @@ netgis.util =
 		{
 			return Object.assign( target, other );
 		};
-		
-		/**
-		 * @returns {String} Formatted Date Time String (German Locale)
-		 */
-		var getTimeStamp = function()
-		{
-			var date = new Date();
-			
-			var timestamp = date.getDate() + "." + ( date.getMonth() + 1 ) + "." + date.getFullYear();
-			timestamp += " " + date.getHours() + ":" + date.getMinutes();
-			
-			return timestamp;
-		};
-		
-		/*
-		 * @param {Number} area Raw Area in Square Meters
-		 * @param {Boolean} decimals Output Rounded Decimals
-		 * @returns {String} Formatted Area String (Square Meters/Square Kilometers)
-		 */
-		var formatArea = function( area, decimals )
-		{
-			var output;
-			
-			// Normal / Large Value
-			var large = ( area > 10000 );
-			
-			// Round Value
-			var i = 0;
-			
-			if ( large )
-			{
-				if ( decimals )
-					i = Math.round( area / 1000000 * 1000 ) / 1000;
-				else
-					i = Math.round( area / 1000000 );
-			}
-			else
-			{
-				if ( decimals )
-					i = Math.round( area * 100 ) / 100;
-				else
-					i = Math.round( area );
-			}
-			
-			if ( i === 0 ) large = false;
-			
-			// Build String
-			output = i + ( large ? " qkm" : " qm" );
-			
-			//NOTE: HTML Superscript / Unicode (&sup2; etc.) not supported in OL Labels
-			
-			return output;
-		};
 
 		// Public Interface
 		var iface =
@@ -206,9 +153,7 @@ netgis.util =
 			size: size,
 			request: request,
 			padstr: padstr,
-			merge: merge,
-			getTimeStamp: getTimeStamp,
-			formatArea: formatArea
+			merge: merge
 		};
 
 		return iface;
