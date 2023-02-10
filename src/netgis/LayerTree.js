@@ -18,7 +18,6 @@ netgis.LayerTree.prototype.load = function()
 {
 	this.root = document.createElement( "section" );
 	this.root.className = "netgis-layer-list netgis-dialog netgis-shadow netgis-hide";
-	//this.root.className = "netgis-layer-list netgis-dialog netgis-shadow";
 	
 	this.list = document.createElement( "ul" );
 	this.list.className = "root";
@@ -32,11 +31,9 @@ netgis.LayerTree.prototype.load = function()
 	this.root.appendChild( this.tools );
 	
 	this.buttonAddService = document.createElement( "button" );
-	//this.buttonAddService.className = "netgis-primary netgis-hover-primary netgis-shadow";
 	this.buttonAddService.className = "netgis-text-primary netgis-hover-primary";
-	//this.buttonAddService.innerHTML = "<i class='fas fa-plus' style='color: #000'></i> Dienst hinzufügen";
 	this.buttonAddService.innerHTML = "<i class='fas fa-folder-plus'></i> Dienst hinzufügen";
-	//this.buttonAddService.innerHTML = "<i class='fas fa-cloud-upload-alt'></i> Dienst hinzufügen";
+	this.buttonAddService.setAttribute( "type", "button" );
 	this.buttonAddService.addEventListener( "click", this.onAddServiceClick.bind( this ) );
 	this.tools.appendChild( this.buttonAddService );
 	

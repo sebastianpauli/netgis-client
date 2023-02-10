@@ -207,6 +207,7 @@ netgis.Modal.prototype.createAddService = function()
 	
 	this.createSpace( container );
 	this.createInputHidden( container );
+	this.createInputHidden( container );
 	this.createText( container, "Bezeichnung:", "" );
 	this.createInputSelect( container, "Kartenebene:", [] );
 	this.createInputSelect( container, "Format:", [] );
@@ -793,13 +794,33 @@ netgis.Modal.prototype.onAddServiceLoad = function( e )
 	
 	// Get Base URL
 	var qmark = url.indexOf( "?" );
-	if ( qmark > -1 ) url = url.substr( 0, qmark );
+	var baseURL = ( qmark > -1 ) ? url.substr( 0, qmark ) : url;
+	var inputBaseURL = inputs[ 2 ];
+	inputBaseURL.value = baseURL;
 	
-	var getCaps = url + "?request=GetCapabilities";
+	// Get Params
+	var params = [ "request=GetCapabilities" ];
+	
+	if ( qmark > -1 )
+	{
+		// Existing Params
+		var parts = url.substr( qmark + 1 );
+		parts = parts.split( "&" );
+		
+		for ( var p = 0; p < parts.length; p++ )
+		{
+			var part = parts[ p ];
+			part = part.toLowerCase();
+			
+			if ( part.search( "service" ) > -1 ) { params.push( part ); continue; }
+			if ( part.search( "version" ) > -1 ) { params.push( part ); continue; }
+		}
+	}
+	
+	// Capabilities URL
+	var getCaps = baseURL + "?" + params.join( "&" );
 	
 	netgis.util.request( getCaps, this.onAddServiceCapsResponse.bind( this ) );
-	
-	console.info( "Add Service Load:", url );
 };
 
 netgis.Modal.prototype.onAddServiceCapsResponse = function( e )
@@ -809,7 +830,7 @@ netgis.Modal.prototype.onAddServiceCapsResponse = function( e )
 	var caps = xml.documentElement;
 	
 	var rows = this.addService.getElementsByTagName( "tr" );
-	var rowTitle = rows[ 5 ];
+	var rowTitle = rows[ 6 ];
 	
 	var inputs = this.addService.getElementsByTagName( "input" );
 	var inputType = inputs[ 1 ];
@@ -825,6 +846,7 @@ netgis.Modal.prototype.onAddServiceCapsResponse = function( e )
 	{
 		// WMS
 		case "WMS_Capabilities":
+		case "WMT_MS_Capabilities":
 		{
 			inputType.value = "wms";
 			
@@ -955,18 +977,12 @@ netgis.Modal.prototype.onAddServiceCapsResponse = function( e )
 
 netgis.Modal.prototype.onAddServiceAccept = function( e )
 {
-	/*var inputs = this.exportPDF.getElementsByTagName( "input" );
-	var resx = Number.parseInt( inputs[ 0 ].value );
-	var resy = Number.parseInt( inputs[ 1 ].value );
-	var margin = Number.parseInt( inputs[ 2 ].value );
-	var mode = inputs[ 3 ].checked;
-	this.client.invoke( netgis.Events.EXPORT_PDF, { resx: resx, resy: resy, mode: mode, margin: margin } );*/
-	
 	var inputs = this.addService.getElementsByTagName( "input" );
 	var selects = this.addService.getElementsByTagName( "select" );
 	
 	var url = inputs[ 0 ].value;
 	var type = inputs[ 1 ].value;
+	var baseURL = inputs[ 2 ].value;
 	
 	var selectLayer = selects[ 0 ];
 	var selectFormat = selects[ 1 ];
@@ -979,7 +995,7 @@ netgis.Modal.prototype.onAddServiceAccept = function( e )
 	var params =
 	{
 		id: id,
-		url: url,
+		url: baseURL,
 		title: layerOption.text,
 		name: layerOption.value,
 		format: formatOption.value

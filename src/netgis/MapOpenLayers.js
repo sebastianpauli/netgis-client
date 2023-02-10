@@ -302,7 +302,7 @@ netgis.MapOpenLayers.prototype.createLayer = function( data )
 		
 		case netgis.LayerTypes.WFS:
 		{
-			layer = this.createLayerWFS( data.url, data.name, this.client.config.map.projection, data.outputFormat );
+			layer = this.createLayerWFS( data.url, data.name, this.client.config.map.projection, data.outputFormat, data.username, data.password );
 			break;
 		}
 	}
@@ -371,7 +371,7 @@ netgis.MapOpenLayers.prototype.createLayerWMS = function( url, layerName, format
 		//ratio: 3.0
 	};
 
-	// Authorization
+	// User Auth
 	if ( user && password )
 	{
 		params.imageLoadFunction = function( image, src )
@@ -403,7 +403,7 @@ netgis.MapOpenLayers.prototype.createLayerWMS = function( url, layerName, format
 	return layer;
 };
 
-netgis.MapOpenLayers.prototype.createLayerWFS = function( url, typeName, projection, outputFormat )
+netgis.MapOpenLayers.prototype.createLayerWFS = function( url, typeName, projection, outputFormat, user, password )
 {
 	url = url
 			+ "service=WFS"
@@ -420,16 +420,48 @@ netgis.MapOpenLayers.prototype.createLayerWFS = function( url, typeName, project
 		{
 			format: new ol.format.GeoJSON(),
 			strategy: ol.loadingstrategy.bbox,
-			url: function( extent )
-			{
-				return url
-						+ "&typename=" + typeName
-						+ "&srsname=" + projection
-						+ "&bbox=" + extent.join( "," ) + "," + projection
-						+ "&outputFormat=" + outputFormat;
-			}
 			
-			//TODO: custom loader function to catch xhr response parse errors
+			loader: function( extent, resolution, proj, success, failure )
+			{
+				//proj = proj.getCode();
+				
+				var requestURL = url
+									+ "&typename=" + typeName
+									+ "&srsname=" + projection
+									+ "&bbox=" + extent.join( "," ) + "," + projection
+									+ "&outputFormat=" + outputFormat;
+				
+				var request = new XMLHttpRequest();
+				request.open( "GET", requestURL );
+				
+				if ( user && password )
+				{
+					request.setRequestHeader( "Authorization", "Basic " + window.btoa( user + ":" + password ) );
+				}
+				
+				request.onerror = function()
+				{
+					console.error( "WFS Request Error" );
+					failure();
+				};
+				
+				request.onload = function()
+				{
+					if ( request.status === 200 )
+					{
+						var features = source.getFormat().readFeatures( request.responseText );
+						source.addFeatures( features );
+						success( features );
+					}
+					else
+					{
+						console.error( "WFS Request Status", request.status );
+						failure();
+					}
+				};
+				
+				request.send();
+			}
 		}
 	);
 
