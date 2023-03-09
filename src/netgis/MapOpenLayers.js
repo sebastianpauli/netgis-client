@@ -237,7 +237,7 @@ netgis.MapOpenLayers.prototype.initInteractions = function()
 	this.interactions[ netgis.Modes.MODIFY_FEATURES ] =
 	[
 		new ol.interaction.Modify( { source: this.editLayer.getSource(), deleteCondition: ol.events.condition.doubleClick, style: this.styleModify.bind( this ) } ),
-		//new ol.interaction.DragPan(),
+		new ol.interaction.DragPan( { condition: function( e ) { return ( e.originalEvent.which === 2 ); } } ),
 		new ol.interaction.MouseWheelZoom()
 	];
 	
@@ -595,6 +595,27 @@ netgis.MapOpenLayers.prototype.styleModify = function( feature )
 			geometry: this.getGeometryPoints( feature )
 		}
 	);
+	
+	var geom = feature.getGeometry();
+	
+	if ( geom instanceof ol.geom.Polygon )
+	{
+		var area = geom.getArea();
+		
+		style.setText
+		(
+			new ol.style.Text
+			(
+				{
+					text: [ netgis.util.formatArea( area, true ), "4mm sans-serif" ],
+					font: this.labelFont,
+					fill: new ol.style.Fill( { color: this.client.config.styles.modify.stroke } ),
+					backgroundFill: new ol.style.Fill( { color: "rgba( 255, 255, 255, 0.5 )" } ),
+					padding: [ 2, 4, 2, 4 ]
+				}
+			)
+		);
+	}
 	
 	return [ style, vertex ];
 };
@@ -1169,6 +1190,8 @@ netgis.MapOpenLayers.prototype.onSingleClick = function( e )
 			{
 				this.editLayer.getSource().removeFeature( this.hover );
 				this.hover = null;
+				
+				this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.VIEW );
 			}
 			
 			break;
@@ -1246,6 +1269,8 @@ netgis.MapOpenLayers.prototype.onCutFeatureDrawEnd = function( e )
 	this.splitMultiPolygons( this.editLayer );
 	this.editEventsSilent = false;
 	this.updateEditOutput();
+	
+	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.VIEW );
 };
 
 netgis.MapOpenLayers.prototype.onModifyFeaturesEnd = function( e )
@@ -1328,30 +1353,43 @@ netgis.MapOpenLayers.prototype.onDrawPointsEnd = function( e )
 	if ( preview )
 	{
 		var src = this.editLayer.getSource();
+		
+		// Add Buffer Feature
 		src.addFeature( preview.clone() );
 		
-		//TODO: remove sketch point ?
-		//this.editLayer.getSource().removeFeature( e.feature );
-		
-		/*window.setTimeout( function() {
-		var features = src.getFeatures();
-		src.removeFeature( features[ features.length - 1 ] );
-		src.addFeature( preview.clone() );
-		}, 10 );*/
-		
-		/*e.preventDefault();
-		e.stopPropagation();
-		return false;*/
+		// Remove Sketch Feature
+		window.setTimeout
+		(
+			function()
+			{
+				src.removeFeature( e.feature );
+			},
+			10
+		);
 	}
 };
 
 netgis.MapOpenLayers.prototype.onDrawLinesEnd = function( e )
 {
 	var preview = this.previewLayer.getSource().getFeatures()[ 0 ];
-	if ( ! preview ) return;
 	
-	var src = this.editLayer.getSource();
-	src.addFeature( preview.clone() );
+	if ( preview )
+	{
+		var src = this.editLayer.getSource();
+		
+		// Add Buffer Feature
+		src.addFeature( preview.clone() );
+	
+		// Remove Sketch Feature
+		window.setTimeout
+		(
+			function()
+			{
+				src.removeFeature( e.feature );
+			},
+			10
+		);
+	}
 };
 
 netgis.MapOpenLayers.prototype.onDrawBufferOn = function( e )

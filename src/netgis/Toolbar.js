@@ -62,7 +62,7 @@ netgis.Toolbar.prototype.load = function()
 		this.root.appendChild( this.toolbars[ netgis.Modes.CUT_FEATURE_DRAW ] );
 
 		this.toolbars[ netgis.Modes.MODIFY_FEATURES ] = this.createToolbar();
-		this.append( this.toolbars[ netgis.Modes.MODIFY_FEATURES ], this.createToolbarButton( '<i class="fas fa-times"></i><span>Features verschieben:</span>', this.onToolbarClose.bind( this ) ) );
+		this.append( this.toolbars[ netgis.Modes.MODIFY_FEATURES ], this.createToolbarButton( '<i class="fas fa-times"></i><span>Feature-Eckpunkte verschieben:</span>', this.onToolbarClose.bind( this ) ) );
 		this.root.appendChild( this.toolbars[ netgis.Modes.MODIFY_FEATURES ] );
 
 		this.toolbars[ netgis.Modes.DELETE_FEATURES ] = this.createToolbar();
@@ -198,6 +198,7 @@ netgis.Toolbar.prototype.createToolbarInput = function( title, value, callback )
 	input.setAttribute( "min", 0 );
 	input.value = value;
 	input.addEventListener( "change", callback );
+	input.addEventListener( "keyup", callback );
 	label.appendChild( input );
 	
 	return label;
@@ -496,6 +497,20 @@ netgis.Toolbar.prototype.onDrawBufferChange = function( e )
 	this.client.invoke( on ? netgis.Events.DRAW_BUFFER_ON : netgis.Events.DRAW_BUFFER_OFF, null );
 	
 	this.showDrawBufferOptions( on );
+	
+	// Update Buffer Values
+	if ( on )
+	{
+		var points = true;
+		if ( ! this.toolbars[ netgis.Modes.DRAW_LINES ].classList.contains( "netgis-hide" ) ) points = false;
+		
+		var inputs = this.toolbars[ points ? netgis.Modes.DRAW_POINTS : netgis.Modes.DRAW_LINES ].getElementsByTagName( "input" );
+		var radius = Number.parseInt( inputs[ 2 ].value );
+		var segments = Number.parseInt( inputs[ 3 ].value );
+		
+		this.client.invoke( netgis.Events.DRAW_BUFFER_RADIUS_CHANGE, radius );
+		this.client.invoke( netgis.Events.DRAW_BUFFER_SEGMENTS_CHANGE, segments );
+	}
 };
 
 netgis.Toolbar.prototype.onDrawBufferRadiusChange = function( e )
