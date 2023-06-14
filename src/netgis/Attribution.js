@@ -26,6 +26,7 @@ netgis.Attribution.prototype.load = function()
 	this.client.on( netgis.Events.CONTEXT_UPDATE, this.onContextUpdate.bind( this ) );
 	this.client.on( netgis.Events.LAYER_SHOW, this.onLayerShow.bind( this ) );
 	this.client.on( netgis.Events.LAYER_HIDE, this.onLayerHide.bind( this ) );
+	this.client.on( netgis.Events.EDIT_FEATURES_CHANGE, this.onEditFeaturesChange.bind( this ) );
 };
 
 netgis.Attribution.prototype.update = function()
@@ -83,4 +84,28 @@ netgis.Attribution.prototype.onLayerHide = function( e )
 	}
 	
 	this.update();
+};
+
+netgis.Attribution.prototype.onEditFeaturesChange = function( e )
+{
+	// Update Area
+	var areaLabel = "Zeichnungsfläche: ";
+	
+	for ( var i = 0; i < this.items.length; i++ )
+	{
+		var item = this.items[ i ];
+		
+		if ( item.search( areaLabel ) > -1 )
+		{
+			this.items.splice( i, 1 );
+			break;
+		}
+	}
+	
+	if ( e.area && e.area > 0.0 )
+	{
+		var areaItem = areaLabel + netgis.util.formatArea( e.area, true );
+		this.items.push( areaItem );
+		this.update();
+	}
 };

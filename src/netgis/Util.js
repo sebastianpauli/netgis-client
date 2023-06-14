@@ -153,27 +153,42 @@ netgis.util =
 			return timestamp;
 		};
 		
+		/**
+		 * @returns {String} The users language locale string (defaults to German)
+		 */
+		var getUserLanguage = function()
+		{
+			var lang = navigator.language || "de-DE";
+			
+			return lang;
+		};
+		
 		/*
 		 * @param {Number} area Raw Area in Square Meters
 		 * @param {Boolean} decimals Output Rounded Decimals
+		 * @param {Number} threshold Threshold for normal (square meters) vs. large (square kilometers) values
+		 * @param {Boolean} seperate Use thousands seperators
 		 * @returns {String} Formatted Area String (Square Meters/Square Kilometers)
 		 */
-		var formatArea = function( area, decimals )
+		var formatArea = function( area, decimals, threshold, seperate )
 		{
 			var output;
 			
 			// Normal / Large Value
-			var large = ( area > 10000 );
+			threshold = threshold || 100000;
+			var large = ( area > threshold );
 			
 			// Round Value
 			var i = 0;
 			
 			if ( large )
 			{
+				var METERS_PER_KILOMETER = 1000000;
+				
 				if ( decimals )
-					i = Math.round( area / 1000000 * 1000 ) / 1000;
+					i = Math.round( area / METERS_PER_KILOMETER * 1000 ) / 1000;
 				else
-					i = Math.round( area / 1000000 );
+					i = Math.round( area / METERS_PER_KILOMETER );
 			}
 			else
 			{
@@ -185,10 +200,14 @@ netgis.util =
 			
 			if ( i === 0 ) large = false;
 			
-			// Build String
-			output = i + ( large ? " qkm" : " qm" );
+			// Thousands Seperators
+			seperate = seperate || true;
+			if ( seperate ) i = i.toLocaleString( getUserLanguage() );
 			
-			//NOTE: HTML Superscript / Unicode (&sup2; etc.) not supported in OL Labels
+			// Build String
+			output = i + ( large ? " km²" : " m²" );
+			
+			// NOTE: HTML Superscript / Unicode (&sup2; etc.) not supported in OL Labels
 			
 			return output;
 		};
@@ -208,6 +227,7 @@ netgis.util =
 			padstr: padstr,
 			merge: merge,
 			getTimeStamp: getTimeStamp,
+			getUserLanguage: getUserLanguage,
 			formatArea: formatArea
 		};
 
