@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="de">
+
+	<head>
+		
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+		<title>LANIS Demo | NetGIS Client</title>
+		
+		<!-- Library Styles -->
+		<link rel="stylesheet" type="text/css" href="/libs/fontawesome/5.12.0/css/all.min.css" />
+		<link rel="stylesheet" type="text/css" href="/libs/openlayers/7.2.2/ol.css" />
+
+		<!-- Custom Styles -->		
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Client.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Map.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Attribution.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Controls.css" />
+		<!--<link rel="stylesheet" type="text/css" href="../src/netgis3/LayerTree.css" />-->
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/SearchParcel.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Toolbar.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Menu.css" />
+		<!--<link rel="stylesheet" type="text/css" href="../src/netgis3/Modal.css" />-->
+		
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Panel.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Tree.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Modal.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Tabs.css" />
+		
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/SearchPlace.css" />
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Toolbox.css" />
+		
+		<link rel="stylesheet" type="text/css" href="../src/netgis3/Theme.css" />
+		
+		<!--<link rel="stylesheet" type="text/css" href="../dist/netgis.min.css" />-->
+		
+		<!-- Implementation Style -->
+		<style>
+			
+			#container
+			{
+				position: absolute;
+				left: 0mm;
+				top: 0mm;
+				width: 100%;
+				height: 100%;
+			}
+			
+		</style>
+		
+	</head>
+	
+	<body>
+		
+		<!-- Client Container -->
+		<form action="." method="GET">
+			
+			<main id="container" data-editable="true">
+			</main>
+			
+		</form>
+		
+		<input type="hidden" id="netgis-storage" name="output" value='' />
+  
+		<!-- Library Scripts -->
+		<script type="text/javascript" src="/libs/openlayers/7.2.2/ol.js"></script>
+		<script type="text/javascript" src="/libs/proj4js/2.6.0/proj4.js"></script>
+		<script type="text/javascript" src="/libs/jsts/1.6.1/jsts.min.js"></script>
+		<script type="text/javascript" src="/libs/shapefilejs/4.0.2/shp.js"></script>
+		<script type="text/javascript" src="/libs/jspdf/1.3.2/jspdf.min.js"></script>
+		<script type="text/javascript" src="/libs/gifjs/0.2.0/gif.js"></script>
+		<script type="text/javascript" src="/libs/sqljs/1.8.0/sql.js"></script>
+		<script type="text/javascript" src="/libs/geopackage/4.2.3/geopackage.min.js"></script>
+		
+		<!-- Custom Scripts -->
+		<script type="text/javascript" src="../src/netgis3/Util.js"></script>
+		
+		<script type="text/javascript" src="../src/netgis3/Events.js"></script>
+		<script type="text/javascript" src="../src/netgis3/Modes.js"></script>
+		<script type="text/javascript" src="../src/netgis3/LayerTypes.js"></script>
+		
+		<script type="text/javascript" src="../src/netgis3/Client.js"></script>
+		
+		<script type="text/javascript" src="../src/netgis3/Menu.js"></script>
+		<script type="text/javascript" src="../src/netgis3/MapOpenLayers.js"></script>
+		<script type="text/javascript" src="../src/netgis3/Controls.js"></script>
+		<script type="text/javascript" src="../src/netgis3/Attribution.js"></script>
+		<script type="text/javascript" src="../src/netgis3/Toolbar.js"></script>
+		
+		<script type="text/javascript" src="../src/netgis3/SearchPlace.js"></script>
+		<script type="text/javascript" src="../src/netgis3/SearchParcel.js"></script>
+		
+		<script type="text/javascript" src="../src/netgis3/OWS.js"></script>
+		<script type="text/javascript" src="../src/netgis3/SLD.js"></script>
+		
+		<script type="text/javascript" src="../src/netgis3/Panel.js"></script>
+		<script type="text/javascript" src="../src/netgis3/Tree.js"></script>
+		<script type="text/javascript" src="../src/netgis3/Modal.js"></script>
+		<script type="text/javascript" src="../src/netgis3/Tabs.js"></script>
+		
+		<script type="text/javascript" src="../src/netgis3/Toolbox.js"></script>
+		
+		<!--<script type="text/javascript" src="../dist/netgis.min.js"></script>-->
+		
+		<!-- Implementation Script -->
+		<script type="text/javascript">
+			
+			// Demo Config
+			var config =
+			{
+				"layers":
+				[
+					{ "folder": 0, "type": "WMS", "title": "KOM Punkte", "url": "https://geodaten.naturschutz.rlp.de/kartendienste_naturschutz/mod_ogc/wms_getmap.php?mapfile=kom_p&", "name": "kom_p" },
+					{ "folder": 0, "type": "WMS", "title": "KOM Linien", "url": "https://geodaten.naturschutz.rlp.de/kartendienste_naturschutz/mod_ogc/wms_getmap.php?mapfile=kom_l&", "name": "kom_l" },
+					{ "folder": 0, "type": "WMS", "title": "KOM Flächen", "url": "https://geodaten.naturschutz.rlp.de/kartendienste_naturschutz/mod_ogc/wms_getmap.php?mapfile=kom_f&", "name": "kom_f" },					
+
+					{ "folder": 1, "type": "WMS", "title": "Lagebezeichnungen", "url": "https://geo5.service24.rlp.de/wms/liegenschaften_rp.fcgi?", "name": "Lagebezeichnungen" },
+					{ "folder": 1, "type": "WMS", "title": "Flurstücke", "url": "https://geo5.service24.rlp.de/wms/liegenschaften_rp.fcgi?", "name": "Flurstueck", "username": "abc", "password": "123" },
+					{ "folder": 1, "type": "WMS", "title": "Gebäude / Bauwerke", "url": "https://geo5.service24.rlp.de/wms/liegenschaften_rp.fcgi?", "name": "GebaeudeBauwerke" },
+					{ "folder": 1, "type": "WMS", "title": "Nutzung", "url": "https://geo5.service24.rlp.de/wms/liegenschaften_rp.fcgi?", "name": "Nutzung", "active": false },					
+
+					{ "folder": 2, "type": "WFS", "title": "Überschwemmungsgebiete WFS Test", "url": "http://213.139.159.34:80/geoserver/uesg/wfs?", "name": "uesg:uesg_gesetzlich", "format": "application/json", "fill": "rgba( 0, 0, 127, 0.3 )", "stroke": "rgba( 0, 0, 127, 1.0 )", "width": 3.0 },
+
+					{ "folder": 3, "order": 1, "type": "WMS", "tiled": true, "title": "TopPlusOpen Tiled", "attribution": "BKG", "url": "https://sgx.geodatenzentrum.de/wms_topplus_open?", "name": "web", "active": false },
+					{ "folder": 3, "order": 1, "type": "WMS", "title": "TopPlusOpen", "attribution": "BKG", "url": "https://sgx.geodatenzentrum.de/wms_topplus_open?", "name": "web", "active": false },
+					{ "folder": 3, "type": "XYZ", "title": "OSM Humanitarian", "attribution": "OSM", "url": "https://{a-c}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png" },
+					{ "folder": 3, "type": "OSM", "title": "Open Street Map", "attribution": "OSM", "active": true, "minZoom": 1, "maxZoom": 20 },
+					
+					{ "folder": 1, "order": 10, "minZoom": 17, "active": true, "type": "WFS", "title": "Flurstücke WFS", "url": "https://geodaten.naturschutz.rlp.de/kartendienste_naturschutz/ajax/get_alkis.php?mytab=flurstuecke&", "name": "flurstuecke", "format": "application/json" },
+					//{ "folder": 1, "order": 1, "minZoom": 10, "active": true, "type": "WFS", "title": "Gemarkungen WFS", "url": "https://www.geoportal.rlp.de/registry/wfs/314?VERSION=1.1.0", "name": "vermkv:gemarkungen_rlp", "format": "application/json" },
+					{ "folder": 1, "order": 10, "minZoom": 13, "maxZoom": 15, "active": false, "type": "WFS", "title": "Gemarkungen WFS", "url": "http://geo5.service24.rlp.de/wfs/verwaltungsgrenzen_rp.fcgi?", "name": "vermkv:gemarkungen_rlp", "format": "application/json; subtype=geojson" },
+					{ "folder": 1, "order": 10, "minZoom": 15, "maxZoom": 17, "active": false, "type": "WFS", "title": "Fluren WFS", "url": "http://geo5.service24.rlp.de/wfs/verwaltungsgrenzen_rp.fcgi?", "name": "vermkv:fluren_rlp", "format": "application/json; subtype=geojson" }
+					
+				],
+
+				"folders":
+				[
+					{ "title": "KOM Kompensationsmaßnahmen (gesperrt)", "parent": -1 },
+					{ "title": "ALKIS Liegenschaften (Zoom)", "parent": -1 },
+					{ "title": "Test", "parent": -1 },
+					{ "title": "Hintergrund", "parent": -1 }
+				],
+
+				"projections":
+				[
+					[ "EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs" ]
+				],
+
+				"map":
+				{
+					"projection": "EPSG:25832",
+					//"center": [ 385000, 5543000 ],
+					//"center": [ 329766.1782104631, 5513621.076679279 ],
+					"center": [ 337984, 5521600 ], // WFS Test
+					"zoom": 18, // WFS Test
+					"minZoom": 5,
+					"maxZoom": 19,
+					//"zoom": 10, //17.2, //8,
+					"attribution": "LANIS RLP",
+					"scalebar": true
+				},
+
+				"output":
+				{
+					"id": "netgis-storage"
+				},
+
+				"search":
+				{
+					"url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/geoportal/gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG={epsg}&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={q}&name_startsWith={q}"
+				},
+				
+				"searchParcel":
+				{
+					"nameURL": "./proxy.php?https://geodaten.naturschutz.rlp.de/kartendienste_naturschutz/mod_alkis/gem_search.php?placename={q}",
+					"parcelURL": "./proxy.php?https://geodaten.naturschutz.rlp.de/kartendienste_naturschutz/mod_alkis/flur_search.php?gmk_gmn={district}&fln={field}&fsn_zae={parcelA}&fsn_nen={parcelB}&export=json",
+					
+					"districts_service":
+					{
+						"type": "WFS",
+						"url": "http://geo5.service24.rlp.de/wfs/verwaltungsgrenzen_rp.fcgi?",
+						"name": "vermkv:gemarkungen_rlp",
+						"minZoom": 11
+						//"maxZoom": 17
+					},
+					
+					"fields_service":
+					{
+						"url": "http://geo5.service24.rlp.de/wfs/verwaltungsgrenzen_rp.fcgi?",
+						"name": "vermkv:fluren_rlp",
+						"filter_property": "gmkgnr"
+					}
+				},
+				
+				"import":
+				{
+					"geopackageLibURL": "/libs/geopackage/4.2.3/"
+				},
+
+				"export":
+				{
+					"logo": "/geoportal/client/assets/logo.png",
+					"gifWebWorker": "/libs/gifjs/0.2.0/gif.worker.js",
+					"defaultFilename": "Export",
+					"defaultMargin": 10
+				},
+
+				"tools":
+				{
+					"buffer":
+					{
+						"defaultRadius": 300,
+						"defaultSegments": 3
+					}
+				},
+
+				"styles":
+				{
+					"editLayer":
+					{
+						"fill": "rgba( 255, 0, 0, 0.5 )",
+						"stroke": "#ff0000",
+						"strokeWidth": 3,
+						"pointRadius": 6
+					},
+
+					"select":
+					{
+						"fill": "rgba( 0, 127, 255, 0.5 )",
+						"stroke": "#007fff",
+						"strokeWidth": 3,
+						"pointRadius": 6
+					},
+
+					"sketch":
+					{
+						"fill": "rgba( 0, 127, 0, 0.5 )",
+						"stroke": "#007f00",
+						"strokeWidth": 3,
+						"pointRadius": 6
+					},
+
+					"modify":
+					{
+						"fill": "rgba( 0, 127, 0, 0.5 )",
+						"stroke": "#007f00",
+						"strokeWidth": 3,
+						"pointRadius": 6
+					},
+					
+					"parcel":
+					{
+						"fill": "rgba( 127, 0, 0, 0.0 )",
+						"stroke": "rgba( 127, 0, 0, 1.0 )",
+						"width": 1.5
+					},
+					
+					"import":
+					{
+						"fill": "rgba( 0, 127, 255, 0.2 )",
+						"stroke": "rgba( 0, 127, 255, 1.0 )",
+						"width": 1.5
+					}
+				}
+			};
+			
+			// Test Config URL
+			//config = "../data/test_config.json";
+			
+			// Test Geometry Loading
+			//document.getElementById( "netgis-storage" ).value = '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[337849.169,5524000.603],[337726.657,5523930.41],[337739.148,5523873.992],[337748.991,5523853.693],[337765.084,5523794.539],[337770.91,5523776.333],[337782.049,5523755.893],[337798.246,5523730.319],[337822.829,5523691.506],[337829.532,5523684.213],[337832.313,5523681.81],[337839.396,5523675.69],[337843.284,5523672.33],[337882.707,5523640.5],[337892.398,5523641.593],[337900.558,5523648.451],[337911.526,5523671.198],[337926.551,5523694.042],[337935.302,5523706.151],[337951.722,5523737.095],[337984.658,5523794.887],[337973.018,5523807.091],[337957.732,5523829.219],[337942.789,5523861.88],[337925.967,5523895.597],[337884.361,5523939.382],[337859.855,5523977.099],[337849.169,5524000.603]]]},"properties":{"fln":"18","fsn_zae":"78","fsn_nen":"3","bbox":"POLYGON((337726.657 5523640.5,337726.657 5524000.603,337984.658 5524000.603,337984.658 5523640.5,337726.657 5523640.5))","X":337862.0171027997,"Y":5523818.154999999,"fsk":"072612018000780003__","flaeche":52104}}],"crs":{"type":"name","properties":{"name":"urn:ogc:def:crs:EPSG::25832"}},"area":52109.374267578125}';
+			
+			// Create Client Instance
+			var client = new netgis.Client( "container", config );
+			client.debug = true;
+			
+		</script>
+		
+	</body>
+	
+</html>
