@@ -117,6 +117,7 @@
 					{ "id": "kom", "title": "KOM Kompensationsmaßnahmen (gesperrt)", "parent": null },
 					{ "id": "alkis", "title": "ALKIS Liegenschaften (Zoom)", "parent": null },
 					{ "id": "test", "title": "Test", "parent": null, "radio": false },
+					{ "id": "test2", "title": "Test 2", "parent": "test", "radio": false },
 					{ "id": "bg", "title": "Hintergrund", "parent": null, "radio": true }
 				],
 				
@@ -132,7 +133,7 @@
 					{ "id": "lk", "folder": "alkis", "type": "WMS", "active": false, "title": "Landkreise", "url": "https://geo5.service24.rlp.de/wms/verwaltungsgrenzen_rp.fcgi", "name": "Landkreise", "order": 1100 },
 					{ "id": "geb", "folder": "alkis", "type": "WMS", "active": false, "title": "Gebäude / Bauwerke", "url": "https://geo5.service24.rlp.de/wms/liegenschaften_rp.fcgi?", "name": "GebaeudeBauwerke", "order": 1000, "transparency": 0.3, "query_url": "https://geo5.service24.rlp.de/wms/liegenschaften_rp.fcgi?service=WMS&version=1.1.0&request=GetFeatureInfo&styles=&layers=GebaeudeBauwerke&query_layers=GebaeudeBauwerke&bbox={bbox}&srs={proj}&width={width}&height={height}&x={x}&y={y}&info_format=" },
 					
-					{ "id": "topo", "folder": "test", "active": false, "order": 1, "type": "WMS", "title": "Topo WMS", "url": "https://ows.mundialis.de/services/service?", "name": "TOPO-WMS", "query_url": "https://ows.mundialis.de/services/service?service=WMS&version=1.1.0&request=GetFeatureInfo&styles=&layers=TOPO-WMS&query_layers=TOPO-WMS&bbox={bbox}&srs={proj}&width={width}&height={height}&x={x}&y={y}&info_format=" },
+					{ "id": "topo", "folder": "test2", "active": false, "order": 1, "type": "WMS", "title": "Topo WMS", "url": "https://ows.mundialis.de/services/service?", "name": "TOPO-WMS", "query_url": "https://ows.mundialis.de/services/service?service=WMS&version=1.1.0&request=GetFeatureInfo&styles=&layers=TOPO-WMS&query_layers=TOPO-WMS&bbox={bbox}&srs={proj}&width={width}&height={height}&x={x}&y={y}&info_format=" },
 					
 					{ "id": "top_tiles", "folder": "bg", "order": 1, "type": "WMS", "tiled": true, "title": "TopPlusOpen Tiled", "attribution": "BKG", "url": "https://sgx.geodatenzentrum.de/wms_topplus_open?", "name": "web", "active": false },
 					{ "id": "top", "folder": "bg", "order": 1, "type": "WMS", "title": "TopPlusOpen", "attribution": "BKG", "url": "https://sgx.geodatenzentrum.de/wms_topplus_open?", "name": "web", "active": false },
@@ -380,10 +381,10 @@
 			};
 			
 			// Create Client Instance
-			//var client = new netgis.Client( "container", config );
+			var client = new netgis.Client( "container", config );
 			
 			// Create Client With Config URL
-			var client = new netgis.Client( "container", "../data/test_config_lanis.json" );
+			//var client = new netgis.Client( "container", "../data/test_config_lanis.json" );
 			
 		</script>
 		
