@@ -216,6 +216,7 @@
 			"tolerance": 10
 		},
 		
+		"bounds_message": "Out of bounds!",
 		"show_bounds": true
 	},
 	
