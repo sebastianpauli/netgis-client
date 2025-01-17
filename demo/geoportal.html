@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="de">
+
+	<head>
+		
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+		<title>Geoportal Demo | NetGIS Client</title>
+		
+		<!-- Library Styles -->
+		<link rel="stylesheet" type="text/css" href="/libs/fontawesome/5.12.0/css/all.min.css" />
+		<link rel="stylesheet" type="text/css" href="/libs/openlayers/10.0.0/ol.css" />
+
+		<!-- Custom Styles -->
+		<link rel="stylesheet" type="text/css" href="../dist/netgis.min.css" />
+		
+		<!-- Implementation Style -->
+		<style>
+			
+			html, body
+			{
+				font-family: Arial, sans-serif;
+			}
+			
+			#container
+			{
+				position: absolute;
+				left: 0mm;
+				top: 0mm;
+				width: 100%;
+				height: 100%;
+			}
+			
+			.netgis-map
+			{
+				background: white;
+			}
+			
+		</style>
+		
+	</head>
+	
+	<body>
+		
+		<!-- Client Container -->
+		<main id="container">
+		</main>
+		
+		<!-- Library Scripts -->
+		<script type="text/javascript" src="/libs/openlayers/10.0.0/ol.js"></script>
+		<script type="text/javascript" src="/libs/proj4js/2.6.0/proj4.js"></script>
+		<script type="text/javascript" src="/libs/jsts/1.6.1/jsts.min.js"></script>
+		<script type="text/javascript" src="/libs/shapefilejs/4.0.2/shp.js"></script>
+		<script type="text/javascript" src="/libs/jspdf/1.3.2/jspdf.min.js"></script>
+		<script type="text/javascript" src="/libs/gifjs/0.2.0/gif.js"></script>
+		<script type="text/javascript" src="/libs/sqljs/1.8.0/sql.js"></script>
+		<script type="text/javascript" src="/libs/geopackage/4.2.3/geopackage.min.js"></script>
+		
+		<!-- Custom Scripts -->
+		<script type="text/javascript" src="../dist/netgis.min.js"></script>
+		
+		<!-- Implementation Script -->
+		<script type="text/javascript">
+			
+			// Client Config
+			var config =
+			{
+				"modules":
+				{
+					"menu": true,
+					"layertree": true,
+					"map": true,
+					"controls": true,
+					"attribution": true,
+					"legend": true,
+					"geolocation": true,
+					"info": true,
+					"searchplace": true,
+					"toolbox": true,
+					"import": true
+				},
+				
+				"client":
+				{
+					"loading_text": "Geoportal Client wird geladen..."
+				},
+				
+				"menu":
+				{
+					"compact": true,
+					"header": "<a href='.' target='_self'>Geoportal Demo</a>",
+					"items":
+					[
+						{
+							"title": "<i class='fas fa-caret-down'></i><span>Ansicht</span>",
+							"items":
+							[
+								{ "id": "view_prev", "title": "<i class='fas fa-step-backward'></i><span>Vorherige</span>" },
+								{ "id": "view_next", "title": "<i class='fas fa-step-forward'></i><span>Nächste</span>" },
+								{ "id": "scales", "title": "<i class='fas fa-ruler-horizontal'></i><span>Maßstab</span><i class='fas fa-caret-right'></i>", "items": [ /*{ "id": "test1", "title": "Subitem 1" }, { "id": "test2", "title": "Subitem 2" }, { "id": "test3", "title": "Subitem 3" }*/ ] }
+							]
+						},
+						
+						{ "id": "searchplace", "title": "<i class='fas fa-search'></i><span>Suche</span>" },
+						{ "id": "toolbox", "title": "<i class='fas fa-tools'></i><span>Werkzeuge</span>" },
+						{ "id": "layertree", "title": "<i class='fas fa-layer-group'></i><span>Inhalte</span>" }
+					]
+				},
+				
+				"projections":
+				[
+					[ "EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs" ]
+				],
+
+				"map":
+				{
+					"projection": "EPSG:25832",
+					"center": [ 329766.1782104631, 5513621.076679279 ],
+					"zoom": 14,
+					"min_zoom": 5,
+					"max_zoom": 19,
+					"scalebar": true,
+					
+					"extent": [ 293315.97, 5423948.96, 464350.97, 5644103.06 ],
+					"scales": [ 500, 1000, 3000, 5000, 8000, 10000, 15000, 25000, 50000, 100000, 150000, 250000, 500000, 1000000, 1500000, 2000000 ]
+				},
+				
+				"wmc":
+				{
+					"url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/php/mod_exportWmc2Json.php?confFileName=mobilemap2&epsg=25832&withHierarchy=1&wmc_id={id}"
+					
+					// Use this to directly load a WMC by ID:
+					// "id": 27581
+				},
+				
+				"folders":
+				[
+					{ "id": "bg", "title": "Hintergrund", "parent": null, "radio": true }
+				],
+				
+				"layers":
+				[
+					// Background Layers
+					{ "id": "top_tiles", "folder": "bg", "order": 1, "type": "WMS", "tiled": true, "title": "TopPlusOpen Tiled", "attribution": "BKG", "url": "https://sgx.geodatenzentrum.de/wms_topplus_open?", "name": "web", "active": false, "query": false },
+					{ "id": "top", "folder": "bg", "order": 1, "type": "WMS", "title": "TopPlusOpen", "attribution": "BKG", "url": "https://sgx.geodatenzentrum.de/wms_topplus_open?", "name": "web", "active": false, "query": false },
+					{ "id": "osm_human", "folder": "bg", "type": "XYZ", "title": "OSM Humanitarian", "attribution": "OSM", "url": "https://{a-c}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png" },
+					{ "id": "osm", "folder": "bg", "type": "OSM", "title": "Open Street Map", "attribution": "OSM", "active": false, "order": 1, "min_zoom": 1, "max_zoom": 20 },
+					{ "id": "bg_aerial", "folder": "bg", "order": 1, "title": "Luftbild", "type": "WMS", "url": "https://geo4.service24.rlp.de/wms/rp_dop20.fcgi", "tiled": true, "name": "rp_dop20", "query": false },
+					{ "id": "bg_hybrid", "folder": "bg", "active": true, "order": 1, "title": "Hybrid", "type": "TMS", "url": "https://www.geoportal.rlp.de/mapcache/tms/1.0.0/test@UTM32/{z}/{x}/{-y}.jpeg", "projection": "EPSG:25832", "extent": "map", "scales": "map", "query": false },
+					
+					// Hidden Layer For Height Queries
+					{ "id": "dem_hidden", "title": "Digitales Höhenmodell", "hidden": true, "active": true, "query": true, "type": "HIDDEN", "query_url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/extensions/mobilemap2/scripts/heightRequest.php?&lang=de&coord={x},{y}" }
+				],
+				
+				"layertree":
+				{
+					"open": false,
+					"title": "Inhalte",
+					"buttons":
+					[
+						{ "id": "import_layer", "title": "<i class='netgis-icon fas fa-plus' style='font-size: 1em;'></i><span>Hinzufügen...</span>" }
+					]
+				},
+				
+				"controls":
+				{
+					"buttons":
+					[
+						{ "id": "zoom_in", "icon": "<i class='fas fa-plus'></i>", "title": "Zoom +" },
+						{ "id": "zoom_out", "icon": "<i class='fas fa-minus'></i>", "title": "Zoom -" },
+						{ "id": "geolocation", "icon": "<i class='fas fa-crosshairs'></i>", "title": "Gerätestandort" },
+						{ "id": "zoom_home", "icon": "<i class='fas fa-home'></i>", "title": "Anfangsausdehung" },
+						{ "id": "legend", "icon": "<i class='fas fa-bars'></i>", "title": "Legende" }
+					]
+				},
+				
+				"legend":
+				{
+					"open": false
+				},
+				
+				"geolocation":
+				{
+					"marker_color": "#3480eb",
+					"marker_title": "Geräte-Standort"
+				},
+				
+				"info":
+				{
+					"default_format": "text/plain"
+				},
+				
+				"searchplace":
+				{
+					"title": "Adresse...",
+					"url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/geoportal/gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG=4326&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={query}&name_startsWith={query}"
+				},
+				
+				"toolbox":
+				{
+					"open": false,
+					
+					"items":
+					[
+						{ "id": "view", "title": "<i class='netgis-icon netgis-text-a fas fa-hand-paper'></i><span>Betrachten</span>" },
+						{ "id": "zoom_box", "title": "<i class='netgis-icon netgis-text-a fas fa-expand'></i><span>Zoom-Rechteck</span>" },
+						
+						{ "id": "measure_line", "title": "<i class='netgis-icon netgis-text-a fas fa-ruler'></i><span>Strecke messen</span>" },
+						{ "id": "measure_area", "title": "<i class='netgis-icon netgis-text-a fas fa-ruler-combined'></i><span>Fläche messen</span>" },
+						{ "id": "measure_clear", "title": "<i class='netgis-icon netgis-text-a fas fa-trash-alt'></i><span>Messung löschen</span>" }
+					]
+					
+					// TODO: make all this config here?
+					/*"options":
+					{
+						"buffer_features":
+						{
+							"title": "Puffern",
+							"items":
+							[
+								{ "id": "buffer_radius", "type": "integer", "title": "Radius (Meter)" },
+								{ "id": "buffer_segments", "type": "integer", "title": "Segmente" },
+								{ "id": "buffer_submit", "type": "button", "title": "<i class='netgis-icon netgis-text-a fas fa-arrow-circle-right'></i><span>Akzeptieren</span>" }
+							]
+						}
+					}*/
+				},
+				
+				"import":
+				{
+					"title": "Ebene hinzufügen",
+					"preview": true,
+					"wms_options": [ "https://sgx.geodatenzentrum.de/wms_topplus_open" ],
+					"wfs_options": [ "http://213.139.159.34:80/geoserver/uesg/wfs" ],
+					"wfs_proxy": "./proxy.php?",
+					"geopackage_lib": "/libs/geopackage/4.2.3/",
+					"geoportal_tab": true,
+					"geoportal_search_url": "./proxy.php?" + "https://www.geoportal.rlp.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=40&searchText={query}"
+				},
+				
+				"measure":
+				{
+					"line_color": "rgba( 255, 0, 0, 1.0 )",
+					"line_width": 3.0,
+					"line_dash": [ 5, 10 ],
+					"area_fill": "rgba( 255, 0, 0, 0.3 )",
+					"point_radius": 4.0,
+					"point_fill": "rgba( 255, 255, 255, 1.0 )",
+					"point_stroke": "rgba( 0, 0, 0, 1.0 )",
+					"text_color": "#871d33",
+					"text_back": "rgba( 255, 255, 255, 0.7 )"
+				},
+				
+				"attribution":
+				{
+					"prefix": "GEOPORTAL"
+				}
+			};
+			
+			// Create Client Instance
+			var client = new netgis.Client( "container", config );
+			
+		</script>
+		
+	</body>
+	
+</html>
