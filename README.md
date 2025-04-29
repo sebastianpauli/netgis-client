@@ -23,4 +23,5 @@ In early development, things will change and break frequently!
 - GIFJS
 
 ## Documentation:
-Coming soon. See the "demo" folder for example implementations.
+View the [Online Documentation](https://html-preview.github.io/?url=https://github.com/sebastianpauli/netgis-client/blob/main/docs/index.html).
+See the "demo" folder for example implementations.
