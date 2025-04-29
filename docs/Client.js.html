@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Client.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Client.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+/**
+ * The netgis namespace.
+ * @namespace
+ */
+var netgis = netgis || {};
+
+/**
+ * The main NetGIS Client class. 
+ * @param {Element} container
+ * @param {JSON} config
+ * @constructor
+ * @name Client
+ * @memberof netgis
+ */
+netgis.Client = function( container, config )
+{
+	this.container = this.initContainer( container );
+	this.logEvents = false;
+	
+	if ( netgis.util.isString( config ) )
+	{
+		// Config URL
+		this.showLoader( true );
+		netgis.util.request( config, this.onConfigResponse.bind( this ) );
+	}
+	else
+	{
+		// Config Object
+		this.init( this.container, config );
+	}
+};
+
+netgis.Client.prototype.init = function( container, config )
+{
+	this.config = config;
+	
+	this.initParams( config );
+	this.initConfig( config );
+	this.initElements( container );
+	this.initModules( config );
+	this.initEvents();
+	this.initOutput( config );
+	
+	// TODO: test stuff...
+	
+	var menu = new netgis.ContextMenu();
+	menu.attachTo( this.container );
+	
+	this.modules.contextmenu = menu;
+	
+	this.popup = new netgis.Popup();
+	this.popup.attachTo( this.container );
+	
+	/*
+	this.popup.setPosition( 200, 300 );
+	this.popup.setHeader( "Popup" );
+	this.popup.setContent( "Hello World..." );
+	this.popup.show();
+	*/
+	
+	//netgis.util.invoke( this.container, netgis.Events.TIMESLIDER_SHOW, { title: "", url: config[ "timeslider" ][ "url" ], id: config[ "timeslider" ][ "id" ] } );
+};
+
+netgis.Client.prototype.initContainer = function( container )
+{
+	// Client Container Element
+	if ( netgis.util.isString( container ) )
+		container = document.getElementById( container );
+	
+	container.classList.add( "netgis-client", "netgis-font" );
+	
+	return container;
+};
+
+netgis.Client.prototype.initParams = function( config )
+{
+	// Get Parameters
+	var params = window.location.search.substr( 1 );
+	params = params.split( "&amp;" );
+	
+	this.params = {};
+	
+	for ( var i = 0; i &lt; params.length; i++ )
+	{
+		var p = params[ i ].split( "=" );
+		var k = p[ 0 ].toLowerCase();
+		var v = p[ 1 ];
+		
+		if ( ! k || k === "" ) continue;
+		
+		this.params[ k ] = v;
+	}
+	
+	// Apply Params To Config
+	for ( var k in this.params )
+	{
+		var v = this.params[ k ];
+		
+		switch ( k )
+		{
+			case "wmc_id":
+			{
+				if ( config[ "wmc" ] )
+				{
+					config[ "wmc" ][ "id" ] = v;
+				}
+				
+				break;
+			}
+		}
+	}
+};
+
+netgis.Client.prototype.initConfig = function( config )
+{
+	// WMC
+	if ( config[ "wmc" ] &amp;&amp; config[ "wmc" ][ "url" ] )
+	{
+		this.requestContextWMC( config[ "wmc" ][ "url" ], config[ "wmc" ][ "id" ] );
+	}
+	
+	// OWS
+	if ( config[ "ows" ] &amp;&amp; config[ "ows" ][ "url" ] )
+	{
+		this.requestContextOWS( config[ "ows" ][ "url" ] );
+	}
+};
+
+netgis.Client.prototype.initElements = function( container )
+{	
+	// Container Attributes
+	if ( container.hasAttribute( "data-lon" ) )
+	{
+		var lon = Number.parseFloat( container.getAttribute( "data-lon" ) );
+		
+		if ( ! this.config[ "map" ][ "center_lonlat" ] ) this.config[ "map" ][ "center_lonlat" ] = [];
+		this.config[ "map" ][ "center_lonlat" ][ 0 ] = lon;
+	}
+	
+	if ( container.hasAttribute( "data-lat" ) )
+	{
+		var lat = Number.parseFloat( container.getAttribute( "data-lat" ) );
+		
+		if ( ! this.config[ "map" ][ "center_lonlat" ] ) this.config[ "map" ][ "center_lonlat" ] = [];
+		this.config[ "map" ][ "center_lonlat" ][ 1 ] = lat;
+	}
+	
+	if ( container.hasAttribute( "data-zoom" ) )
+	{
+		var zoom = Number.parseFloat( container.getAttribute( "data-zoom" ) );
+		this.config[ "map" ][ "zoom" ] = zoom;
+	}
+	
+	if ( container.hasAttribute( "data-bounds" ) )
+	{
+		var bounds = container.getAttribute( "data-bounds" );
+		this.config[ "tools" ][ "bounds" ] = bounds;
+	}
+	
+	if ( container.hasAttribute( "data-editable" ) )
+	{
+		var editable = ( container.getAttribute( "data-editable" ) === "true" );
+		
+		if ( ! this.config[ "tools" ] ) this.config[ "tools" ] = {};
+		this.config[ "tools" ][ "editable" ] = editable;
+	}
+};
+
+netgis.Client.prototype.initOutput = function( config )
+{
+	if ( config[ "output" ] &amp;&amp; config[ "output" ][ "id" ] )
+	{
+		var output = document.getElementById( config[ "output" ][ "id" ] );
+
+		if ( output &amp;&amp; output.value &amp;&amp; output.value.length > 0 )
+		{
+			var geojson = JSON.parse( output.value );
+			netgis.util.invoke( this.container, netgis.Events.MAP_EDIT_LAYER_LOADED, { geojson: geojson } );
+
+			/*this.map.addEditFeaturesGeoJSON( json, false );
+			
+			var self = this;
+			
+			window.setTimeout( function() {
+				self.map.map.updateSize();
+				self.map.zoomGeoJSON( json );
+			}, 50 );
+
+			this.editFolder.classList.remove( "netgis-hide" );
+			*/
+		}	
+		
+		this.output = output;
+	}
+	
+	if ( ! this.output )
+	{
+		this.output = document.createElement( "input" );
+		this.output.setAttribute( "type", "hidden" );
+		this.output.className = "netgis-storage";
+		this.container.appendChild( this.output );
+	}
+};
+
+netgis.Client.prototype.initModules = function( config )
+{	
+	this.modules = {};
+	
+	var configModules = config[ "modules" ];
+	
+	if ( ! configModules ) return;
+	
+	if ( configModules[ "map" ] ) this.addModule( "map", netgis.Map );
+	if ( configModules[ "controls" ] ) this.addModule( "controls", netgis.Controls );
+	if ( configModules[ "attribution" ] ) this.addModule( "attribution", netgis.Attribution );
+	if ( configModules[ "legend" ] ) this.addModule( "legend", netgis.Legend );
+	if ( configModules[ "geolocation" ] ) this.addModule( "geolocation", netgis.Geolocation );
+	if ( configModules[ "info" ] ) this.addModule( "info", netgis.Info );
+	if ( configModules[ "menu" ] ) this.addModule( "menu", netgis.Menu );
+	if ( configModules[ "layertree" ] ) this.addModule( "layertree", netgis.LayerTree );
+	/*if ( configModules[ "switcher" ] ) this.addModule( "switcher", netgis.Switcher );
+	if ( configModules[ "iconbar" ] ) this.addModule( "iconbar", netgis.Iconbar );*/
+	if ( configModules[ "searchplace" ] ) this.addModule( "searchplace", netgis.SearchPlace );
+	if ( configModules[ "searchparcel" ] ) this.addModule( "searchparcel", netgis.SearchParcel );
+	//if ( configModules[ "geolocation" ] ) this.addModule( "geolocation", netgis.Geolocation );
+	if ( configModules[ "toolbox" ] ) this.addModule( "toolbox", netgis.Toolbox );
+	if ( configModules[ "import" ] ) this.addModule( "import", netgis.Import );
+	if ( configModules[ "export" ] ) this.addModule( "export", netgis.Export );
+	if ( configModules[ "timeslider" ] ) this.addModule( "timeslider", netgis.TimeSlider );
+	
+	// TODO: automate module loading from config?
+	// TODO: config modules script constructors?
+	
+	//this.logic = new netgis.Logic( this );
+};
+
+netgis.Client.prototype.initEvents = function()
+{
+	// Check For Event Errors
+	this.container.addEventListener( undefined, function( e ) { console.error( "undefined event invoked", e ); } );
+	
+	// Listen To All Client Events
+	for ( var key in netgis.Events )
+	{
+		var val = netgis.Events[ key ];		
+		this.container.addEventListener( val, this.handleEvent.bind( this ) );
+	}
+	
+	
+	// Common
+	/*this.container.addEventListener( "menu-button-click", this.onMenuButtonClick.bind( this ) );
+	this.container.addEventListener( "controls-button-click", this.onControlsButtonClick.bind( this ) );
+	this.container.addEventListener( "iconbar-icon-click", this.onIconbarIconClick.bind( this ) );
+	this.container.addEventListener( "iconbar-item-click", this.onIconbarItemClick.bind( this ) );
+	this.container.addEventListener( "switcher-button-click", this.onSwitcherButtonClick.bind( this ) );
+	this.container.addEventListener( "geolocation-toggle", this.onGeolocationToggle.bind( this ) );
+	this.container.addEventListener( "geolocation-change", this.onGeolocationChange.bind( this ) );*/
+
+	// TODO: move module event handling to modules?
+	/*
+	// Layer Tree
+	this.modules.layertree.panel.container.addEventListener( "panel-toggle", this.onLayerPanelToggle.bind( this ) );
+	this.modules.layertree.panel.container.addEventListener( "item-change", this.onLayerItemChange.bind( this ) );
+	
+	// Search Place
+	this.modules.searchplace.container.addEventListener( "search-change", this.onSearchPlaceChange.bind( this ) );
+	this.modules.searchplace.container.addEventListener( "search-select", this.onSearchPlaceSelect.bind( this ) );
+	this.modules.searchplace.container.addEventListener( "search-clear", this.onSearchPlaceClear.bind( this ) );
+	*/
+   
+	this.container.addEventListener( netgis.Events.MAP_EDIT_LAYER_CHANGE, this.onMapEditLayerChange.bind( this ) );
+   
+	// Test Events
+	////this.container.addEventListener( netgis.Events.MAP_CLICK, this.onMapClick.bind( this ) );
+};
+
+netgis.Client.prototype.showLoader = function( on )
+{
+	if ( ! this.loader )
+	{
+		this.loader = document.createElement( "div" );
+		this.loader.className = "netgis-loader netgis-color-e netgis-text-a";
+		this.loader.innerHTML = "&lt;i class='fas fa-cog'>&lt;/i>";
+		
+		if ( this.config[ "client" ] &amp;&amp; this.config[ "client" ][ "loading_text" ] )
+			this.loader.innerHTML += "&lt;h2>" + this.config[ "client" ][ "loading_text" ] + "&lt;/h2>";
+		
+		this.container.appendChild( this.loader );
+	}
+	
+	if ( on === false )
+	{
+		this.loader.classList.add( "netgis-fade" );
+		
+		this.loaderTimeout = window.setTimeout( function() { this.loader.classList.add( "netgis-hide" ); this.loaderTimeout = null; }.bind( this ), 600 );
+	}
+	else
+	{
+		this.loader.classList.remove( "netgis-hide" );
+		this.loader.classList.remove( "netgis-fade" );
+		
+		if ( this.loaderTimeout )
+		{
+			window.clearTimeout( this.loaderTimeout );
+			this.loaderTimeout = null;
+		}
+	}
+};
+
+netgis.Client.prototype.handleEvent = function( e )
+{
+	var type = e.type;
+	var params = e.detail;
+	
+	if ( this.logEvents === true ) console.info( "EVENT:", type, params );
+	
+	//console.trace( "EVENT:", type, params );
+	
+	/*for ( var key in this.modules )
+	{
+		var module = this.modules[ key ];
+		
+		if ( module.handleEvent ) module.handleEvent( type, params );
+	}*/
+};
+
+netgis.Client.prototype.addModule = function( id, construct )
+{
+	var module = new construct( /*this,*/ this.config );
+	
+	if ( module.attachTo ) module.attachTo( this.container );
+	
+	this.modules[ id ] = module;
+	
+	return module;
+};
+
+netgis.Client.prototype.isMobile = function()
+{
+	//return ( document.body.getBoundingClientRect().width &lt; 600 );
+	//return ( this.container.getBoundingClientRect().width &lt; 600 );
+	return netgis.util.isMobile( this.container );
+};
+
+netgis.Client.prototype.onConfigResponse = function( data )
+{
+	var config = JSON.parse( data );
+	
+	this.init( this.container, config );
+	this.showLoader( false );
+};
+
+netgis.Client.prototype.requestContextWMC = function( url, id )
+{
+	if ( url.indexOf( "{id}" ) > -1 )
+	{
+		if ( ! id )
+		{
+			console.warn( "No WMC id set in config for url", url );
+			return;
+		}
+		else
+		{
+			url = netgis.util.replace( url, "{id}", id );
+		}
+	}
+
+	var wmc = new netgis.WMC();
+	wmc.requestContext( url, this.onContextResponseWMC.bind( this ) );
+	
+	this.showLoader( true );
+};
+
+netgis.Client.prototype.onContextResponseWMC = function( context )
+{
+	console.info( "WMC Response:", context );
+	
+	// TODO: pass only final config instead of context ?
+	
+	// Apply Changes To Current Config
+	for ( var i = 0; i &lt; context.config.layers.length; i++ )
+	{
+		var layer = context.config.layers[ i ];
+		this.config[ "layers" ].push( layer );
+	}
+	
+	if ( context.config[ "map" ][ "bbox" ] )
+	{
+		this.config[ "map" ][ "bbox" ] = context.config[ "map" ][ "bbox" ];
+	}
+	
+	// Update Modules
+	netgis.util.invoke( this.container, netgis.Events.CLIENT_CONTEXT_RESPONSE, { context: context } );
+	
+	this.showLoader( false );
+};
+
+netgis.Client.prototype.requestContextOWS = function( url )
+{
+	console.info( "Request OWS:", url );
+	
+	netgis.util.request( url, this.onContextResponseOWS.bind( this ) );
+};
+
+netgis.Client.prototype.onContextResponseOWS = function( data )
+{
+	var json = JSON.parse( data );
+	
+	console.info( "OWS Response:", json );
+	
+	var config = netgis.OWS.read( json, this );
+	
+	console.info( "OWS Config:", config );
+};
+
+/*
+netgis.Client.prototype.onMenuButtonClick = function( e )
+{
+	var params = e.detail;
+	
+	switch ( params[ "id" ] )
+	{
+		case "layertree":
+		{
+			this.modules.layertree.panel.toggle();
+			break;
+		}
+		
+		case "searchplace":
+		{
+			this.modules.searchplace.search.toggle();
+			break;
+		}
+		
+		default:
+		{
+			console.error( "unhandled menu button", params );
+			break;
+		}
+	}
+};
+*/
+/*
+netgis.Client.prototype.onControlsButtonClick = function( e )
+{
+	var params = e.detail;
+	
+	switch ( params.id )
+	{
+		case "zoom_in":
+		{
+			this.modules.map.zoom( 1.0 );
+			break;
+		}
+		
+		case "zoom_out":
+		{
+			this.modules.map.zoom( -1.0 );
+			break;
+		}
+		
+		case "zoom_gps":
+		{
+			this.modules.geolocation.setActive( ! this.modules.geolocation.isActive() );
+			break;
+		}
+		
+		case "zoom_home":
+		{
+			var lonlat = this.config[ "map" ][ "centerLonLat" ];
+			this.modules.map.zoomLonLat( lonlat[ 0 ], lonlat[ 1 ], this.config[ "map" ][ "zoom" ] );
+			break;
+		}
+	}
+};
+*/
+/*
+netgis.Client.prototype.onLayerPanelToggle = function( e )
+{
+	var params = e.detail;
+	
+	if ( params.visible )
+		this.modules.iconbar.hide();
+	else
+		this.modules.iconbar.show();
+};
+*/
+/*
+netgis.Client.prototype.onLayerItemChange = function( e )
+{
+	var params = e.detail;
+	
+	if ( params.checked )
+	{
+		var layers = this.config[ "layers" ];
+		
+		for ( var i = 0; i &lt; layers.length; i++ )
+		{
+			var layer = layers[ i ];
+			
+			if ( layer[ "id" ] !== params.id ) continue;
+			
+			this.modules.map.addLayer( params.id, layer );
+		}
+	}
+	else
+	{
+		this.modules.map.removeLayer( params.id );
+	}
+	
+	// Shift Switcher Items
+	if ( this.modules.switcher.getIndex( params.id ) === 0 ) this.modules.switcher.shift( 1, 0 );
+};
+*/
+
+netgis.Client.prototype.onIconbarIconClick = function( e )
+{
+	var params = e.detail;
+	
+	switch ( params.id )
+	{
+		case "home":
+		{
+			var layers = this.config[ "layers" ];
+	
+			for ( var i = 0; i &lt; layers.length; i++ )
+			{
+				var layer = layers[ i ];
+				var id = layer[ "id" ];
+				
+				if ( layer[ "active" ] === true )
+				{
+					this.modules.map.addLayer( id, layer );
+					this.modules.layertree.tree.setItemChecked( id, true );
+				}
+				else
+				{
+					this.modules.map.removeLayer( id );
+					this.modules.layertree.tree.setItemChecked( id, false );
+				}
+			}
+			
+			break;
+		}
+	}
+};
+
+netgis.Client.prototype.onIconbarItemClick = function( e )
+{
+	var params = e.detail;
+	
+	var layers = this.config[ "layers" ];
+	
+	for ( var i = 0; i &lt; layers.length; i++ )
+	{
+		var layer = layers[ i ];
+		var id = layer[ "id" ];
+		
+		if ( layer[ "folder" ] === "background" ) continue;
+		
+		if ( id === params.id )
+		{
+			this.modules.map.addLayer( id, layer );
+			this.modules.layertree.tree.setItemChecked( id, true );
+		}
+		else
+		{
+			this.modules.map.removeLayer( id );
+			this.modules.layertree.tree.setItemChecked( id, false );
+		}
+	}
+};
+
+netgis.Client.prototype.onSwitcherButtonClick = function( e )
+{
+	var params = e.detail;
+	
+	var buttons = this.config[ "switcher" ][ "buttons" ];
+	var layers = this.config[ "layers" ];
+	
+	for ( var i = 0; i &lt; buttons.length; i++ )
+	{
+		var button = buttons[ i ];
+		var id = button[ "id" ];
+		
+		if ( id === params.id )
+		{
+			for ( var j = 0; j &lt; layers.length; j++ )
+			{
+				var layer = layers[ j ];
+				
+				if ( layer[ "id" ] !== id ) continue;
+				
+				this.modules.map.addLayer( id, layer );
+				this.modules.layertree.tree.setItemChecked( id, true );
+			}
+		}
+		else
+		{
+			this.modules.map.removeLayer( id );
+			this.modules.layertree.tree.setItemChecked( id, false );
+		}
+	}
+	
+	// Shift Switcher Items
+	if ( this.modules.switcher.getIndex( params.id ) === 0 ) this.modules.switcher.shift( 1, 0 );
+};
+
+/*
+netgis.Client.prototype.onSearchPlaceChange = function( e )
+{
+	var params = e.detail;
+	
+	var url = this.config[ "searchplace" ][ "url" ];
+	url = netgis.util.replace( url, "{query}", window.encodeURIComponent( params.query ) );
+	
+	netgis.util.request( url, this.onSearchPlaceResponse.bind( this ) );
+};
+
+netgis.Client.prototype.onSearchPlaceResponse = function( data )
+{
+	var json = JSON.parse( data );
+	var results = json[ "data" ];
+	
+	this.modules.searchplace.search.clearResults();
+	
+	for ( var i = 0; i &lt; results.length; i++ )
+	{
+		var result = results[ i ];
+		var title = result[ "name" ];
+		
+		var resultData =
+		{
+			type: "street",
+			id: result[ "strid" ],
+			lon: Number.parseFloat( result[ "wgs_x" ] ),
+			lat: Number.parseFloat( result[ "wgs_y" ] )
+		};
+		
+		this.modules.searchplace.search.addResult( title, JSON.stringify( resultData ) );
+	}
+};
+
+netgis.Client.prototype.onSearchPlaceSelect = function( e )
+{
+	var params = e.detail;
+	var data = JSON.parse( params.data );
+	
+	this.modules.map.zoomLonLat( data.lon, data.lat, this.config[ "searchplace" ][ "zoom" ] );
+	
+	this.modules.map.setSearchMarkerLonLat( data.lon, data.lat );
+	this.modules.map.setSearchMarkerVisible( true );
+	
+	// Search Detail Request
+	if ( data.type === "street" )
+	{
+		var url = this.config[ "searchplace" ][ "url_detail" ];
+
+		if ( url )
+		{
+			// TODO: replace all result props to support any url variable (like popup html)?
+
+			url = netgis.util.replace( url, "{id}", data.id );
+			netgis.util.request( url, this.onSearchPlaceDetailResponse.bind( this ) );
+		}
+	}
+};
+
+netgis.Client.prototype.onSearchPlaceDetailResponse = function( data )
+{
+	var json = JSON.parse( data );
+	var results = json[ "hsnrarr" ];
+	
+	if ( results.length === 0 ) return;
+	
+	this.modules.searchplace.search.clearResults();
+	this.modules.map.setSearchMarkerVisible( true );
+	
+	for ( var i = 0; i &lt; results.length; i++ )
+	{
+		var result = results[ i ];
+		var title = json[ "strname" ] + " " + result[ "hsnr" ];
+		
+		var resultData =
+		{
+			type: "address",
+			lon: Number.parseFloat( result[ "wgs_x" ] ),
+			lat: Number.parseFloat( result[ "wgs_y" ] )
+		};
+		
+		this.modules.searchplace.search.addResult( title, JSON.stringify( resultData ) );
+	}
+};
+
+netgis.Client.prototype.onSearchPlaceClear = function( e )
+{
+	this.modules.map.setSearchMarkerVisible( false );
+};
+*/
+
+netgis.Client.prototype.onGeolocationToggle = function( e )
+{
+	var params = e.detail;
+	this.modules.map.setGeolocMarkerVisible( params.on );
+};
+
+netgis.Client.prototype.onGeolocationChange = function( e )
+{
+	var params = e.detail;
+	
+	this.modules.map.zoomLonLat( params.lon, params.lat, this.config[ "geolocation" ][ "zoom" ] );
+	this.modules.map.setGeolocMarkerLonLat( params.lon, params.lat );
+	
+	//this.modules.geolocation.setActive( false );
+};
+
+netgis.Client.prototype.onMapEditLayerChange = function( e )
+{
+	var params = e.detail;
+	var geojson = JSON.stringify( params.geojson );
+	
+	this.output.value = geojson;
+	//this.attribution.onEditFeaturesChange( e.detail );
+};
+
+netgis.Client.handleCommand = function( src, command )
+{
+	// TODO: having a common event invoke scheme for buttons, inputs, items etc. would get rid of this ?
+	
+	//console.info( "Handle Command:", arguments );
+	
+	// Translate Command IDs To Events
+	switch ( command )
+	{
+		case netgis.Commands.LAYERTREE:
+		{
+			netgis.util.invoke( src, netgis.Events.LAYERTREE_TOGGLE, null );
+			break;
+		}
+		
+		case netgis.Commands.SEARCHPLACE:
+		{
+			netgis.util.invoke( src, netgis.Events.SEARCHPLACE_TOGGLE, null );
+			break;
+		}
+		
+		case netgis.Commands.SEARCHPARCEL:
+		{
+			netgis.util.invoke( src, netgis.Events.SEARCHPARCEL_TOGGLE, null );
+			//netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.SEARCH_PARCEL } );
+			break;
+		}
+		
+		case netgis.Commands.TOOLBOX:
+		{
+			netgis.util.invoke( src, netgis.Events.TOOLBOX_TOGGLE, null );
+			break;
+		}
+		
+		case netgis.Commands.LEGEND:
+		{
+			netgis.util.invoke( src, netgis.Events.LEGEND_TOGGLE, null );
+			break;
+		}
+		
+		case netgis.Commands.VIEW_PREV:
+		{
+			netgis.util.invoke( src, netgis.Events.MAP_VIEW_PREV, null );
+			break;
+		}
+		
+		case netgis.Commands.VIEW_NEXT:
+		{
+			netgis.util.invoke( src, netgis.Events.MAP_VIEW_NEXT, null );
+			break;
+		}
+		
+		case netgis.Commands.VIEW:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.VIEW } );
+			break;
+		}
+		
+		case netgis.Commands.ZOOM_BOX:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.ZOOM_BOX } );
+			break;
+		}
+		
+		case netgis.Commands.ZOOM_SCALE:
+		{
+			var text = src.innerText;
+			var scale = Number.parseInt( text.split( ":" )[ 1 ] );
+			netgis.util.invoke( src, netgis.Events.MAP_ZOOM_SCALE, { scale: scale, anim: true } );
+			break;
+		}
+		
+		case netgis.Commands.MEASURE_LINE:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.MEASURE_LINE } );
+			break;
+		}
+		
+		case netgis.Commands.MEASURE_AREA:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.MEASURE_AREA } );
+			break;
+		}
+		
+		case netgis.Commands.MEASURE_CLEAR:
+		{
+			netgis.util.invoke( src, netgis.Events.MEASURE_CLEAR, null );
+			break;
+		}
+		
+		case netgis.Commands.DRAW_POINTS:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.DRAW_POINTS } );
+			break;
+		}
+		
+		case netgis.Commands.DRAW_LINES:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.DRAW_LINES } );
+			break;
+		}
+		
+		case netgis.Commands.DRAW_POLYGONS:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.DRAW_POLYGONS } );
+			break;
+		}
+		
+		case netgis.Commands.MODIFY_FEATURES:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.MODIFY_FEATURES } );
+			break;
+		}
+		
+		case netgis.Commands.DELETE_FEATURES:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.DELETE_FEATURES } );
+			break;
+		}
+		
+		case netgis.Commands.BUFFER_FEATURES:
+		{
+			//netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.BUFFER_FEATURES } );
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.BUFFER_FEATURES_DYNAMIC } );
+			break;
+		}
+		
+		case netgis.Commands.CUT_FEATURES:
+		{
+			netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.CUT_FEATURES } );
+			//netgis.util.invoke( src, netgis.Events.CLIENT_SET_MODE, { mode: netgis.Modes.CUT_FEATURES_DYNAMIC } );
+			break;
+		}
+		
+		case netgis.Commands.IMPORT_LAYER:
+		{
+			netgis.util.invoke( src, netgis.Events.IMPORT_LAYER_SHOW, null );
+			break;
+		}
+		
+		case netgis.Commands.EXPORT:
+		{
+			netgis.util.invoke( src, netgis.Events.EXPORT_SHOW, null );
+			break;
+		}
+		
+		case netgis.Commands.GEOLOCATION:
+		{
+			netgis.util.invoke( src, netgis.Events.GEOLOCATION_SHOW_OPTIONS, null );
+			break;
+		}
+		
+		default:
+		{
+			console.error( "unhandled command id", command );
+			break;
+		}
+	}
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="netgis.html">netgis</a></li></ul><h3>Classes</h3><ul><li><a href="netgis.Client.html">Client</a></li><li><a href="netgis.Import.html">Import</a></li></ul><h3>Global</h3><ul><li><a href="global.html#OSM">OSM</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Apr 25 2025 14:07:12 GMT+0200 (Mitteleuropäische Sommerzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

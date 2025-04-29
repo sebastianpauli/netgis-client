@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: Map</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: Map</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="netgis.html">netgis</a>.</span>Map<span class="signature">(config)</span><span class="type-signature"></span></h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    
+    <h4 class="name" id="Map"><span class="type-signature"></span>new Map<span class="signature">(config)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Map Module Implementation for OpenLayers 3+.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>config</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><a href="netgis.Map.html#.Config">Map.Config</a><br/>
+<a href="netgis.Map.html#.Projections">Map.Projections</a><br/>
+<a href="netgis.Map.html#.Layers">Map.Layers</a><br/>
+<a href="netgis.Map.html#.Measure">Map.Measure</a><br/>
+<a href="netgis.Map.html#.Tools">Map.Tools</a><br/>
+<a href="netgis.Map.html#.Styles">Map.Styles</a></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id=".Config"><span class="type-signature">(static) </span>Config<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Config Section "map"
+</div>
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>projection</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default map projection ID, see <a href="netgis.Map.html#.Projections">Projections</a></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>center</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default center coordinates, <code>[ x, y ]</code></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>center_lonlat</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default center coordinates in Longitude/Latitude, <code>[ lon, lat ]</code></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>zoom</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default zoom level</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>min_zoom</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Minimum zoom level</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>max_zoom</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Maximum zoom level</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>scalebar</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Display a dynamic scalebar on the map</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>extent</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default map extent to zoom, <code>[ minx, miny, maxx, maxy ]</code></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>scales</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Available scale denominators, <code>[ 500, 1000, ... ]</code></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id=".Layers"><span class="type-signature">(static) </span>Layers<span class="type-signature"> :Array</span></h4>
+
+
+
+
+<div class="description">
+    Config Section "layers"
+<ul>
+	<li>Basic Layer Item Parameters:
+		<ul>
+			<li><code>"id": {String} Unique layer ID, see <a href="global.html#LayerID">Layer IDs</a> to avoid conflicts</code></li>
+			<li><code>"folder": {String} Parent folder ID or null for top level, see <a href="netgis.LayerTree.html#.Folders">LayerTree.Folders</a></code></li>
+			<li><code>"title": {String} Layer title in the layer tree</code></li>
+			<li><code>"attribution": {String} Copyright string for the <a href="netgis.Attribution.html">Attribution Module</a></code></li>
+			<li><code>"active": {Boolean} Layer is visible at startup</code></li>
+			<li><code>"order": {Number} Order value for map layer stack sorting</code></li>
+			<li><code>"type": {String} Layer type, see <a href="global.html#LayerTypes">LayerTypes</a> for more type specific parameters</code></li>
+		</ul>
+	</li>
+	<li>Layer Display Parameters:
+		<ul>
+			<li><code>"min_zoom": {Number} Minimum zoom level for this layer</code></li>
+			<li><code>"max_zoom": {Number} Maximum zoom level for this layer</code></li>
+			<!--<li><code>"projection": {String} Projection ID, defaults to map projection if undefined, see Map.Projections</code></li>-->
+			<li><code>"transparency": {Number} Transparency value from 0.0 (fully opaque) to 1.0 (fully transparent)</code></li>
+			<li><code>"fill": {String} Fill color for simple vector style in CSS format</code></li>
+			<li><code>"stroke": {String} Stroke color for simple vector style in CSS format</code></li>
+			<li><code>"width": {Number} Stroke width for simple vector style in pixels</code></li>
+			<li><code>"style": {JSON} Advanced vector style parameters, see <a href="netgis.Map.html#.Styles">Map.Styles</a></code></li>
+		</ul>
+	</li>
+	<li>Info Query Parameters (see <a href="netgis.Info.html">Info Module</a>):
+		<ul>
+			<li><code>"query": {Boolean} Enable info queries on this layer</code></li>
+			<li><code>"query_url": {String} Info service URL, may contain {x}, {y}, {bbox}, {proj}, {width}, {height}, {px}, {py} placeholders</code></li>
+		</ul>
+	</li>
+</ul>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id=".Measure"><span class="type-signature">(static) </span>Measure<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Config Section "measure"
+</div>
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>line_color</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Line color in CSS format</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>line_width</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Line width in pixels</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>line_dash</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Line dash pattern <code>[ SpaceWidth, LineWidth ]</code></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>area_fill</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Area fill color in CSS format</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>point_radius</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Point radius in pixels</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>point_fill</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Point fill color in CSS format</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>point_stroke</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Point stroke color in CSS format</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>text_color</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Text label color in CSS format</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>text_back</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Text label buffer color in CSS format</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id=".Projections"><span class="type-signature">(static) </span>Projections<span class="type-signature"> :Array</span></h4>
+
+
+
+
+<div class="description">
+    Config Section "projections"
+<ul>
+	<li>Projection Definitions:<br/><code>[ "ID", "Proj4 Definition" ]</code></li>
+</ul>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id=".Styles"><span class="type-signature">(static) </span>Styles<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Config Section "styles"<br/>
+Common Parameters:
+<ul>
+	<li><code>"fill": {String} Fill color in CSS format</code></li>
+	<li><code>"stroke": {String} Stroke color in CSS format</code></li>
+	<li><code>"width": {Number} Stroke width in pixels</code></li>
+	<li><code>"radius": {Number} Point radius in pixels</code></li>
+	<li><code>"viewport_labels": {Boolean} Try to keep text labels inside map view (experimental)</code></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>draw</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default draw feature style</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>non_edit</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default non-editable feature style</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>select</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default select feature style</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sketch</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default draw sketch feature style</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>error</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default draw error style</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bounds</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default edit boundary style</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modify</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default feature modify style</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>parcel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default parcels style</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>import</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default imported features style</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id=".Tools"><span class="type-signature">(static) </span>Tools<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Config Section "tools"
+</div>
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>editable</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Enable edit tools</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>interactive_render</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Enable interactive rendering while editing</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>select_multi_reset</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Reset multi selection after each select action</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>buffer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default buffer settings
+<ul>
+	<li><code>"default_radius": {Number}</code></li>
+	<li><code>"default_segments": {Number}</code></li>
+</ul></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>snapping</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">JSON</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Default snapping settings
+<ul>
+	<li><code>"show": {Boolean}</code></li>
+	<li><code>"active": {Boolean}</code></li>
+	<li><code>"tolerance": {Number}</code></li>
+</ul></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bounds</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Boundary polygons for drawing tools in GeoJSON format (or leave undefined for no bounds checking)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bounds_message</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Message to display if editing out of bounds</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>show_bounds</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Show boundary polygons on map</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="netgis.html">netgis</a></li></ul><h3>Classes</h3><ul><li><a href="netgis.Attribution.html">Attribution</a></li><li><a href="netgis.Client.html">Client</a></li><li><a href="netgis.Controls.html">Controls</a></li><li><a href="netgis.Export.html">Export</a></li><li><a href="netgis.Geolocation.html">Geolocation</a></li><li><a href="netgis.Import.html">Import</a></li><li><a href="netgis.Info.html">Info</a></li><li><a href="netgis.LayerTree.html">LayerTree</a></li><li><a href="netgis.Legend.html">Legend</a></li><li><a href="netgis.Map.html">Map</a></li><li><a href="netgis.Menu.html">Menu</a></li><li><a href="netgis.OWS.html">OWS</a></li><li><a href="netgis.SearchParcel.html">SearchParcel</a></li><li><a href="netgis.SearchPlace.html">SearchPlace</a></li><li><a href="netgis.TimeSlider.html">TimeSlider</a></li><li><a href="netgis.Toolbox.html">Toolbox</a></li><li><a href="netgis.WMC.html">WMC</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Commands">Commands</a></li><li><a href="global.html#LayerID">LayerID</a></li><li><a href="global.html#LayerTypes">LayerTypes</a></li><li><a href="global.html#Modules">Modules</a></li><li><a href="global.html#util">util</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Tue Apr 29 2025 13:39:56 GMT+0200 (Mitteleuropäische Sommerzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

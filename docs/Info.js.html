@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Info.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Info.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+var netgis = netgis || {};
+
+netgis.Info = function( config )
+{
+	this.config = config;
+	
+	this.queryLayers = {};
+	
+	this.popup = new netgis.Popup();
+	this.popup.setHeader( "Abfrage" );
+	
+	this.initConfig( config );
+};
+
+netgis.Info.prototype.initConfig = function( config )
+{
+	// Add Active Layers (Top To Bottom Order)
+	var configLayers = config[ "layers" ];
+	
+	for ( var i = configLayers.length - 1; i >= 0; i-- )
+	{
+		var layer = configLayers[ i ];
+		
+		if ( layer[ "active" ] === true &amp;&amp; this.isLayerQueryable( layer ) )
+		{
+			this.queryLayers[ layer[ "id" ] ] = layer;
+		}
+		else if ( this.queryLayers[ layer[ "id" ] ] )
+		{
+			delete this.queryLayers[ layer[ "id" ] ];
+		}
+	}
+};
+
+netgis.Info.prototype.attachTo = function( parent )
+{
+	this.popup.attachTo( parent );
+	
+	parent.addEventListener( netgis.Events.CLIENT_CONTEXT_RESPONSE, this.onClientContextResponse.bind( this ) );
+	
+	parent.addEventListener( netgis.Events.MAP_LAYER_TOGGLE, this.onMapLayerToggle.bind( this ) );
+	parent.addEventListener( netgis.Events.IMPORT_LAYER_ACCEPT, this.onImportLayerAccept.bind( this ) );
+	parent.addEventListener( netgis.Events.IMPORT_GEOPORTAL_SUBMIT, this.onImportGeoportalSubmit.bind( this ) );
+	
+	parent.addEventListener( netgis.Events.MAP_CLICK, this.onMapClick.bind( this ) );
+	parent.addEventListener( netgis.Events.MAP_FEATURE_CLICK, this.onMapFeatureClick.bind( this ) );
+};
+
+/**
+ * Checks for a queryable layer.
+ * Does not check layer active state.
+ * @param {object} layer Layer Config Parameters
+ * @returns {Boolean}
+ */
+netgis.Info.prototype.isLayerQueryable = function( layer )
+{
+	//if ( ! layer[ "active" ] ) return false;
+	
+	var queryable = false;
+	
+	if ( layer[ "query" ] === true )
+	{
+		// Queryable Config Layers
+		queryable = true;
+	}
+	else if ( layer[ "query" ] !== false )
+	{
+		// Default Query Behavior For WMS
+		switch ( layer[ "type" ] )
+		{
+			case netgis.LayerTypes.WMS:
+			case netgis.LayerTypes.WMST:
+			{
+				queryable = true;
+				break;
+			}
+		}
+	}
+	
+	return queryable;
+};
+
+/**
+ * 
+ * @param {string} title
+ * @param {string} content HTML
+ */
+netgis.Info.prototype.addSection = function( title, content, open )
+{
+	var html =
+	[
+		( open === true ) ? "&lt;details open='open'>" : "&lt;details>",
+		"&lt;summary class='netgis-button netgis-noselect netgis-clip-text netgis-color-d netgis-hover-text-a netgis-hover-d'>",
+		title,
+		"&lt;/summary>",
+		"&lt;div class='netgis-border-d'>",
+		content,
+		"&lt;/div>",
+		"&lt;/details>"
+	];
+	
+	this.popup.addContent( html.join( "" ) );
+	
+	// TODO: create element without html strings
+};
+
+netgis.Info.prototype.onClientContextResponse = function( e )
+{
+	var params = e.detail;
+	this.initConfig( params.context.config );
+};
+
+netgis.Info.prototype.onMapLayerToggle = function( e )
+{
+	var params = e.detail;
+	var id = params.id;
+	
+	//console.info( "Info Layer Toggle:", params );
+	
+	if ( params.on )
+	{
+		// Get Layer By ID
+		var layers = this.config[ "layers" ];
+		var layer = null;
+
+		for ( var i = 0; i &lt; layers.length; i++ )
+		{
+			if ( layers[ i ][ "id" ] === id )
+			{
+				layer = layers[ i ];
+				break;
+			}
+		}
+
+		// Add Queryable Layer
+		if ( layer )
+		{
+			if ( this.isLayerQueryable( layer ) ) this.queryLayers[ id ] = layer;
+		}
+	}
+	else
+	{
+		// Remove Queryable Layer
+		delete this.queryLayers[ id ];
+	}
+};
+
+netgis.Info.prototype.onImportLayerAccept = function( e )
+{
+	var params = e.detail;
+	var layer = params;
+	
+	if ( this.isLayerQueryable( layer ) ) this.queryLayers[ layer.id ] = layer;
+};
+
+netgis.Info.prototype.onImportGeoportalSubmit = function( e )
+{
+	var params = e.detail;
+	
+	//console.info( "Info Geoportal Submit:", params );
+	
+	// TODO: make imported layers queryable
+};
+
+netgis.Info.prototype.onMapClick = function( e )
+{
+	var params = e.detail;
+	
+	//console.info( "Info Map Click:", params, params.lon, params.lat );
+	
+	if ( params.mode !== netgis.Modes.VIEW ) return;
+	
+	var cfg = this.config[ "info" ];
+	
+	// Popup
+	if ( this.popup.container !== params.overlay )
+	{
+		this.popup.attachTo( params.overlay );
+	}
+	
+	this.popup.clearContent();
+	
+	// Query Layers
+	var count = 0;
+	
+	for ( var id in this.queryLayers )
+	{
+		var layer = this.queryLayers[ id ];
+		
+		// Auto Query For WMS With Undefined Config
+		if ( ! layer[ "query_url" ] || layer[ "query_url" ] === "" )
+		{
+			switch ( layer[ "type" ] )
+			{
+				case netgis.LayerTypes.WMS:
+				case netgis.LayerTypes.WMST:
+				{
+					var url = layer[ "url" ];
+
+					////if ( layer[ "query_url" ] ) url = layer[ "query_url" ];
+
+					// TODO: layer config query url template params replace
+
+					var request =
+					[
+						"service=WMS",
+						"version=1.1.0",
+						"request=GetFeatureInfo",
+						"styles=",
+						"layers=" + window.encodeURIComponent( layer[ "name" ] ),
+						"query_layers=" + window.encodeURIComponent( layer[ "name" ] ),
+						"bbox=" + params.view.bbox.join( "," ),
+						"srs=" + params.view.projection,
+						"width=" + params.view.width,
+						"height=" + params.view.height,
+						"x=" + Math.round( params.pixel[ 0 ] ),
+						"y=" + Math.round( params.pixel[ 1 ] ),
+						"info_format=" + ( cfg &amp;&amp; cfg[ "default_format" ] ? cfg[ "default_format" ] : "text/plain" )
+						//"info_format=" + "text/html"
+					];
+
+					url = url + ( url.indexOf( "?" ) === -1 ? "?" : "" ) + request.join( "&amp;" );
+					
+					netgis.util.request( url, this.onLayerResponseWMS.bind( this ), { title: layer[ "title" ] } );
+
+					// TODO: handle wms query error responses
+
+					count += 1;
+
+					break;
+				}
+			}
+		}
+	   
+		// Query Using Config URL
+		var url = layer[ "query_url" ];
+		
+		if ( url &amp;&amp; url !== "" )
+		{
+			//if ( ! url || url === "" ) continue;
+
+			url = netgis.util.replace( url, "{bbox}", params.view.bbox.join( "," ) );
+			url = netgis.util.replace( url, "{proj}", params.view.projection );
+			url = netgis.util.replace( url, "{width}", params.view.width );
+			url = netgis.util.replace( url, "{height}", params.view.height );
+			url = netgis.util.replace( url, "{x}", params.coords[ 0 ] );
+			url = netgis.util.replace( url, "{y}", params.coords[ 1 ] );
+			url = netgis.util.replace( url, "{px}", params.pixel[ 0 ] );
+			url = netgis.util.replace( url, "{py}", params.pixel[ 1 ] );
+			url = netgis.util.replace( url, "{lon}", params.lon );
+			url = netgis.util.replace( url, "{lat}", params.lat );
+
+			//console.info( "WMS REQUEST 2:", url );
+
+			netgis.util.request( url, this.onLayerResponseWMS.bind( this ), { title: layer[ "title" ] } );
+
+			count += 1;
+		}
+		
+		// Force Query From Config For Vector Features
+		/*
+		if ( layer[ "query" ] === true &amp;&amp; ( ! layer[ "query_url" ] || layer[ "query_url" ] === "" ) )
+		{
+			count += 1;
+		}
+		*/
+	   
+		// TODO: handle vector feature info on map feature click
+	}
+	
+	if ( count > 0 )
+	{
+		this.popup.showLoader();
+		this.popup.show();
+	}
+	else
+	{
+		this.popup.hide();
+	}
+};
+
+netgis.Info.prototype.onLayerResponseWMS = function( data, requestData, request )
+{
+	//console.info( "INFO RESPONSE:", data, requestData, request );
+	
+	var title = requestData.title;
+	var content = data;
+	
+	// Nothing Returned
+	if ( ! data || data === "" ) data = "&lt;p style='padding: 0mm 2mm;'>&lt;i>Keine Daten gefunden...&lt;/i>&lt;/p>";
+	
+	// Check Content Type
+	var contentType = request.getResponseHeader( "Content-Type" );
+	
+	if ( contentType )
+	{
+		switch ( contentType.split( ";" )[ 0 ] )
+		{
+			case "text/plain":
+			{
+				content = "&lt;pre>" + content + "&lt;/pre>";
+				break;
+			}
+		}
+	}
+	
+	// Add To Content
+	this.popup.hideLoader();
+	this.addSection( title, content, false );
+};
+
+netgis.Info.prototype.onMapFeatureClick = function( e )
+{
+	var params = e.detail;
+	var props = params.properties;
+	
+	//console.info( "Info Feature Click:", params, this.popup.wrapper.innerHTML, this.popup.wrapper.childNodes );
+	
+	var open = false; //( this.popup.wrapper.childNodes.length === 0 );
+	var show = false;
+	
+	// Filter Feature Properties
+	var title = null;
+	var filtered = [];
+	var blacklist = [ "geometry", "fill", "fill-opacity", "stroke", "stroke-opacity", "stroke-width", "styleUrl" ];
+	
+	for ( var k in props )
+	{
+		if ( blacklist.indexOf( k ) > -1 ) continue;
+		
+		var v = props[ k ];
+		filtered.push( [ k, v ] );
+		
+		if ( ! title )
+		{
+			if ( k === "name" &amp;&amp; v !== "" ) title = v;
+			else if ( k === "title" &amp;&amp; v !== "" ) title = v;
+			else if ( k === "id" &amp;&amp; v ) title = v;
+		}
+	}
+		
+	// Build Title
+	if ( ! title &amp;&amp; params.id ) title = params.id;
+	title = title ? 'Feature "' + title + '"' : "Feature";
+	
+	if ( params.id === "geolocation" )
+	{
+		title = this.config[ "geolocation" ][ "marker_title" ];
+		if ( ! title || title === "" ) title = "Geolocation";
+		
+		filtered.push( [ "Längengrad (Lon.)", params.lon ] );
+		filtered.push( [ "Breitengrad (Lat.)", params.lat ] );
+	}
+
+	// Build Table
+	var html = [];
+
+	if ( filtered.length > 0 )
+	{
+		html.push( "&lt;table>" );
+
+		for ( var i = 0; i &lt; filtered.length; i++ )
+		{
+			var item = filtered[ i ];
+			var k = item[ 0 ];
+			var v = item[ 1 ];
+
+			html.push( "&lt;tr class='netgis-hover-d'>" );
+			html.push( "&lt;th>" + k + "&lt;/th>" );
+			html.push( "&lt;td>" + v + "&lt;/td>" );
+			html.push( "&lt;/tr>" );
+		}
+
+		html.push( "&lt;/table>" );
+	}
+	else
+	{
+		html.push( "&lt;i>Keine Eigenschaften vorhanden...&lt;/i>" );
+	}
+
+	html = html.join( "" );
+
+	// Add To Popup Content
+	this.addSection( title, html, open );
+	show = true;
+	
+	if ( ! this.popup.isVisible() &amp;&amp; show )
+	{
+		this.popup.show();
+	}
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="netgis.html">netgis</a></li></ul><h3>Classes</h3><ul><li><a href="netgis.Client.html">Client</a></li><li><a href="netgis.Import.html">Import</a></li></ul><h3>Global</h3><ul><li><a href="global.html#OSM">OSM</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Apr 25 2025 14:07:12 GMT+0200 (Mitteleuropäische Sommerzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
