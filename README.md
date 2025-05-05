@@ -23,5 +23,6 @@ In early development, things will change and break frequently!
 - GIFJS
 
 ## Documentation:
-View the [Online Documentation](https://sebastianpauli.net/netgis/docs/).
-See the "demo" folder for example implementations.
+- Follow the [Tutorial](https://github.com/sebastianpauli/netgis-client/blob/main/TUTORIAL.md)
+- View the [Online Documentation](https://sebastianpauli.net/netgis/docs/)
+- See the [Demo](https://github.com/sebastianpauli/netgis-client/tree/main/demo) folder for example implementations

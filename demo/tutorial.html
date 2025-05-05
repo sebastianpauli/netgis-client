@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		
+		<title>NetGIS Client Tutorial</title>
+		
+		<link rel="stylesheet" type="text/css" href="/libs/fontawesome/5.12.0/css/all.min.css" />
+		<link rel="stylesheet" type="text/css" href="/libs/openlayers/10.0.0/ol.css" />
+		
+		<link rel="stylesheet" type="text/css" href="../dist/netgis.min.css" />
+		
+	</head>
+	
+	<body>
+		
+		<div id="container" style="height: 400px"></div>
+		
+		<script type="text/javascript" src="/libs/openlayers/10.0.0/ol.js"></script>
+		
+		<script type="text/javascript" src="../dist/netgis.min.js"></script>
+		
+		<script type="text/javascript">
+			
+			var config =
+			{
+				"modules":
+				{
+					"menu": true,
+					"map": true,
+					"attribution": true,
+					"controls": true,
+					"layertree": true
+				},
+				
+				"menu":
+				{
+					"header": "Tutorial",
+					"items":
+					[
+						{ "id": "layertree", "title": "<i class='fas fa-layer-group'></i><span>Layers</span>" }
+					]
+				},
+				
+				"map":
+				{
+					"center_lonlat": [ 7.0, 50.0 ],
+					"zoom": 9
+				},
+				
+				"layers":
+				[
+					{ "id": "osm", "type": "OSM", "title": "Open Street Map", "attribution": "OpenStreetMap Contributors", "active": true }
+				],
+				
+				"controls":
+				{
+					"buttons":
+					[
+						{ "id": "zoom_in", "icon": "<i class='fas fa-plus'></i>", "title": "Zoom +" },
+						{ "id": "zoom_out", "icon": "<i class='fas fa-minus'></i>", "title": "Zoom -" },
+						{ "id": "zoom_home", "icon": "<i class='fas fa-home'></i>", "title": "Zoom Home" }
+					]
+				}
+			};
+			
+			var client = new netgis.Client( "container", config );
+
+		</script>
+		
+	</body>
+	
+</html>
