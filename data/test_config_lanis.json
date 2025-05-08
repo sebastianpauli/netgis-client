@@ -202,6 +202,7 @@
 	"tools":
 	{
 		"editable": true,
+		"output_id": "my-output123",
 		"interactive_render": true,
 		"select_multi_reset": true,
 		

@@ -24,5 +24,6 @@ In early development, things will change and break frequently!
 
 ## Documentation:
 - Follow the [Tutorial](https://github.com/sebastianpauli/netgis-client/blob/main/TUTORIAL.md)
+- See the [How To](https://github.com/sebastianpauli/netgis-client/blob/main/HOWTO.md) guides for more examples
 - View the [Online Documentation](https://sebastianpauli.net/netgis/docs/)
 - See the [Demo](https://github.com/sebastianpauli/netgis-client/tree/main/demo) folder for example implementations

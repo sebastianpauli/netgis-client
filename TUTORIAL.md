@@ -59,7 +59,7 @@ Once all the styles and scripts are ready, we can create our client.
 First let's create a simple container element to display the client in:
 
 ```html
-<div id="container" style="height: 600px"></div>
+<div id="container" style="height: 400px"></div>
 ```
 
 Then we can write the main script that will create the client instance:
@@ -102,7 +102,7 @@ var config =
 
 	"map":
 	{
-		"center_lonlat": [ 7.0, 51.0 ],
+		"center_lonlat": [ 7.0, 50.0 ],
 		"zoom": 14
 	}
 };
