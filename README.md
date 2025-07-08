@@ -11,16 +11,20 @@ In early development, things will change and break frequently!
 - **Programming Patterns:** At the core this client makes heavy use of the Observer and State patterns. Where possible pure functions shall be implemented to reduce side effects.
 
 ## Dependencies:
+These are the required libraries with their latest known-to-work versions and downloads:
+
 ### Core:
-- OpenLayers 6
-- FontAwesome 5
+- OpenLayers [10.0.0](https://github.com/openlayers/openlayers/releases/download/v10.0.0/v10.0.0-site.zip)
+- FontAwesome [5.12.0](https://use.fontawesome.com/releases/v5.12.0/fontawesome-free-5.12.0-web.zip)
 
 ### Optional:
-- Proj4js
-- JSTS
-- ShapefileJS
-- JSPDF
-- GIFJS
+- PROJ4JS [2.6.0](https://github.com/proj4js/proj4js/archive/refs/tags/2.6.0.zip)
+- JSTS [1.6.1](https://github.com/bjornharrtell/jsts/archive/refs/tags/1.6.1.zip)
+- ShapefileJS [4.0.2](https://github.com/calvinmetcalf/shapefile-js/archive/refs/tags/v4.0.2.zip)
+- JSPDF [1.3.2](https://github.com/parallax/jsPDF/archive/refs/tags/v1.3.2.zip)
+- GIFJS [0.2.0](https://github.com/jnordberg/gif.js/archive/refs/tags/v0.2.0.zip)
+- SQLJS [1.8.0](https://github.com/sql-js/sql.js/releases/download/v1.8.0/sql.js)
+- GeoPackageJS [4.2.3](https://github.com/ngageoint/geopackage-js/archive/refs/tags/4.2.3.zip)
 
 ## Documentation:
 - Follow the [Tutorial](https://github.com/sebastianpauli/netgis-client/blob/main/TUTORIAL.md)

@@ -98,8 +98,7 @@
 							"items":
 							[
 								{ "id": "view_prev", "title": "<i class='fas fa-step-backward'></i><span>Vorherige</span>" },
-								{ "id": "view_next", "title": "<i class='fas fa-step-forward'></i><span>Nächste</span>" },
-								{ "id": "scales", "title": "<i class='fas fa-ruler-horizontal'></i><span>Maßstab</span><i class='fas fa-caret-right'></i>", "items": [ /*{ "id": "test1", "title": "Subitem 1" }, { "id": "test2", "title": "Subitem 2" }, { "id": "test3", "title": "Subitem 3" }*/ ] }
+								{ "id": "view_next", "title": "<i class='fas fa-step-forward'></i><span>Nächste</span>" }
 							]
 						},
 						
@@ -121,15 +120,17 @@
 					"zoom": 14,
 					"min_zoom": 5,
 					"max_zoom": 19,
-					"scalebar": true,
 					
 					"extent": [ 293315.97, 5423948.96, 464350.97, 5644103.06 ],
-					"scales": [ 500, 1000, 3000, 5000, 8000, 10000, 15000, 25000, 50000, 100000, 150000, 250000, 500000, 1000000, 1500000, 2000000 ]
+					
+					"scales": [ 500, 1000, 3000, 5000, 8000, 10000, 15000, 25000, 50000, 100000, 150000, 250000, 500000, 1000000, 1500000, 2000000 ],
+					"scalebar": true
 				},
 				
 				"wmc":
 				{
-					"url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/php/mod_exportWmc2Json.php?confFileName=mobilemap2&epsg=25832&withHierarchy=1&wmc_id={id}"
+					"url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/php/mod_exportWmc2Json.php?confFileName=mobilemap2&epsg=25832&withHierarchy=1&wmc_id={id}",
+					"layers_url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=40&resourceIds={ids}"
 					
 					// Use this to directly load a WMC by ID:
 					// "id": 27581
