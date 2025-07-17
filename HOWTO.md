@@ -1,6 +1,7 @@
 # NetGIS Client - How To...
 
 ## Client Integration
+- [Migrate from the old Legacy Client (mobilemap2)](#migrate-from-the-old-legacy-client)
 - [Load a config JSON from a URL](#load-a-config-json-from-a-url)
 - [Include the client in a web form for input submission](#include-the-client-in-a-web-form-for-input-submission)
 - [Load a WMC document at startup](#load-a-wmc-document-at-startup)
@@ -21,6 +22,36 @@
 - [Enable feature info queries on a WMS layer](#enable-feature-info-queries-on-a-wms-layer)
 - [Add an invisible layer for data queries](#add-an-invisible-layer-for-data-queries)
 - [Enable vector feature edit tools](#enable-vector-feature-edit-tools)
+
+### Migrate from the old Legacy Client
+
+If you want to migrate from the old legacy Client (e.g. "mobilemap2"), the easiest way is probably to have your old ```netgis.config``` present
+(could also be loaded directly from ```/mobilemap2/scripts/netgis/config.js```):
+
+```js
+netgis.config = 
+{
+	MAP_CONTAINER_ID:		"map-container",
+
+	// etc.
+};
+```
+
+And then just create a new Client Instance without any parameters:
+
+```js
+var client = new netgis.Client();
+```
+
+The client will then try to auto load the old config format, which result in roughly the same Client setup:
+
+![Screenshot](https://sebastianpauli.net/netgis/demo/howto_legacy.jpg)
+
+Comparison Links (same config):
+- Old Client: [https://www.geoportal.rlp.de/mapbender/extensions/mobilemap2/index.html?wmc_id=27581](https://www.geoportal.rlp.de/mapbender/extensions/mobilemap2/index.html?wmc_id=27581)
+- New Client: [https://sebastianpauli.net/netgis/demo/geoportal_legacy.html?wmc_id=27581](https://sebastianpauli.net/netgis/demo/geoportal_legacy.html?wmc_id=27581)
+
+You can find a working example in the [Demo](https://github.com/sebastianpauli/netgis-client/blob/main/demo/geoportal_legacy.html) section.
 
 ### Load a config JSON from a URL
 

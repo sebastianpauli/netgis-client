@@ -1,7 +1,10 @@
 <?php
 
 // URL
-$query = $_SERVER[ "QUERY_STRING" ];
+$query = urldecode( $_SERVER[ "QUERY_STRING" ] );
+
+// Avoid Issues With Self Signed Certificates
+$query = str_replace( "https:", "http:", $query );
 
 // Open Session
 $session = curl_init( $query );
@@ -18,6 +21,7 @@ header( "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, A
 header( "Access-Control-Allow-Origin: *" );
 
 //header( "Content-Type: application/json" );
+//header( "Content-Type: text/html" );
 
 // Check Errors
 if ( $response === false ) $response = curl_error( $session );

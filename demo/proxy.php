@@ -16,7 +16,12 @@ $response = curl_exec( $session );
 // Output
 header( "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept" );
 header( "Access-Control-Allow-Origin: *" );
-header( "Content-Type: application/json" );
+
+//header( "Content-Type: application/json" );
+//header( "Content-Type: text/html" );
+
+// Check Errors
+if ( $response === false ) $response = curl_error( $session );
 
 echo $response;
 
