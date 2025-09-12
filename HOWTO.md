@@ -43,7 +43,7 @@ And then just create a new Client Instance without any parameters:
 var client = new netgis.Client();
 ```
 
-The client will then try to auto load the old config format, which result in roughly the same Client setup:
+The client will then try to auto load the old config format, which should result in roughly the same Client setup:
 
 ![Screenshot](https://sebastianpauli.net/netgis/demo/howto_legacy.jpg)
 
