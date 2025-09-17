@@ -149,7 +149,11 @@
 					{ "id": "osm_human", "folder": "bg", "type": "XYZ", "title": "OSM Humanitarian", "attribution": "OSM", "url": "https://{a-c}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png" },
 					{ "id": "osm", "folder": "bg", "type": "OSM", "title": "Open Street Map", "attribution": "OSM", "active": false, "order": 1, "min_zoom": 1, "max_zoom": 20 },
 					{ "id": "bg_aerial", "folder": "bg", "order": 1, "title": "Luftbild", "type": "WMS", "url": "https://geo4.service24.rlp.de/wms/rp_dop20.fcgi", "tiled": true, "name": "rp_dop20", "query": false },
-					{ "id": "bg_hybrid", "folder": "bg", "active": true, "order": 1, "title": "Hybrid", "type": "TMS", "url": "https://www.geoportal.rlp.de/mapcache/tms/1.0.0/test@UTM32/{z}/{x}/{-y}.jpeg", "projection": "EPSG:25832", "extent": "map", "scales": "map", "query": false },
+					{ "id": "bg_hybrid", "folder": "bg", "active": true, "order": 1, "title": "Hybrid", "type": "TMS", "url": "https://www.geoportal.rlp.de/mapcache/tms/1.0.0/test@UTM32/{z}/{x}/{-y}.jpeg",
+						"projection": "EPSG:25832",
+						"extent": [ 293315.97, 5423948.96, 464350.97, 5644103.06 ],
+						"scales": [ 500, 1000, 3000, 5000, 8000, 10000, 15000, 25000, 50000, 100000, 150000, 250000, 500000, 1000000, 1500000, 2000000 ],
+						"query": false },
 					
 					// Hidden Layer For Height Queries
 					{ "id": "dem_hidden", "title": "Digitales Höhenmodell", "hidden": true, "active": true, "query": true, "type": "HIDDEN", "query_url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/extensions/mobilemap2/scripts/heightRequest.php?&lang=de&coord={x},{y}" }
