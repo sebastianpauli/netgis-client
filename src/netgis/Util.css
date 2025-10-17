@@ -1,0 +1,276 @@
+/* Format */
+
+.netgis-bold
+{
+	font-weight: bold;
+}
+
+.netgis-clip-text
+{
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.netgis-center
+{
+	text-align: center !important;
+}
+
+/* Inputs */
+
+.netgis-clickable
+{
+	cursor: pointer !important;
+}
+
+.netgis-resize-right
+{
+	resize: horizontal;
+	overflow-x: auto;
+	min-width: 40mm;
+	max-width: 100%;
+}
+
+.netgis-resize-bottom
+{
+	resize: vertical;
+	overflow-y: auto;
+	min-height: 24mm;
+	max-height: 100%;
+}
+
+.netgis-noselect
+{
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+/* Effects */
+
+.netgis-shadow
+{
+	box-shadow: 0mm 0.5mm 1mm 0mm rgba( 0, 0, 0, 0.1 ), 0mm 1mm 2.5mm 0mm rgba( 0, 0, 0, 0.05 ) !important;
+}
+
+.netgis-shadow-large
+{
+	box-shadow: 0mm 1mm 2mm 0mm rgba( 0, 0, 0, 0.1 ), 0mm 2mm 5mm 0mm rgba( 0, 0, 0, 0.05 ) !important;
+}
+
+.netgis-text-shadow
+{
+	text-shadow: 0mm 0mm 1mm rgba( 0, 0, 0, 1.0 );
+}
+
+.netgis-round
+{
+	border-radius: 2mm;
+}
+
+/* Elements */
+
+.netgis-hide
+{
+	display: none !important;
+}
+
+.netgis-no-background
+{
+	background: none;
+}
+
+.netgis-client button,
+.netgis-button
+{
+	position: relative;
+	padding: 0mm 4mm;
+	
+	font-family: inherit;
+	text-decoration: none;
+	
+	border: none;
+	outline: none;
+	
+	cursor: pointer;
+}
+
+.netgis-button .netgis-icon
+{
+	display: inline-block;
+	position: absolute;
+	width: 12mm;
+	left: 0mm;
+	top: 0mm;
+	bottom: 0mm;
+	line-height: 12mm;
+	text-align: center;
+	font-size: 1.2em;
+}
+
+.netgis-button.netgis-center .netgis-icon:first-child
+{
+	position: static;
+}
+
+.netgis-button .netgis-icon:last-child
+{
+	left: auto;
+	right: 0mm;
+}
+
+.netgis-button:not( .netgis-center ) .netgis-icon + *:not( .netgis-icon )
+{
+	margin-left: 8mm;
+}
+
+/* Forms */
+
+.netgis-form h3
+{
+	font-size: 1em;
+	margin-top: 0mm;
+	margin-bottom: 4mm;
+}
+
+.netgis-form ul
+{
+	padding: 0mm;
+	padding-left: 12mm;
+	margin-top: 0mm;
+	margin-bottom: 6mm;
+	list-style-type: square;
+}
+
+.netgis-form li
+{
+	padding-left: 2mm;
+}
+
+.netgis-form label
+{
+	display: block;
+	position: relative;
+	margin-bottom: 6mm;
+	font-weight: bold;
+	cursor: pointer;
+	user-select: none;
+}
+
+.netgis-form input,
+.netgis-form select
+{
+	display: block;
+	width: 100%;
+	margin-top: 4mm;
+	padding: 2mm;
+}
+
+.netgis-form input[ type = file ]
+{
+	padding: 6mm;
+	cursor: pointer;
+	background: #efefef;
+}
+
+.netgis-form input[ type = checkbox ]
+{
+	display: inline-block;
+	width: 12mm;
+	margin: 0mm;
+}
+
+.netgis-form input[ type = checkbox ]:first-child
+{
+	width: 4mm;
+	margin-right: 3mm;
+	margin-top: 2mm;
+	margin-bottom: 2mm;
+}
+
+.netgis-form button
+{
+	display: block;
+	width: 100%;
+	height: 12mm;
+}
+
+.netgis-form button:not( :last-child )
+{
+	margin-bottom: 6mm;
+}
+
+.netgis-form select
+{
+	cursor: pointer;
+}
+
+/* Loader */
+
+.netgis-loader
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: 999999;
+	text-align: center;
+	font-size: 12mm;
+	overflow: hidden;
+	
+	cursor: progress;
+	
+	opacity: 1.0;
+	transition: opacity ease 600ms;
+}
+
+.netgis-loader.netgis-fade
+{
+	opacity: 0.0;
+}
+
+.netgis-loader > i
+{
+	position: absolute;
+	width: 100%;
+	left: 0mm;
+	top: 50%;
+	transform: translateY( -50% );
+	animation: netgis-spin 2s linear infinite;
+}
+
+.netgis-loader > h2
+{
+	position: absolute;
+	left: 4mm;
+	right: 4mm;
+	bottom: 30%;
+	font-size: 4mm;
+}
+
+@keyframes netgis-spin
+{
+    0% { transform: rotate( 0deg ); }
+    100% { transform: rotate( 360deg ); }
+}
+
+/* Responsive */
+
+@media ( max-width: 599px )
+{
+	.netgis-hide-mobile
+	{
+		display: none !important;
+	}
+}
+
+@media ( min-width: 600px )
+{
+	.netgis-hide-desktop
+	{
+		display: none !important;
+	}
+}

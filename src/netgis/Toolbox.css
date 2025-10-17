@@ -1,0 +1,91 @@
+.netgis-toolbox
+{
+	position: absolute;
+	top: 12mm !important;
+	bottom: 0mm !important;
+	width: 100%;
+	overflow: hidden;
+}
+
+.netgis-toolbox section
+{
+	position: absolute;
+	left: 0mm;
+	right: 0mm;
+	overflow: auto;
+}
+
+.netgis-toolbox section:first-of-type
+{
+	top: 0mm;
+	bottom: 0mm;
+}
+
+.netgis-toolbox section:last-of-type
+{
+	top: 50%;
+	bottom: 0mm;
+}
+
+.netgis-toolbox section:last-of-type > div
+{
+	position: absolute;
+	width: 100%;
+	top: 12mm;
+	bottom: 0mm;
+	overflow: auto;
+}
+
+.netgis-toolbox button:hover i
+{
+	color: inherit !important;
+}
+
+.netgis-toolbox button.netgis-active
+{
+	font-weight: bold;
+}
+
+.netgis-toolbox label
+{
+	display: block;
+	width: 100%;
+	min-height: 12mm;
+	text-align: left;
+	
+	position: relative;
+	padding: 4mm 4mm;
+	cursor: pointer;
+}
+
+.netgis-toolbox input[ type = checkbox ]
+{
+	width: 4mm;
+	height: 4mm;
+	margin: 0mm 4mm 0mm 0mm;
+}
+
+.netgis-toolbox input[ type = checkbox ]:last-child
+{
+	float: right;
+	margin-right: 0mm;
+}
+
+.netgis-toolbox input[ type = text ]
+{
+	width: 100%;
+	height: 10mm;
+	padding: 0mm 2mm;
+	
+	margin-top: 3mm;
+}
+
+.netgis-toolbox input[ type = number ]
+{
+	position: absolute;
+	right: 2mm;
+	width: 24mm;
+	top: 2.5mm;
+	height: 8mm;
+	padding: 0mm 1mm;
+}

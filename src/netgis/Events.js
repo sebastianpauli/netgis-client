@@ -2,80 +2,128 @@
 
 var netgis = netgis || {};
 
-netgis.Events = Object.freeze
-(
-	{
-		CONTEXT_UPDATE: "CONTEXT_UPDATE",
-		SET_MODE: "SET_MODE",
-		
-		LAYER_LIST_TOGGLE: "LAYER_LIST_TOGGLE",
+netgis.Events =
+{
+	// Client
+	CLIENT_CONTEXT_RESPONSE: "client-context-response",
+	CLIENT_SET_MODE: "client-set-mode",
 
-		PANEL_TOGGLE: "PANEL_TOGGLE",
-		PANEL_SHOW: "PANEL_SHOW",
-		PANEL_HIDE: "PANEL_HIDE",
+	// Plugins
+	PLUGIN_TOGGLE: "plugin-toggle",
 
-		LAYER_SHOW: "LAYER_SHOW",
-		LAYER_HIDE: "LAYER_HIDE",
-		LAYER_CREATED: "LAYER_CREATED",
+	// Controls
+	CONTROLS_BUTTON_CLICK: "controls-button-click",
 
-		MAP_ZOOM_WKT: "MAP_ZOOM_WKT",
-		MAP_SET_EXTENT: "MAP_SET_EXTENT",
-		MAP_CHANGE_ZOOM: "MAP_CHANGE_ZOOM",
-		
-		MAP_UPDATE_STYLE: "MAP_UPDATE_STYLE", //TODO: ?
+	// Map
+	MAP_ZOOM: "map-zoom",
+	MAP_ZOOM_HOME: "map-zoom-home",
+	MAP_ZOOM_LONLAT: "map-zoom-lonlat",
+	MAP_ZOOM_SCALE: "map-zoom-scale",
+	MAP_ZOOM_LAYER: "map-zoom-layer",
+	MAP_ZOOM_LEVEL: "map-zoom-level",
+	MAP_LAYER_CREATE: "map-layer-create",
+	MAP_LAYER_TOGGLE: "map-layer-toggle",
+	MAP_LAYER_TRANSPARENCY: "map-layer-transparency",
+	MAP_LAYER_ORDER: "map-layer-order",
+	MAP_LAYER_DELETE: "map-layer-delete",
+	MAP_VIEW_CHANGE: "map-view-change",
+	MAP_VIEW_NEXT: "map-view-next",
+	MAP_VIEW_PREV: "map-view-prev",
+	MAP_CLICK: "map-click",
+	MAP_FEATURE_ENTER: "map-feature-enter",
+	MAP_FEATURE_CLICK: "map-feature-click",
+	MAP_FEATURE_LEAVE: "map-feature-leave",
+	MAP_SNAP_TOGGLE: "map-snap-toggle",
+	MAP_EDIT_LAYER_CHANGE: "map-edit-layer-change",
+	MAP_EDIT_LAYER_LOADED: "map-edit-layer-loaded",
+	MAP_COPY_FEATURE_TO_EDIT: "map-copy-feature-to-edit",
 
-		MAP_MODE_POINTS: "MAP_MODE_POINTS",
-		MAP_MODE_LINES: "MAP_MODE_LINES",
-		MAP_MODE_POLYGONS: "MAP_MODE_POLYGONS",
-		
-		EDIT_FEATURES_LOADED: "EDIT_FEATURES_LOADED",
-		EDIT_FEATURES_CHANGE: "EDIT_FEATURES_CHANGE",
-		
-		SEARCH_PLACE_REQUEST: "SEARCH_PLACE_REQUEST",
-		SEARCH_PLACE_RESPONSE: "SEARCH_PLACE_RESPONSE",
-		
-		PARCEL_SHOW_PREVIEW: "PARCEL_SHOW_PREVIEW",
-		PARCEL_HIDE_PREVIEW: "PARCEL_HIDE_PREVIEW",
-		
-		BUFFER_CHANGE: "BUFFER_CHANGE",
-		BUFFER_ACCEPT: "BUFFER_ACCEPT",
-		BUFFER_CANCEL: "BUFFER_CANCEL",
-		DRAW_BUFFER_ON: "DRAW_BUFFER_ON",
-		DRAW_BUFFER_OFF: "DRAW_BUFFER_OFF",
-		DRAW_BUFFER_RADIUS_CHANGE: "DRAW_BUFFER_RADIUS_CHANGE",
-		DRAW_BUFFER_SEGMENTS_CHANGE: "DRAW_BUFFER_SEGMENTS_CHANGE",
-		SNAP_ON: "SNAP_ON",
-		SNAP_OFF: "SNAP_OFF",
-		TRACING_ON: "TRACING_ON",
-		TRACING_OFF: "TRACING_OFF",
-		
-		IMPORT_SHAPEFILE_SHOW: "IMPORT_SHAPEFILE_SHOW",
-		IMPORT_GEOJSON_SHOW: "IMPORT_GEOJSON_SHOW",
-		IMPORT_GML_SHOW: "IMPORT_GML_SHOW",
-		IMPORT_SPATIALITE_SHOW: "IMPORT_SPATIALITE_SHOW",
-		IMPORT_GEOPACKAGE_SHOW: "IMPORT_GEOPACKAGE_SHOW",
-		
-		IMPORT_SHAPEFILE: "IMPORT_SHAPEFILE",
-		IMPORT_GEOJSON: "IMPORT_GEOJSON",
-		IMPORT_GML: "IMPORT_GML",
-		IMPORT_WKT: "IMPORT_WKT",
-		IMPORT_SPATIALITE: "IMPORT_SPATIALITE",
-		IMPORT_GEOPACKAGE: "IMPORT_GEOPACKAGE",
-		
-		EXPORT_PDF_SHOW: "EXPORT_PDF_SHOW",
-		EXPORT_JPEG_SHOW: "EXPORT_JPEG_SHOW",
-		EXPORT_PNG_SHOW: "EXPORT_PNG_SHOW",
-		EXPORT_GIF_SHOW: "EXPORT_GIF_SHOW",
-		
-		EXPORT_PDF: "EXPORT_PDF",
-		EXPORT_JPEG: "EXPORT_JPEG",
-		EXPORT_PNG: "EXPORT_PNG",
-		EXPORT_GIF: "EXPORT_GIF",
-		EXPORT_BEGIN: "EXPORT_BEGIN",
-		EXPORT_END: "EXPORT_END",
-		
-		ADD_SERVICE_SHOW: "ADD_SERVICE_SHOW",
-		ADD_SERVICE_WMS: "ADD_SERVICE_WMS",
-		ADD_SERVICE_WFS: "ADD_SERVICE_WFS"
-	}
-);
+	// Panel
+	PANEL_TOGGLE: "panel-toggle",
+	PANEL_RESIZE: "panel-resize",
+
+	// Panel
+	WINDOW_TOGGLE: "window-toggle",
+	WINDOW_RESIZE: "window-resize",
+
+	// Tree
+	TREE_ITEM_CHANGE: "tree-item-change",
+	TREE_ITEM_SLIDER_CHANGE: "tree-item-slider-change",
+	TREE_ITEM_ORDER_CHANGE: "tree-item-order-change",
+	TREE_BUTTON_CLICK: "tree-button-click",
+
+	// Layer Tree
+	LAYERTREE_TOGGLE: "layertree-toggle", // TODO: deprecated (see MAP_LAYER_TOGGLE) ?
+
+	// Legend
+	LEGEND_TOGGLE: "legend-toggle",
+
+	// Geolocation
+	GEOLOCATION_SHOW_OPTIONS: "geolocation-show-options",
+	GEOLOCATION_TOGGLE_ACTIVE: "geolocation-toggle-active",
+	GEOLOCATION_TOGGLE_CENTER: "geolocation-toggle-center",
+	GEOLOCATION_CHANGE: "geolocation-change",
+
+	// Toolbox
+	TOOLBOX_TOGGLE: "toolbox-toggle",
+	TOOLBOX_BUTTON_CLICK: "toolbox-button-click",
+
+	// Menu
+	MENU_BUTTON_CLICK: "menu-button-click",
+	MENU_CHECKBOX_CHANGE: "menu-checkbox-change",
+	MENU_SELECT_CHANGE: "menu-select-change",
+
+	// Context Menu
+	CONTEXTMENU_SHOW: "contextmenu-show",
+	CONTEXTMENU_BUTTON_CLICK: "contextmenu-button-click",
+	CONTEXTMENU_CHECKBOX_CHANGE: "contextmenu-checkbox-change",
+	CONTEXTMENU_SLIDER_CHANGE: "contextmenu-slider-change",
+
+	// Search
+	SEARCH_CHANGE: "search-change",
+	SEARCH_SELECT: "search-select",
+	SEARCH_CLEAR: "search-clear",
+
+	// Search Place
+	SEARCHPLACE_TOGGLE: "searchplace-toggle",
+
+	// Search Parcel
+	SEARCHPARCEL_TOGGLE: "searchparcel-toggle",
+	SEARCHPARCEL_RESET: "searchparcel-reset",
+	SEARCHPARCEL_PARCELS_RESPONSE: "searchparcel-parcels-response",
+	SEARCHPARCEL_ITEM_ENTER: "searchparcel-item-enter",
+	SEARCHPARCEL_ITEM_LEAVE: "searchparcel-item-leave",
+	SEARCHPARCEL_ITEM_CLICK: "searchparcel-item-click",
+	SEARCHPARCEL_ITEM_IMPORT: "searchparcel-item-import",
+
+	// Measure
+	MEASURE_CLEAR: "measure-clear",
+
+	// Select
+	SELECT_MULTI_TOGGLE: "select-multi-toggle",
+
+	// Buffer
+	DRAW_BUFFER_TOGGLE: "draw-buffer-toggle",
+	DRAW_BUFFER_CHANGE: "draw-buffer-change",
+	BUFFER_CHANGE: "buffer-change",
+	BUFFER_ACCEPT: "buffer-accept",
+
+	// Import
+	IMPORT_LAYER_SHOW: "import-layer-show",
+	IMPORT_LAYER_ACCEPT: "import-layer-accept",
+	IMPORT_LAYER_PREVIEW: "import-layer-preview",
+	IMPORT_LAYER_PREVIEW_FEATURES: "import-layer-preview-features",
+	IMPORT_GEOPORTAL_SUBMIT: "import-geoportal-submit",
+
+	// Export
+	EXPORT_SHOW: "export-show",
+	EXPORT_BEGIN: "export-begin",
+	EXPORT_END: "export-end",
+
+	// Time Slider
+	TIMESLIDER_SHOW: "timeslider-show",
+	TIMESLIDER_HIDE: "timeslider-hide",
+	TIMESLIDER_SELECT: "timeslider-select"
+};
+
+// TODO: object freeze on this enum

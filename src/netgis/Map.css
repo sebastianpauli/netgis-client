@@ -6,97 +6,104 @@
 	top: 12mm;
 	bottom: 0mm;
 	
-	background: #f2efe9;
+	cursor: grab;
 }
 
-/* Drag and Drop */
-
-/*
-.netgis-map.drop
+.netgis-map:active:hover
 {
-	border: 10mm solid red;
-}
-*/
-
-.netgis-drop-target
-{
-	position: absolute;
-	left: 0mm;
-	right: 0mm;
-	top: 0mm;
-	bottom: 0mm;
-	line-height: 40mm;
-	text-align: center;
-	z-index: 1;
-	pointer-events: none;
-	background: rgba( 0, 0, 0, 0.5 );
-	color: #fff;
+	cursor: grabbing !important;
 }
 
-.netgis-drop-target.netgis-hide
+.netgis-map-overlay
 {
-	display: none;
+	width: 1px;
+	height: 1px;
+	background: none;
 }
 
-/* Modes */
+/* Interaction Modes */
 
-.netgis-map
+.netgis-map.netgis-clickable
 {
-	cursor: default;
+	cursor: pointer;
 }
 
-.netgis-map .netgis-toolbar,
-.netgis-map .netgis-dialog
+.netgis-map.netgis-mode-zoom-box,
+.netgis-map.netgis-mode-zoom-box:active:hover
 {
-	cursor: auto;
+	cursor: crosshair;
 }
 
-.netgis-map.netgis-mode-view,
-.netgis-map.netgis-mode-search-place
+.netgis-map.netgis-mode-measure-line,
+.netgis-map.netgis-mode-measure-area
 {
-	cursor: default;
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
+	cursor: crosshair;
 }
 
-.netgis-map.netgis-mode-panning
+.netgis-map.netgis-mode-measure-line:active:hover,
+.netgis-map.netgis-mode-measure-area:active:hover
 {
-	cursor: move;
-	cursor: all-scroll;
 	cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-}
-
-.netgis-map.netgis-mode-zooming-in
-{
-	cursor: zoom-in;
-}
-
-.netgis-map.netgis-mode-zooming-out
-{
-	cursor: zoom-out;
 }
 
 .netgis-map.netgis-mode-draw-points,
 .netgis-map.netgis-mode-draw-lines,
 .netgis-map.netgis-mode-draw-polygons,
-.netgis-map.netgis-mode-cut-feature-draw,
-.netgis-map.netgis-mode-modify-features
+.netgis-map.netgis-mode-cut-features-draw
 {
-	cursor: pointer;
 	cursor: crosshair;
 }
 
-.netgis-map.netgis-mode-delete-features,
-.netgis-map.netgis-mode-cut-feature-begin,
-.netgis-map.netgis-mode-buffer-feature-begin
+.netgis-map.netgis-mode-buffer-features
 {
+}
+
+.netgis-map.netgis-mode-draw-points.netgis-not-allowed,
+.netgis-map.netgis-mode-draw-lines.netgis-not-allowed,
+.netgis-map.netgis-mode-draw-polygons.netgis-not-allowed
+{
+	cursor: no-drop;
+}
+
+.netgis-map .netgis-zoom-box
+{
+	border: 0.5mm solid white;
+	background: rgba( 153, 0, 0, 0.5 );
+}
+
+/* Scale Bar */
+
+.netgis-map .ol-scale-bar
+{
+	right: 24mm;
+	bottom: 10mm;
+	left: auto;
+	opacity: 0.7;
+}
+
+.netgis-map .ol-scale-bar.netgis-clickable
+{
+}
+
+.netgis-map .ol-scale-bar:hover
+{
+	opacity: 1.0;
+}
+
+.netgis-map .ol-scale-bar select
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: -1mm;
+	left: 0mm;
+	opacity: 0.0;
+	background: transparent;
+	pointer-events: all !important;
 	cursor: pointer;
 }
 
-.netgis-map.netgis-mode-buffer-feature-edit
+.netgis-client.netgis-footer > .netgis-map .ol-scale-bar
 {
-	cursor: default;
+	bottom: 46mm;
 }

@@ -1,9 +1,10 @@
 var netgis = netgis || {};
 
-//NOTE: https://portal.ogc.org/files/?artifact_id=22364 p. 53
-
 netgis.SLD =
 (
+	// TODO: work in progress
+	// NOTE: https://portal.ogc.org/files/?artifact_id=22364 p. 53
+
 	function ()
 	{
 		"use strict";

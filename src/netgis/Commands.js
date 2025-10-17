@@ -1,0 +1,50 @@
+"use strict";
+
+var netgis = netgis || {};
+
+/**
+ * Default IDs for Built-in Commands (can be used as upper or lowercase strings)
+ * 
+ * @memberof netgis
+ * @enum
+ * @readonly
+ * @global
+ */
+netgis.Commands =
+{
+	PLUGIN: "PLUGIN",
+
+	LAYERTREE: "LAYERTREE",
+	SEARCHPLACE: "SEARCHPLACE",
+	SEARCHPARCEL: "SEARCHPARCEL",
+	TOOLBOX: "TOOLBOX",
+	LEGEND: "LEGEND",
+
+	VIEW_PREV: "VIEW_PREV",
+	VIEW_NEXT: "VIEW_NEXT",
+
+	VIEW: "VIEW",
+	ZOOM_BOX: "ZOOM_BOX",
+	ZOOM_SCALE: "ZOOM_SCALE",
+
+	MEASURE_LINE: "MEASURE_LINE",
+	MEASURE_AREA: "MEASURE_AREA",
+	MEASURE_CLEAR: "MEASURE_CLEAR",
+
+	DRAW_POINTS: "DRAW_POINTS",
+	DRAW_LINES: "DRAW_LINES",
+	DRAW_POLYGONS: "DRAW_POLYGONS",
+	MODIFY_FEATURES: "MODIFY_FEATURES",
+	DELETE_FEATURES: "DELETE_FEATURES",
+	BUFFER_FEATURES: "BUFFER_FEATURES",
+	CUT_FEATURES: "CUT_FEATURES",
+
+	SNAP_TOGGLE: "SNAP_TOGGLE",
+
+	IMPORT_LAYER: "IMPORT_LAYER",
+	EXPORT: "EXPORT",
+
+	GEOLOCATION: "GEOLOCATION"
+};
+
+// TODO: object freeze on this enum

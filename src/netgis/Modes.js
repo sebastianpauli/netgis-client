@@ -5,23 +5,24 @@ var netgis = netgis || {};
 netgis.Modes = Object.freeze
 (
 	{
-		VIEW: "VIEW",
-		PANNING: "PANNING",
-		ZOOMING_IN: "ZOOMING_IN",
-		ZOOMING_OUT: "ZOOMING_OUT",
+		VIEW: "view",
+		ZOOM_BOX: "zoom-box",
 		
-		DRAW_POINTS: "DRAW_POINTS",
-		DRAW_LINES: "DRAW_LINES",
-		DRAW_POLYGONS: "DRAW_POLYGONS",
+		MEASURE_LINE: "measure-line",
+		MEASURE_AREA: "measure-area",
 		
-		CUT_FEATURE_BEGIN: "CUT_FEATURE_BEGIN",
-		CUT_FEATURE_DRAW: "CUT_FEATURE_DRAW",
-		MODIFY_FEATURES: "MODIFY_FEATURES",
-		DELETE_FEATURES: "DELETE_FEATURES",
-		BUFFER_FEATURE_BEGIN: "BUFFER_FEATURE_BEGIN",
-		BUFFER_FEATURE_EDIT: "BUFFER_FEATURE_EDIT",
+		DRAW_POINTS: "draw-points",
+		DRAW_LINES: "draw-lines",
+		DRAW_POLYGONS: "draw-polygons",
+		MODIFY_FEATURES: "modify-features",
+		DELETE_FEATURES: "delete-features",
+		BUFFER_FEATURES: "buffer-features",
+		BUFFER_FEATURES_EDIT: "buffer-features-edit",
+		BUFFER_FEATURES_DYNAMIC: "buffer-features-dynamic",
+		CUT_FEATURES: "cut-features",
+		CUT_FEATURES_DRAW: "cut-features-draw",
+		CUT_FEATURES_DYNAMIC: "cut-features-dynamic",
 		
-		SEARCH_PLACE: "SEARCH_PLACE",
-		SEARCH_PARCEL: "SEARCH_PARCEL"
+		SEARCH_PARCEL: "search-parcel"
 	}
 );

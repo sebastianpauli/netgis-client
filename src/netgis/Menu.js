@@ -2,260 +2,544 @@
 
 var netgis = netgis || {};
 
-netgis.Menu = function()
+/**
+ * Menu Bar Module.
+ * @param {JSON} config [Menu.Config]{@link netgis.Menu.Config}
+ * @constructor
+ * @memberof netgis
+ */
+netgis.Menu = function( config )
 {
-	this.client = null;
-	this.root = null;
-	this.sections = [];
+	this.config = config;
+	
+	this.initElements();
+	this.initConfig( config );
 };
 
-netgis.Menu.prototype.load = function()
+/**
+ * Config Section "menu"
+ * @memberof netgis.Menu
+ * @enum
+ */
+netgis.Menu.Config =
+{	
+	/**
+	 * HTML content for the logo area in the top left.
+	 * @type String
+	 */
+	"header": "<a href='.' target='_self'>NetGIS Client</a>",
+	
+	/**
+	 * An array of menu items. See {@link Commands} for special ID values.
+	 * <ul>
+	 *	<li>Basic Items:<br/><code>{ "id": {String}, "title": {String} }</code></li>
+	 *	<li>Nested Items:<br/><code>{ "title": {String}, "items": {Array} }</code></li>
+	 * </ul>
+	 * @type Array
+	 */
+	"items": [],
+	
+	/**
+	 * Display smaller sub items in dropdowns.
+	 * @type Boolean
+	 */
+	"compact": true
+};
+
+netgis.Menu.prototype.initElements = function()
 {
-	this.root = document.createElement( "header" );
-	this.root.className = "netgis-menu netgis-primary netgis-shadow";
+	this.container = document.createElement( "nav" );
+	this.container.className = "netgis-menu netgis-noselect netgis-color-a netgis-gradient-a netgis-shadow-large";
 	
-	//TODO: refactor into abstract bar class (see toolbar) ?
-	var wrapper = document.createElement( "div" );
-	this.root.appendChild( wrapper );
+	this.toggle = document.createElement( "button" );
+	this.toggle.setAttribute( "type", "button" );
+	this.toggle.addEventListener( "click", this.onToggleClick.bind( this ) );
+	this.toggle.className = "netgis-menu-toggle netgis-hover-c";
+	this.toggle.innerHTML = "<i class='fas fa-bars'></i>";
+	this.container.appendChild( this.toggle );
+};
+
+netgis.Menu.prototype.initConfig = function( config )
+{
+	var cfg = config[ "menu" ];
 	
-	var toggle = this.createButton( 'Ebenen<i class="fab fa-buffer"></i>', true );
-	toggle.addEventListener( "click", this.onToggleClick.bind( this ) );
-	////this.root.appendChild( toggle );
-	wrapper.appendChild( toggle );
+	if ( ! cfg ) return;
 	
-	var search = this.createButton( 'Suche<i class="fas fa-search" style="position: relative; top: 0.3mm;"></i>', true );
-	search.addEventListener( "click", this.onSearchPlaceClick.bind( this ) );
-	////this.root.appendChild( search );
-	wrapper.appendChild( search );
+	// Header
+	if ( cfg[ "header" ] ) this.addHeader( cfg[ "header" ] );
 	
-	var searchParcel = this.createButton( 'Flurstücke<i class="fas fa-vector-square" style="position: relative; top: 0.3mm;"></i>', true );
-	searchParcel.addEventListener( "click", this.onSearchParcelClick.bind( this ) );
-	wrapper.appendChild( searchParcel );
+	// Items
+	if ( cfg[ "compact" ] === true ) this.container.classList.add( "netgis-compact" );
 	
-	/*var title = this.createButton( '<span>GeoPortal</span>', false );
-	title.classList.remove( "netgis-hover-primary" ); //TODO: createText function?
-	//title.style.padding = "0mm";
-	this.root.appendChild( title );*/
-	
-	if ( this.client.editable )
+	if ( cfg[ "items" ] )
 	{
-		// Draw Menu
-		var draw = this.createMenu( '<i class="fas fa-caret-down"></i>Zeichnen' );
-		var drawItems = draw.getElementsByTagName( "ul" )[ 0 ];
-		////this.root.appendChild( draw );
-		wrapper.appendChild( draw );
+		var items = cfg[ "items" ];
 
-		drawItems.appendChild( this.createMenuItem( '<i class="fas fa-map-marker-alt"></i>Punkte', this.onDrawPointClick.bind( this ) ) );
-		drawItems.appendChild( this.createMenuItem( '<i class="fas fa-minus"></i>Linien', this.onDrawLineClick.bind( this ) ) );
-		drawItems.appendChild( this.createMenuItem( '<i class="fas fa-vector-square"></i>Polygone', this.onDrawPolygonClick.bind( this ) ) );
+		for ( var i = 0; i < items.length; i++ )
+		{
+			var item = items[ i ];
 
-		// Edit Menu
-		var edit = this.createMenu( '<i class="fas fa-caret-down"></i>Bearbeiten' );
-		var editItems = edit.getElementsByTagName( "ul" )[ 0 ];
-		////this.root.appendChild( edit );
-		wrapper.appendChild( edit );
-
-		editItems.appendChild( this.createMenuItem( '<i class="fas fa-cut"></i>Ausschneiden', this.onCutFeatureClick.bind( this ) ) );
-		editItems.appendChild( this.createMenuItem( '<i class="fas fa-arrows-alt"></i>Verschieben', this.onModifyFeaturesClick.bind( this ) ) );
-		editItems.appendChild( this.createMenuItem( '<i class="fas fa-eraser"></i>Löschen', this.onDeleteFeaturesClick.bind( this ) ) );
-		editItems.appendChild( this.createMenuItem( '<i class="far fa-dot-circle"></i>Puffern', this.onBufferFeatureClick.bind( this ) ) );
+			if ( item[ "items" ] )
+			{
+				// Dropdown
+				var subitems = item[ "items" ];
+				
+				if ( item[ "id" ] === "scales" )
+				{
+					var scales = this.getScaleItems();
 		
-		// Import Menu
-		var importMenu = this.createMenu( '<i class="fas fa-caret-down"></i>Import' );
-		//this.root.appendChild( importMenu );
-		wrapper.appendChild( importMenu );
+					for ( var s = 0; s < scales.length; s++ ) subitems.push( scales[ s ] );
+				}
+				
+				this.addDropdown( item[ "title" ], subitems );
+			}
+			else if ( item[ "url" ] && item[ "url" ].length > 0 )
+			{
+				// Link
+				this.addLink( item[ "url" ], item[ "title" ] );
+			}
+			else if ( item[ "options" ] )
+			{
+				// Select
+				var options;
+				var val;
 
-		//fileItems.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>OWS-Context', this.onImportOWSClick.bind( this ) ) );
+				if ( item[ "options" ] === "scales" )
+				{
+					// Map Scales Options
+					options = {};
 
-		var importItem = importMenu.getElementsByTagName( "ul" )[ 0 ];
-		importItem.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>GeoJSON', this.onImportGeoJSONClick.bind( this ) ) );
-		//fileItems.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>KML', this.onImportKMLClick.bind( this ) ) );
-		importItem.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>GML', this.onImportGMLClick.bind( this ) ) );
-		importItem.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>Shapefile', this.onImportShapefileClick.bind( this ) ) );
-		importItem.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>Spatialite', this.onImportSpatialiteClick.bind( this ) ) );
-		importItem.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>GeoPackage', this.onImportGeopackageClick.bind( this ) ) );
-		
-		// Export
-		var exportMenu = this.createMenu( '<i class="fas fa-caret-down"></i>Export' );
-		////this.root.appendChild( exportMenu );
-		wrapper.appendChild( exportMenu );
+					options[ 0 ] = "1:X";
 
-		var exportItems = exportMenu.getElementsByTagName( "ul" )[ 0 ];
-		exportItems.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>PDF', this.onExportPDFClick.bind( this ) ) );
-		exportItems.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>JPEG', this.onExportJPEGClick.bind( this ) ) );
-		exportItems.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>PNG', this.onExportPNGClick.bind( this ) ) );
-		exportItems.appendChild( this.createMenuItem( '<i class="fas fa-file"></i>GIF', this.onExportGIFClick.bind( this ) ) );
+					for ( var s = 0; s < config.map.scales.length; s++ )
+					{
+						options[ config[ "map" ][ "scales" ][ s ] ] = "1:" + config[ "map" ][ "scales" ][ s ];
+					}
+
+					val = config[ "map" ][ "default_scale" ];
+
+					var select = this.addSelect( item[ "id" ], item[ "title" ], options, val );
+					select.options[ 0 ].classList.add( "netgis-hide" );
+				}
+				else
+				{
+					// Config Options
+					options = item[ "options" ];
+
+					if ( item[ "value" ] )
+					{
+						val = item[ "value" ];
+					}
+					else
+					{
+						for ( var k in options )
+						{
+							val = k;
+							break;
+						}
+					}
+
+					this.addSelect( item[ "id" ], item[ "title" ], options, val );
+				}
+			}
+			else
+			{
+				// Button
+				this.addButton( item[ "id" ], item[ "title" ] );
+			}
+
+			// TODO: menu items type config ?
+		}
 	}
-	
-	// Search Menu
-	/*var search = this.createMenu( '<i class="fas fa-caret-down"></i>Suche' );
-	var searchItems = search.getElementsByTagName( "ul" )[ 0 ];
-	this.root.appendChild( search );
-	
-	searchItems.appendChild( this.createMenuItem( '<i class="fas fa-search"></i>Ortssuche', this.onSearchPlaceClick.bind( this ) ) );
-	searchItems.appendChild( this.createMenuItem( '<i class="fas fa-search"></i>Datensuche', this.onSearchDataClick.bind( this ) ) );*/
-	
-	// Right Buttons
-	/*
-	var settings = this.createButton( '<i class="fas fa-cog"></i>', true );
-	this.root.appendChild( settings );
-	
-	var help = this.createButton( '<i class="fas fa-question"></i>', true );
-	this.root.appendChild( help );
-	*/
-	
-	this.client.root.appendChild( this.root );
 };
 
-netgis.Menu.prototype.createButton = function( label, right )
+netgis.Menu.prototype.attachTo = function( parent )
 {
-	var button = document.createElement( "button" );
-	button.setAttribute( "type", "button" );
-	button.className = "netgis-primary netgis-hover-primary";
-	if ( right ) button.className += " netgis-right";
-	button.innerHTML = label;
+	parent.appendChild( this.container );
+	
+	parent.addEventListener( netgis.Events.MAP_VIEW_CHANGE, this.onMapViewChange.bind( this ) );
+};
+
+netgis.Menu.prototype.addHeader = function( title )
+{
+	var h1 = document.createElement( "h1" );
+	h1.className = "netgis-hover-c";
+	h1.innerHTML = title;
+	
+	this.container.appendChild( h1 );
+	
+	return h1;
+};
+
+netgis.Menu.prototype.addButton = function( id, title )
+{
+	var button = this.createButton( id, title );
+	this.container.appendChild( button );
 	
 	return button;
 };
 
-netgis.Menu.prototype.createMenu = function( title )
+netgis.Menu.prototype.addLink = function( url, title )
 {
-	var menu = document.createElement( "div" );
-	menu.className = "netgis-dropdown";
+	var link = this.createLink( url, title );
+	this.container.appendChild( link );
 	
-	var button = document.createElement( "button" );
-	button.setAttribute( "type", "button" );
-	button.className = "netgis-primary netgis-hover-primary";
-	button.innerHTML = title;
-	menu.appendChild( button );
-	
-	var content = document.createElement( "ul" );
-	content.className = "netgis-dropdown-content netgis-dialog netgis-shadow";
-	menu.appendChild( content );
-	
-	return menu;
+	return link;
 };
 
-netgis.Menu.prototype.createMenuItem = function( title, callback )
+netgis.Menu.prototype.addSelect = function( id, title, options, val )
 {
-	var item = document.createElement( "li" );
-	item.className = "netgis-hover-light";
+	var wrapper = document.createElement( "span" );
+	wrapper.className = "netgis-wrapper netgis-hover-c";
+	
+	var select = document.createElement( "select" );
+	select.setAttribute( "data-id", id );
+	
+	for ( var key in options )
+	{
+		var label = options[ key ];
+		
+		var option = document.createElement( "option" );
+		option.setAttribute( "value", key );
+		option.innerHTML = label;
+		select.appendChild( option );
+	}
+	
+	select.value = val;
+	select.addEventListener( "change", this.onSelectChange.bind( this ) );
+	wrapper.appendChild( select );
+	
+	if ( title )
+	{
+		var span = document.createElement( "span" );
+		span.className = "netgis-icon";
+		span.innerHTML = title;
+		wrapper.appendChild( span );
+	}
+	
+	this.container.appendChild( wrapper );
+	
+	return select;
+};
+
+netgis.Menu.prototype.addDropdown = function( title, items )
+{
+	var wrapper = document.createElement( "div" );
+	wrapper.className = "netgis-dropdown netgis-hover-c";
 	
 	var button = document.createElement( "button" );
 	button.setAttribute( "type", "button" );
+	button.addEventListener( "click", this.onDropdownClick.bind( this ) );
 	button.innerHTML = title;
-	button.addEventListener( "click", callback );
-	item.appendChild( button );
+	wrapper.appendChild( button );
 	
-	return item;
+	var list = document.createElement( "ul" );
+	list.className = "netgis-color-e netgis-shadow";
+	wrapper.appendChild( list );
+	
+	for ( var i = 0; i < items.length; i++ )
+	{
+		list.appendChild( this.createMenuItem( items[ i ] ) );
+	}
+
+	this.container.appendChild( wrapper );
+			
+	return wrapper;
+};
+
+netgis.Menu.prototype.getScaleItems = function()
+{
+	var items = [];
+	
+	if ( ! this.config ) return items;
+	if ( ! this.config[ "map" ] ) return items;
+	if ( ! this.config[ "map" ][ "scales" ] ) return items;
+	
+	var scales = this.config[ "map" ][ "scales" ];
+		
+	for ( var i = 0; i < scales.length; i++ )
+	{
+		var scale = scales[ i ];
+		items.push( { id: netgis.Commands.ZOOM_SCALE, title: "1:" + scale } );
+
+		// TODO: set scale value as element data attribute ?
+	}
+	
+	return items;
+};
+
+netgis.Menu.prototype.createMenuItem = function( item )
+{
+	var li = document.createElement( "li" );
+	li.className = "netgis-hover-c";
+	
+	var subitems = item[ "items" ];
+	
+	if ( item[ "id" ] === "scales" )
+	{
+		var scales = this.getScaleItems();
+		
+		for ( var i = 0; i < scales.length; i++ ) subitems.push( scales[ i ] );
+		
+		/*
+		var scales = this.config[ "map" ][ "scales" ];
+		
+		for ( var i = 0; i < scales.length; i++ )
+		{
+			var scale = scales[ i ];
+			subitems.push( { id: netgis.Commands.ZOOM_SCALE, title: "1:" + scale } );
+			
+			// TODO: set scale value as element data attribute ?
+		}
+		*/
+	}
+	
+	if ( subitems && subitems.length > 0 )
+	{
+		// Dropdown
+		var menu = this.createMenu( item[ "title" ], subitems );
+		li.appendChild( menu.button );
+		li.appendChild( menu.list );
+	}
+	else if ( item[ "type" ] )
+	{
+		switch ( item[ "type" ] )
+		{
+			case "checkbox":
+			{
+				var checkbox = this.createCheckbox( item[ "id" ], item[ "title" ], item[ "value" ] );
+				li.appendChild( checkbox );
+				break;
+			}
+			
+			default:
+			{
+				console.error( "unhandled menu item type", item[ "type" ], "for", item[ "id" ] );
+				break;
+			}
+		}
+	}
+	else if ( item[ "url" ] )
+	{
+		// Link
+		var link = this.createLink( item[ "url" ], item[ "title" ] );
+		li.appendChild( link );
+	}
+	else
+	{
+		// Button
+		var button = this.createButton( item[ "id" ], item[ "title" ] );
+		li.appendChild( button );
+	}
+	
+	return li;
+};
+
+netgis.Menu.prototype.createMenu = function( title, items )
+{
+	var button = document.createElement( "button" );
+	button.setAttribute( "type", "button" );
+	button.addEventListener( "pointerdown", this.onButtonClick.bind( this ) );
+	button.innerHTML = title;
+	
+	var list = document.createElement( "ul" );
+	list.className = "netgis-color-e netgis-shadow";
+
+	for ( var i = 0; i < items.length; i++ )
+	{
+		list.appendChild( this.createMenuItem( items[ i ] ) );
+	}
+	
+	return { button: button, list: list };
+};
+
+netgis.Menu.prototype.createLink = function( url, title )
+{
+	var link = document.createElement( "a" );
+	link.setAttribute( "href", url );
+	link.setAttribute( "target", "_blank" );
+	link.className = "netgis-button netgis-text-e netgis-hover-c";
+	link.innerHTML = title;
+	
+	return link;
+};
+
+netgis.Menu.prototype.createButton = function( id, title )
+{
+	var button = document.createElement( "button" );
+	button.className = "netgis-text-e netgis-hover-c";
+	button.setAttribute( "type", "button" );
+	button.setAttribute( "data-id", id );
+	button.addEventListener( "pointerdown", this.onButtonClick.bind( this ) );
+	button.innerHTML = title;
+	
+	return button;
+};
+
+netgis.Menu.prototype.createCheckbox = function( id, title, checked )
+{
+	var label = document.createElement( "label" );
+	label.className = "netgis-button";
+	
+	var input = document.createElement( "input" );
+	input.setAttribute( "type", "checkbox" );
+	input.setAttribute( "data-id", id );
+	input.addEventListener( "change", this.onCheckboxChange.bind( this ) );
+	input.checked = checked;
+	label.appendChild( input );
+	
+	var span = document.createElement( "span" );
+	span.innerHTML = title;
+	label.appendChild( span );
+	
+	return label;
 };
 
 netgis.Menu.prototype.onToggleClick = function( e )
 {
-	this.client.invoke( netgis.Events.LAYER_LIST_TOGGLE, null );
+	this.container.classList.toggle( "netgis-menu-large" );
 };
 
-netgis.Menu.prototype.onDrawPointClick = function( e )
+netgis.Menu.prototype.onButtonClick = function( e )
 {
-	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.DRAW_POINTS );
+	var button = e.currentTarget;
+	var id = button.getAttribute( "data-id" );
+	
+	// TODO: when to auto close responsive menu ?
+	this.container.classList.remove( "netgis-menu-large" );
+	this.container.scrollTop = 0;
+	
+	netgis.util.invoke( button, netgis.Events.MENU_BUTTON_CLICK, { id: id } );
+	
+	// Buttons With Default Behaviors
+	netgis.Client.handleCommand( button, id );
 };
 
-netgis.Menu.prototype.onDrawLineClick = function( e )
+netgis.Menu.prototype.onCheckboxChange = function( e )
 {
-	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.DRAW_LINES );
+	var input = e.currentTarget;
+	var id = input.getAttribute( "data-id" );
+	var checked = input.checked;
+	
+	netgis.util.invoke( input, netgis.Events.MENU_CHECKBOX_CHANGE, { id: id, checked: checked } );
+	
+	// Inputs With Default Behaviors
+	switch ( id )
+	{
+		case netgis.Menu.ItemID.SNAP_TOGGLE:
+		{
+			netgis.util.invoke( input, netgis.Events.MAP_SNAP_TOGGLE, { on: checked } );
+			break;
+		}
+		
+		default:
+		{
+			console.error( "unhandled menu item id", id );
+			break;
+		}
+	}
 };
 
-netgis.Menu.prototype.onDrawPolygonClick = function( e )
+netgis.Menu.prototype.onSelectChange = function( e )
 {
-	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.DRAW_POLYGONS );
+	var select = e.currentTarget;
+	var id = select.getAttribute( "data-id" );
+	var val = select.value;
+	
+	netgis.util.invoke( select, netgis.Events.MENU_SELECT_CHANGE, { id: id, value: val } );
+	
+	switch ( id )
+	{
+		case "scales":
+		{
+			netgis.util.invoke( select, netgis.Events.MAP_ZOOM_SCALE, { scale: Number.parseInt( val ) } );
+			break;
+		}
+	}
 };
 
-netgis.Menu.prototype.onCutFeatureClick = function( e )
+netgis.Menu.prototype.onMapViewChange = function( e )
 {
-	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.CUT_FEATURE_BEGIN );
+	var params = e.detail;
+	var scale = params.scale;
+	
+	// Scale Menu Items
+	var items = this.container.getElementsByTagName( "button" );
+	
+	for ( var i = 0; i < items.length; i++ )
+	{
+		var item = items[ i ];
+		
+		if ( item.getAttribute( "data-id" ) !== "zoom_scale" ) continue;
+		
+		if ( Number.parseInt( item.innerText.split( ":" )[ 1 ] ) === scale )
+			item.classList.add( "netgis-bold" );
+		else
+			item.classList.remove( "netgis-bold" );
+	}
+	
+	// Scale Select Inputs
+	var selects = this.container.getElementsByTagName( "select" );
+	
+	for ( var i = 0; i < selects.length; i++ )
+	{
+		var select = selects[ i ];
+		
+		if ( ! select.getAttribute( "data-id" ) === "scales" ) return;
+		
+		// Find Existing Scale Option
+		var found = false;
+		var scales = this.config[ "map" ][ "scales" ];
+		
+		for ( var j = 0; j < scales.length; j++ )
+		{
+			if ( scales[ j ] === scale )
+			{
+				found = true;
+				break;
+			}
+		}
+		
+		if ( found )
+		{
+			select.options[ 0 ].classList.add( "netgis-hide" );
+		}
+		else
+		{
+			select.options[ 0 ].setAttribute( "value", params.scale );
+			select.options[ 0 ].innerHTML = "1:" + params.scale;
+			select.options[ 0 ].classList.remove( "netgis-hide" );
+		}
+		
+		/*if ( ! found )
+		{
+			// Set Current Scale Option
+			if ( ! this.scaleOption )
+			{
+				this.scaleOption = document.createElement( "option" );
+				select.insertBefore( this.scaleOption, select.firstChild );
+			}
+			
+			this.scaleOption.setAttribute( "value", params.scale );
+			this.scaleOption.innerHTML = "1:" + params.scale;
+			
+			// TODO: manage multiple scales history items ?
+		}
+		else if ( this.scaleOption )
+		{
+			// Remove Non-Config Scale Option
+			select.removeChild( this.scaleOption );
+			this.scaleOption = null;
+		}*/
+		
+		select.value = scale;
+	}
 };
 
-netgis.Menu.prototype.onModifyFeaturesClick = function( e )
+netgis.Menu.prototype.onDropdownClick = function( e )
 {
-	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.MODIFY_FEATURES );
-};
-
-netgis.Menu.prototype.onDeleteFeaturesClick = function( e )
-{
-	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.DELETE_FEATURES );
-};
-
-netgis.Menu.prototype.onBufferFeatureClick = function( e )
-{
-	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.BUFFER_FEATURE_BEGIN );
-};
-
-netgis.Menu.prototype.onSearchPlaceClick = function( e )
-{
-	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.SEARCH_PLACE );
-};
-
-netgis.Menu.prototype.onSearchParcelClick = function( e )
-{
-	this.client.invoke( netgis.Events.SET_MODE, netgis.Modes.SEARCH_PARCEL );
-};
-
-netgis.Menu.prototype.onSearchDataClick = function( e )
-{
-	alert( "TODO: data search interface" );
-};
-
-netgis.Menu.prototype.onImportOWSClick = function( e )
-{
-	alert( "TODO: ows import interface, try setting url parameter '?ows=<url>'" );
-};
-
-netgis.Menu.prototype.onImportShapefileClick = function( e )
-{
-	this.client.invoke( netgis.Events.IMPORT_SHAPEFILE_SHOW, null );
-};
-
-netgis.Menu.prototype.onImportGeoJSONClick = function( e )
-{
-	this.client.invoke( netgis.Events.IMPORT_GEOJSON_SHOW, null );
-};
-
-netgis.Menu.prototype.onImportKMLClick = function( e )
-{
-	alert( "TODO: kml import interface" );
-};
-
-netgis.Menu.prototype.onImportGMLClick = function( e )
-{
-	this.client.invoke( netgis.Events.IMPORT_GML_SHOW, null );
-};
-
-netgis.Menu.prototype.onImportSpatialiteClick = function( e )
-{
-	this.client.invoke( netgis.Events.IMPORT_SPATIALITE_SHOW, null );
-};
-
-netgis.Menu.prototype.onImportGeopackageClick = function( e )
-{
-	this.client.invoke( netgis.Events.IMPORT_GEOPACKAGE_SHOW, null );
-};
-
-netgis.Menu.prototype.onExportPDFClick = function( e )
-{
-	this.client.invoke( netgis.Events.EXPORT_PDF_SHOW, null );
-};
-
-netgis.Menu.prototype.onExportJPEGClick = function( e )
-{
-	this.client.invoke( netgis.Events.EXPORT_JPEG_SHOW, null );
-};
-
-netgis.Menu.prototype.onExportPNGClick = function( e )
-{
-	this.client.invoke( netgis.Events.EXPORT_PNG_SHOW, null );
-};
-
-netgis.Menu.prototype.onExportGIFClick = function( e )
-{
-	this.client.invoke( netgis.Events.EXPORT_GIF_SHOW, null );
+	var button = e.currentTarget;
+	var dropdown = button.parentNode;
+	
+	dropdown.classList.toggle( "netgis-active" );
 };

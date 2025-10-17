@@ -1,7 +1,15 @@
 var netgis = netgis || {};
 
+/**
+ * OWS Context Parsing Module.
+ * @param {JSON} config [OWS.Config]{@link netgis.OWS.Config}
+ * @constructor
+ * @memberof netgis
+ */
 netgis.OWS =
 (
+	// TODO: work in progress
+
 	function ()
 	{
 		"use strict";
@@ -11,219 +19,111 @@ netgis.OWS =
 		// Methods
 		var read = function( json, client )
 		{
-			var config =
-			{
-				layers: [],
-				folders: []
-			};
+			console.info( "OWS READ:", json );
 			
 			// Properties
-			if ( netgis.util.isDefined( json.properties ) )
+			var properties = json[ "properties" ];
+			readProperties( properties );
+			
+			// Features
+			var features = json[ "features" ];
+			
+			for ( var f = 0; f < features.length; f++ )
 			{
-				// BBox
-				var bbox = json.properties.bbox;
-
-				/*if ( netgis.util.isDefined( bbox ) )
-				{
-					client.invoke( netgis.Events.MAP_SET_EXTENT, { minx: bbox[ 0 ], miny: bbox[ 1 ], maxx: bbox[ 2 ], maxy: bbox[ 3 ] } );
-				}*/
+				var feature = features[ f ];
 				
-				config.bbox = bbox;
+				console.info( "OWS FEATURE:", f, feature );
+				readFeature( feature );
 			}
-			
-			// Folders
-			var features = json.features;
-			
-			for ( var i = 0; i < features.length; i++ )
-			{
-				var feature = features[ i ];
+		};
+		
+		var readProperties = function( properties )
+		{
+			console.info( "OWS PROPS:", properties );
+		};
+		
+		var readFeature = function( feature )
+		{
+			var props = feature[ "properties" ];
 
-				if ( feature.type === "Feature" )
+			switch ( feature[ "type" ] )
+			{
+				case "Feature":
 				{
-					// Feature Properties
-					var props = feature.properties;
-					var path = props.folder;
+					var title = props[ "title" ];
+					var abstract = props[ "abstract" ];
+					var folder = props[ "folder" ];
+
+					var minScale = props[ "minScaleDenominator" ];
+					var maxScale = props[ "maxScaleDenominator" ];
+
+					console.info( "TITLE:", title, "FOLDER:", folder );
+					console.info( "MIN/MAX SCALE:", minScale, maxScale );
 					
-					// Check Existing					
-					var found = false;
+					var offerings = props[ "offerings" ];
 					
-					for ( var f = 0; f < config.folders.length; f++ )
+					for ( var o = 0; o < offerings.length; o++ )
 					{
-						if ( config.folders[ f ].id === path )
-						{
-							found = true;
-							break;
-						}
+						var offering = offerings[ o ];
+						
+						console.info( "OFFERING:", o, offering );
+						readOffering( offering );
 					}
-					
-					if ( found ) continue;
-					
-					// Path Parts
-					var partsRaw = path.split( "/" );
-					var parts = [];
-					
-					for ( var p = 0; p < partsRaw.length; p++ )
-					{
-						var part = partsRaw[ p ];
-						if ( part.length > 0 ) parts.push( part );
-					}
-					
-					// Find Parent
-					var parent = -1;
-					
-					for ( var p = 0; p < parts.length; p++ )
-					{
-						var part = parts[ p ];
-						var partpath = "/" + parts.slice( 0, p + 1 ).join( "/" );
-						
-						// Existing Folder
-						var exists = false;
-						
-						for ( var f = 0; f < config.folders.length; f++ )
-						{
-							if ( config.folders[ f ].path === partpath )
-							{
-								parent = f;
-								exists = true;
-								break;
-							}
-						}
-						
-						if ( exists ) continue;
-						
-						// Create New Folder
-						var index = config.folders.length;
-						
-						config.folders.push
-						(
-							{
-								title: part,
-								parent: parent,
-								path: partpath
-							}
-						);
+
+					break;
+				}
 				
-						parent = index;
-					}
+				default:
+				{
+					console.error( "OWS: unknown feature type '" + feature[ "type" ] + "'", feature );
+					break;
 				}
 			}
+		};
+		
+		var readOffering = function( offering )
+		{
+			var code = offering[ "code" ];
+			var content = offering[ "content" ];
 			
-			// Features / Layers			
-			for ( var i = 0; i < features.length; i++ )
+			switch ( code )
 			{
-				var feature = features[ i ];
-
-				if ( feature.type === "Feature" )
+				// KML
+				case "http://www.opengis.net/spec/owc-atom/1.0/req/kml":
 				{
-					//TODO: refactor to read feature function
-
-					// Feature Properties
-					var props = feature.properties;
-					
-					// Folder
-					var folderIndex = -1;
-								
-					for ( var f = 0; f < config.folders.length; f++ )
+					for ( var c = 0; c < content.length; c++ )
 					{
-						if ( config.folders[ f ].path === props.folder )
-						{
-							folderIndex = f;
-							break;
-						}
-					}
-
-					// Offerings
-					var offers = props.offerings;
-
-					for ( var o = 0; o < offers.length; o++ )
-					{
-						var offer = offers[ o ];
+						var contentItem = content[ c ];
 						
-						// Operationos
-						var ops = offer.operations;
-
-						// Types
-						switch ( offer.code )
+						switch ( contentItem[ "type" ] )
 						{
-							// WMS
-							case "http://www.opengis.net/spec/owc-geojson/1.0/req/wms":
+							// KML
+							case "application/vnd.google-earth.kml+xml":
 							{
-								var getCaps = ops[ 0 ];
-								var url = getCaps.href;
+								var kml = contentItem[ "content" ];
 								
-								config.layers.push
-								(
-									{
-										folder: folderIndex,
-										type: netgis.LayerTypes.WMS,
-										url: url,
-										title: props.title,
-										attribution: props.rights,
-										active: props.active
-									}
-								);
+								// TODO: add kml layer
 								
 								break;
 							}
 							
-							// XYZ
-							case "http://www.opengis.net/spec/owc-geojson/1.0/req/xyz":
+							default:
 							{
-								var getTile = ops[ 0 ];
-								
-								config.layers.push
-								(
-									{
-										folder: folderIndex,
-										type: netgis.LayerTypes.XYZ,
-										url: getTile.href,
-										title: props.title,
-										attribution: props.rights,
-										active: props.active
-									}
-								);
-
-								break;
-							}
-
-							// OSM / XYZ
-							case "http://www.opengis.net/spec/owc-geojson/1.0/req/osm":
-							{
-								// Operations
-								/*for ( var oi = 0; oi < ops.length; oi++ )
-								{
-									var op = ops[ oi ];
-
-									switch ( op.code )
-									{
-										case ""
-									}
-								}*/
-
-								var getTile = ops[ 0 ];
-								
-								config.layers.push
-								(
-									{
-										folder: folderIndex,
-										type: netgis.LayerTypes.XYZ,
-										url: getTile.href,
-										title: props.title,
-										attribution: props.rights,
-										active: props.active
-									}
-								);
-
+								console.error( "OWS: unknown offering content type '" + contentItem[ "type" ] + "'", contentItem );
 								break;
 							}
 						}
 					}
-
+					
+					break;
 				}
 				
-			} // end for each feature
-			
-			client.invoke( netgis.Events.CONTEXT_UPDATE, config );
+				default:
+				{
+					console.error( "OWS: unknown offering code '" + code + "'", offering );
+					break;
+				}
+			}
 		};
 
 		// Public Interface

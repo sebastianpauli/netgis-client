@@ -1,0 +1,103 @@
+.netgis-panel
+{
+	position: absolute;
+	left: 0mm;
+	width: 80mm;
+	top: 12mm;
+	bottom: 0mm;
+	
+	z-index: 1000;
+	
+	-webkit-transform: translateX( -110% );
+	transform: translateX( -110% );
+	transition: transform 150ms ease;
+	will-change: transform;
+}
+
+.netgis-panel.netgis-show
+{
+	-webkit-transform: none;
+	transform: none;
+}
+
+.netgis-client.netgis-footer > .netgis-panel
+{
+	bottom: 36mm;
+}
+
+.netgis-panel > button:first-of-type
+{
+}
+
+.netgis-panel > div
+{
+	position: absolute;
+	left: 0mm;
+	right: 0mm;
+	top: 12mm;
+	bottom: 0mm;
+	overflow: auto;
+}
+
+.netgis-panel h2
+{
+	margin: 0mm 4mm;
+	font-size: 1.0em;
+}
+
+.netgis-panel .netgis-button,
+.netgis-panel label
+{
+	display: block;
+	width: 100%;
+	min-height: 12mm;
+	text-align: left;
+}
+
+.netgis-panel input[ type = text ]
+{
+	margin-top: 3mm;
+}
+
+.netgis-panel .netgis-half
+{
+	display: inline-block;
+	width: 50% !important;
+	padding-right: 1mm;
+}
+
+.netgis-panel .netgis-half + .netgis-half
+{
+	padding-left: 1mm;
+	padding-right: 0mm;
+}
+
+.netgis-panel .netgis-anim-bottom
+{
+	transition: transform 150ms ease;
+	will-change: transform;
+	
+	-webkit-transform: none;
+	transform: none;
+}
+
+.netgis-panel .netgis-anim-bottom.netgis-hide
+{
+	display: initial;
+	
+	-webkit-transform: translateY( 110% );
+	transform: translateY( 110% );
+}
+
+.netgis-panel .netgis-resize-bottom
+{
+	max-height: 80%;
+}
+
+@media ( max-width: 599px )
+{
+	.netgis-panel
+	{
+		width: 100% !important;
+	}
+}

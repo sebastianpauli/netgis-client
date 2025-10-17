@@ -1,0 +1,224 @@
+.netgis-tree
+{
+	display: block;
+	
+	line-height: 12mm;
+	padding: 0mm;
+	margin: 0mm;
+	list-style-type: none;
+}
+
+.netgis-tree ul
+{
+	padding: 0mm;
+	margin: 0mm;
+	padding-left: 9mm;
+	list-style-type: none;
+}
+
+/* Folders */
+
+.netgis-tree .netgis-folder
+{
+	position: relative;
+}
+
+.netgis-tree summary
+{
+	display: block;
+}
+
+.netgis-tree summary label
+{
+	text-align: center;
+}
+
+.netgis-tree .netgis-folder .netgis-icon
+{
+	width: 6mm;
+	left: 12mm;
+	color: #eab000;
+}
+
+.netgis-tree .netgis-folder .netgis-partial
+{
+	opacity: 0.5;
+}
+
+.netgis-tree details[ open ] > summary > .netgis-hide-open
+{
+	display: none;
+}
+
+.netgis-tree details > summary > .netgis-show-open
+{
+	display: none;
+}
+
+.netgis-tree details[ open ] > summary > .netgis-show-open
+{
+	display: initial;
+}
+
+.netgis-tree .netgis-folder > details > summary > label
+{
+	position: absolute;
+	width: 12mm;
+	top: 0mm;
+	left: 0mm;
+}
+
+.netgis-tree .netgis-folder > details > summary > span
+{
+	margin-left: 17mm !important;
+}
+
+/* Items */
+
+.netgis-tree .netgis-item
+{
+	position: relative;
+}
+
+.netgis-tree .netgis-item > label
+{
+	padding: 0mm 4mm;
+	padding-left: 12mm;
+}
+
+.netgis-tree .netgis-item > label .netgis-wrapper
+{
+	display: inline-block;
+	position: absolute;
+	width: 12mm;
+	height: 12mm;
+	left: 0mm;
+	top: 0mm;
+	text-align: center;
+}
+
+.netgis-tree .netgis-item > label input
+{
+}
+
+.netgis-tree .netgis-space
+{
+	height: 6mm;
+}
+
+.netgis-tree .netgis-item[ draggable ]
+{
+	border-top: 0mm solid rgba( 0, 0, 0, 0.1 );
+	transition: border-top ease 300ms, opacity ease 600ms;
+}
+
+.netgis-tree .netgis-dragging
+{
+	opacity: 0.3;
+}
+
+.netgis-tree .netgis-item.netgis-dragover
+{
+	border-top: 4mm solid rgba( 0, 0, 0, 0.1 );
+}
+
+.netgis-tree .netgis-folder > details > summary.netgis-dragover
+{
+	background: rgba( 0, 0, 0, 0.1 );
+}
+
+/* Item Icons */
+
+.netgis-tree .netgis-folder img.netgis-icon,
+.netgis-tree .netgis-item img.netgis-icon
+{
+	display: inline-block;
+	position: relative;
+	height: 5mm;
+	width: auto;
+	left: auto;
+	right: auto;
+	top: 1mm;
+	margin-right: 2mm;
+}
+
+.netgis-tree .netgis-item .netgis-right
+{
+	position: absolute;
+	height: 100%;
+	right: 12mm;
+	top: 0mm;
+	text-align: right;
+	opacity: 0.2;
+}
+
+.netgis-tree .netgis-item .netgis-right > *
+{
+	display: inline-block;
+	width: 6mm;
+	text-align: center;
+}
+
+/* Item Details */
+
+.netgis-tree .netgis-item details
+{
+}
+
+.netgis-tree .netgis-item summary
+{
+	position: absolute;
+	width: 12mm;
+	height: 12mm;
+	right: 0mm;
+	top: 0mm;
+	text-align: center;
+}
+
+.netgis-tree .netgis-item summary + *
+{
+	position: relative;
+	margin-left: 7.5mm;
+}
+
+.netgis-tree .netgis-item details label
+{
+	position: relative;
+	padding: 0mm;
+}
+
+.netgis-tree .netgis-item details label span
+{
+	position: absolute;
+	left: 0mm;
+	right: 50%;
+	height: 100%;
+	padding: 0mm 4mm;
+	overflow: hidden;
+}
+
+.netgis-tree .netgis-item details label span:last-of-type
+{
+	left: 50%;
+	right: 0mm;
+	padding: 2mm;
+	padding-left: 0mm;
+	padding-right: 4mm;
+}
+
+.netgis-tree .netgis-item details label input[ type = range ]
+{
+	width: 100%;
+	cursor: pointer;
+}
+
+.netgis-tree .netgis-item details .netgis-icon
+{
+	position: relative;
+	width: 6mm;
+	left: 0mm;
+	margin-right: 1mm;
+	text-align: center;
+	color: inherit;
+	opacity: 0.33;
+}

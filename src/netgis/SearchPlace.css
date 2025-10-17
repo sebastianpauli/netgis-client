@@ -1,0 +1,10 @@
+.netgis-search-place
+{
+	position: absolute;
+	width: 100%;
+	max-width: 100mm;
+	right: 4mm;
+	top: 16mm;
+	
+	z-index: 900;
+}

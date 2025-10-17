@@ -1,69 +1,32 @@
-/* TODO: rename to config.css ? */
+.netgis-font { font-family: Arial, sans-serif; }
 
-/* Font */
+.netgis-color-a { background-color: #990000; color: #fff; }
+.netgis-color-b { background-color: #430433; color: #fff; }
+.netgis-color-c { background-color: #470f1b; color: #fff; }
+.netgis-color-d { background-color: #F6F5F5; color: #000; }
+.netgis-color-e { background-color: #ffffff; color: #000; }
 
-.netgis-client, .netgis-client button
+.netgis-hover-a:hover { background-color: #990000; color: #fff; }
+.netgis-hover-b:hover { background-color: #430433; color: #fff; }
+.netgis-hover-c:hover { background-color: #470f1b; color: #fff; }
+.netgis-hover-d:hover { background-color: #F6F5F5; color: #000; }
+.netgis-hover-e:hover { background-color: #ffffff; color: #000; }
+
+.netgis-text-a { color: #990000; }
+.netgis-text-b { color: #430433; }
+.netgis-text-c { color: #470f1b; }
+.netgis-text-d { color: #F6F5F5; }
+.netgis-text-e { color: #ffffff; }
+
+.netgis-hover-text-a:hover { color: #990000; }
+.netgis-hover-text-b:hover { color: #430433; }
+.netgis-hover-text-c:hover { color: #470f1b; }
+.netgis-hover-text-d:hover { color: #F6F5F5; }
+.netgis-hover-text-e:hover { color: #ffffff; }
+
+.netgis-border-d { border: 1mm solid #F6F5F5; }
+
+.netgis-gradient-a
 {
-	font-family: Verdana, sans-serif;
-	font-size: 4mm;
-}
-
-/* Colors */
-
-/* TODO: !important on colors necessary ? */
-
-.netgis-primary { background-color: #a7233f !important; color: white !important; }
-.netgis-hover-primary:hover { background-color: #c82a4b !important; color: white !important; }
-.netgis-light { background-color: #f4f4f4 !important; }
-.netgis-hover-light:hover { background-color: #f4f4f4 !important; }
-.netgis-text-primary { color: #a7233f !important; }
-.netgis-hover-text-primary:hover { color: #c82a4b !important; }
-.netgis-dialog { background: #fff; color: #000; }
-.netgis-dropdown:hover > button { background-color: #c82a4b !important; }
-
-/* Effects */
-
-.netgis-shadow
-{
-	box-shadow: 0mm 0.5mm 1mm 0mm rgba( 0, 0, 0, 0.2 ), 0mm 1mm 2.5mm 0mm rgba( 0, 0, 0, 0.1 ) !important;
-}
-
-.netgis-shadow-large
-{
-	box-shadow: 0mm 1mm 2mm 0mm rgba( 0, 0, 0, 0.3 ), 0mm 2mm 5mm 0mm rgba( 0, 0, 0, 0.15 ) !important;
-}
-
-.netgis-text-shadow
-{
-	text-shadow: 0mm 0mm 1mm rgba( 0, 0, 0, 1.0 );
-}
-
-/* Elements */
-/*
-.netgis-client button
-{
-	min-height: 12mm;
-	min-width: 12mm;
-	/*padding: 0mm;*
-	border: none;
-	background: none;
-	/*color: white;*
-	cursor: pointer;
-}
-*/
-
-.netgis-client button
-{
-	border: none;
-	background: none;
-	cursor: pointer;
-}
-
-/* Format */
-
-.netgis-clip-text
-{
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
+	background: linear-gradient( to bottom, #71182b 0, #470f1b 100% );
 }

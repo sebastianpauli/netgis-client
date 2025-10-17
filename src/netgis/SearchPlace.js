@@ -2,58 +2,225 @@
 
 var netgis = netgis || {};
 
-netgis.SearchPlace = function()
+/**
+ * Search Place Module.
+ * @param {JSON} config [SearchPlace.Config]{@link netgis.SearchPlace.Config}
+ * 
+ * @constructor
+ * @memberof netgis
+ */
+netgis.SearchPlace = function( config )
 {
-	this.client = null;
-	this.timeout = null;
-	this.lastRequest = null;
+	this.config = config;
+	
+	this.initElements();
+	this.initEvents();
+	this.initConfig( config );
 };
 
-netgis.SearchPlace.prototype.load = function()
+/**
+ * Config Section "searchplace"
+ * @memberof netgis.SearchPlace
+ * @enum
+ */
+netgis.SearchPlace.Config =
 {
-	this.client.on( netgis.Events.SEARCH_PLACE_REQUEST, this.onSearchPlaceRequest.bind( this ) );
+	/**
+	 * Search input placeholder title
+	 * @type String
+	 */
+	"title": "Search...",
+	
+	/**
+	 * URL to send search requests to, should contain <code>{query}</code> placeholder
+	 * @type String
+	 */
+	"url": "",
+	
+	/**
+	 * Default zoom level for search results
+	 * @type Number
+	 */
+	"zoom": 17,
+	
+	/**
+	 * Marker color for search results in CSS format
+	 * @type String
+	 */
+	"marker_color": "darkgray",
+	
+	/**
+	 * Marker title for search results
+	 * @type String
+	 */
+	"marker_title": "Search-Result"
 };
 
-netgis.SearchPlace.prototype.request = function( query )
-{	
-	//NOTE: https://www.geoportal.rlp.de/mapbender/geoportal/gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG=25832&maxResults=5&maxRows=5&searchText=trier&featureClass=P&style=full&name_startsWith=trier
+netgis.SearchPlace.prototype.initElements = function()
+{
+	this.search = new netgis.Search( "" );
 	
-	//TODO: get url with query template from config
-	////var url = "https://www.geoportal.rlp.de/mapbender/geoportal/gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG={epsg}&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={q}&name_startsWith={q}";
-	////url = "./proxy.php?" + url;
+	this.container = this.search.container;
+	this.container.classList.add( "netgis-search-place", "netgis-responsive" );
 	
-	if ( this.client.config.search && this.client.config.search.url )
-	{
-		var url = this.client.config.search.url;
+	this.search.container.addEventListener( netgis.Events.SEARCH_CHANGE, this.onSearchChange.bind( this ) );
+	this.search.container.addEventListener( netgis.Events.SEARCH_SELECT, this.onSearchSelect.bind( this ) );
+	this.search.container.addEventListener( netgis.Events.SEARCH_CLEAR, this.onSearchClear.bind( this ) );
+};
 
-		var q = query;
-		q = q.trim();
+netgis.SearchPlace.prototype.initEvents = function()
+{
+};
 
-		url = netgis.util.replace( url, "{q}", window.encodeURIComponent( q ) );
-		url = netgis.util.replace( url, "{epsg}", 4326 ); // 25823
-		url = window.encodeURI( url );
+netgis.SearchPlace.prototype.initConfig = function( config )
+{
+	var cfg = config[ "searchplace" ];
+	
+	if ( ! cfg ) return;
+	
+	if ( cfg[ "title" ] ) this.search.setTitle( cfg[ "title" ] );
+};
 
-		this.lastRequest = netgis.util.request( url, this.onSearchPlaceResponse.bind( this ) );
-	}
+netgis.SearchPlace.prototype.attachTo = function( parent )
+{
+	this.search.attachTo( parent );
+	
+	parent.addEventListener( netgis.Events.SEARCHPLACE_TOGGLE, this.onSearchPlaceToggle.bind( this ) );
+};
+
+netgis.SearchPlace.prototype.onSearchPlaceToggle = function( e )
+{
+	var params = e.detail;
+	
+	if ( params && params.on )
+		this.search.show();
 	else
+		this.search.toggle();
+	
+	// Auto Focus
+	if ( this.search.isVisible() )
 	{
-		console.warn( "No search API url configured for place search!" );
+		var search = this.search;
+		window.setTimeout( function() { search.focus(); }, 200 );
 	}
 };
 
-netgis.SearchPlace.prototype.onSearchPlaceRequest = function( e )
-{	
-	var query = e.query;
-	var self = this;
+netgis.SearchPlace.prototype.onSearchChange = function( e )
+{
+	var params = e.detail;
 	
-	// Debounce Request
-	if ( this.lastRequest ) this.lastRequest.abort();
-	if ( this.timeout ) window.clearTimeout( this.timeout );
-	this.timeout = window.setTimeout( function() { self.request( query ); }, 300 );
+	var cfg = this.config[ "searchplace" ];
+	
+	if ( ! cfg ) return;
+	if ( ! cfg[ "url" ] ) return;
+	
+	var url = cfg[ "url" ];
+	url = netgis.util.replace( url, "{query}", window.encodeURIComponent( params.query ) );
+	url = netgis.util.replace( url, "{epsg}", 4326 ); // 25823 ?
+	
+	netgis.util.request( url, this.onSearchResponse.bind( this ) );
 };
 
-netgis.SearchPlace.prototype.onSearchPlaceResponse = function( data )
+netgis.SearchPlace.prototype.onSearchResponse = function( data )
 {
 	var json = JSON.parse( data );
-	this.client.invoke( netgis.Events.SEARCH_PLACE_RESPONSE, json );
+	
+	this.search.clearResults();
+	
+	if ( json[ "geonames" ] )
+	{
+		// Old Geoportal API
+		var results = json[ "geonames" ];
+		
+		for ( var i = 0; i < results.length; i++ )
+		{
+			var result = results[ i ];
+			var title = result[ "title" ];
+			
+			var lon = ( Number.parseFloat( result[ "minx" ] ) + Number.parseFloat( result[ "maxx" ] ) ) * 0.5;
+			var lat = ( Number.parseFloat( result[ "miny" ] ) + Number.parseFloat( result[ "maxy" ] ) ) * 0.5;
+
+			var resultData =
+			{
+				type: result[ "category" ],
+				id: i,
+				lon: lon,
+				lat: lat
+			};
+
+			this.search.addResult( title, JSON.stringify( resultData ) );
+		}
+	}
+	else if ( json[ "data" ] )
+	{
+		// New Search API
+		var results = json[ "data" ];
+
+		for ( var i = 0; i < results.length; i++ )
+		{
+			var result = results[ i ];
+			var title = result[ "name" ];
+
+			var resultData =
+			{
+				type: "street",
+				id: result[ "strid" ],
+				lon: Number.parseFloat( result[ "wgs_x" ] ),
+				lat: Number.parseFloat( result[ "wgs_y" ] )
+			};
+
+			this.search.addResult( title, JSON.stringify( resultData ) );
+		}
+	}
+};
+
+netgis.SearchPlace.prototype.onSearchSelect = function( e )
+{
+	var params = e.detail;
+	var data = JSON.parse( params.data );
+	
+	netgis.util.invoke( this.container, netgis.Events.MAP_ZOOM_LONLAT, { lon: data.lon, lat: data.lat, zoom: this.config[ "searchplace" ][ "zoom" ] } );
+	
+	// Search Detail Request
+	if ( data.type === "street" )
+	{
+		var url = this.config[ "searchplace" ][ "url_detail" ];
+
+		if ( url )
+		{
+			// TODO: replace all result props to support any url variable (like popup html) ?
+
+			url = netgis.util.replace( url, "{id}", data.id );
+			netgis.util.request( url, this.onSearchDetailResponse.bind( this ) );
+		}
+	}
+};
+
+netgis.SearchPlace.prototype.onSearchDetailResponse = function( data )
+{
+	var json = JSON.parse( data );
+	var results = json[ "hsnrarr" ];
+	
+	if ( results.length === 0 ) return;
+	
+	this.search.clearResults();
+	
+	for ( var i = 0; i < results.length; i++ )
+	{
+		var result = results[ i ];
+		var title = json[ "strname" ] + " " + result[ "hsnr" ];
+		
+		var resultData =
+		{
+			type: "address",
+			lon: Number.parseFloat( result[ "wgs_x" ] ),
+			lat: Number.parseFloat( result[ "wgs_y" ] )
+		};
+		
+		this.search.addResult( title, JSON.stringify( resultData ) );
+	}
+};
+
+netgis.SearchPlace.prototype.onSearchClear = function( e )
+{
 };

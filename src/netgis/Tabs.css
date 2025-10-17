@@ -1,0 +1,86 @@
+.netgis-tabs
+{
+	position: relative;
+}
+
+.netgis-tabs > .netgis-header
+{
+	position: absolute;
+	width: 100%;
+	height: 12mm;
+	left: 0mm;
+	top: 0mm;
+	
+	white-space: nowrap;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+.netgis-tabs > .netgis-content
+{
+	position: absolute;
+	width: 100%;
+	left: 0mm;
+	top: 12mm;
+	bottom: 0mm;
+}
+
+.netgis-tabs.netgis-scroll > .netgis-header
+{
+	height: 16mm;
+}
+
+.netgis-tabs.netgis-scroll > .netgis-header > *
+{
+}
+
+.netgis-tabs.netgis-scroll > .netgis-content
+{
+	top: 16mm;
+}
+
+.netgis-tabs > .netgis-header .netgis-button
+{
+	display: inline-block;
+	width: auto;
+}
+
+.netgis-tabs > .netgis-header .netgis-button.netgis-active
+{
+	box-shadow: 0mm 1mm 2mm 0mm rgba( 0, 0, 0, 0.1 ), 0mm 2mm 5mm 0mm rgba( 0, 0, 0, 0.05 ) !important;
+	z-index: 1;
+}
+
+.netgis-tabs > .netgis-content section
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	left: 0mm;
+	top: 0mm;
+	padding: 8mm;
+	overflow: auto;
+}
+
+.netgis-tabs > .netgis-content section.netgis-hide
+{
+	display: none;
+}
+
+@media ( max-width: 599px )
+{
+	.netgis-tabs.netgis-scroll > .netgis-header
+	{
+		height: 12mm;
+	}
+	
+	.netgis-tabs.netgis-scroll > .netgis-content
+	{
+		top: 12mm;
+	}
+
+	.netgis-tabs > .netgis-content section
+	{
+		padding: 4mm;
+	}
+}

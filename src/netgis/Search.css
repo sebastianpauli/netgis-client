@@ -1,0 +1,78 @@
+.netgis-search
+{
+	width: 100%;
+	
+	transition: transform 150ms ease;
+	will-change: transform;
+
+	-webkit-transform: none;
+	transform: none;
+}
+
+.netgis-search.netgis-hide
+{
+	display: initial !important;
+
+	-webkit-transform: translateY( -200% );
+	transform: translateY( -200% );
+}
+
+.netgis-search > label
+{
+	display: inline-block;
+	position: relative;
+	width: 100%;
+	min-height: 12mm;
+	/*padding: 2mm;*/
+}
+
+@media ( max-width: 599px )
+{
+	.netgis-search.netgis-responsive
+	{
+		left: 4mm;
+		right: 4mm;
+		width: auto;
+	}
+}
+
+.netgis-search > label > input
+{
+	width: 100%;
+	min-width: 60mm;
+	height: 12mm;
+	padding: 1mm 4mm;
+	vertical-align: top;
+	border: none;
+}
+
+.netgis-search > label > button
+{
+	position: absolute !important;
+	width: 12mm;
+	height: 12mm;
+	top: 0mm;
+	right: 0mm;
+}
+
+.netgis-search > ul
+{
+	max-height: 60mm;
+	overflow-y: auto;
+	margin: 0mm;
+	padding: 0mm;
+	list-style-type: none;
+}
+
+.netgis-search li .netgis-button
+{
+	width: 100%;
+	height: 12mm;
+	padding: 0mm 3mm;
+	text-align: left;
+}
+
+.netgis-search li .netgis-button span
+{
+	opacity: 0.5;
+}

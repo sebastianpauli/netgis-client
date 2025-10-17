@@ -1,0 +1,211 @@
+.netgis-popup
+{
+	display: none;
+	
+	position: absolute;
+	width: 95mm;
+	height: 20mm;
+	
+	transform: translate( -50%, -100% );
+	
+	z-index: 1000;
+}
+
+.netgis-popup.netgis-dir-right
+{
+	transform: translate( 0%, -50% );
+	height: auto;
+}
+
+.netgis-popup.netgis-fade
+{
+	opacity: 0.5;
+	transition: opacity 0.5s ease;
+}
+
+.netgis-popup.netgis-fade:hover
+{
+	opacity: 1.0;
+}
+
+.netgis-popup.netgis-show
+{
+	display: block;
+}
+
+.netgis-popup.netgis-dir-down .netgis-arrow
+{
+	position: absolute;
+	left: 50%;
+	bottom: 0mm;
+	transform: translateX( -50% );
+	
+	width: 0px;
+	height: 0px;
+	border-left: 3mm solid transparent;
+	border-right: 3mm solid transparent;
+	border-top: 3mm solid white;
+}
+
+.netgis-popup.netgis-dir-right .netgis-arrow
+{
+	position: absolute;
+	right: 0mm;
+	top: 50%;
+	transform: translateY( -49% );
+	
+	width: 0px;
+	height: 0px;
+	border-left: 3mm solid white;
+	border-bottom: 3mm solid transparent;
+	border-top: 3mm solid transparent;
+}
+
+.netgis-popup.netgis-dir-down .netgis-content
+{
+	position: absolute;
+	width: 100%;
+	min-height: 12mm;
+	max-height: 100mm;
+	left: 0mm;
+	bottom: 2.9mm;
+	padding: 4mm 0mm;
+	overflow: auto;
+	
+	cursor: default;
+	box-shadow: 0mm 1mm 4mm 0mm rgba( 0, 0, 0, 0.3 );
+}
+
+.netgis-popup.netgis-dir-right .netgis-content
+{
+	position: absolute;
+	min-height: 12mm;
+	max-height: 100mm;
+	left: 0mm;
+	right: 2.9mm;
+	padding: 4mm 0mm;
+	overflow: auto;
+	
+	bottom: 0mm;
+	transform: translateY( 50% );
+	
+	cursor: default;
+	box-shadow: 0mm 1mm 4mm 0mm rgba( 0, 0, 0, 0.3 );
+}
+
+.netgis-popup .netgis-closer
+{
+	position: absolute;
+	right: 0mm;
+	top: 0mm;
+	height: 9mm;
+	
+	background: none;
+}
+
+.netgis-popup .netgis-closer
+{
+	width: 100%;
+	text-align: left;
+}
+
+.netgis-popup .netgis-closer i
+{
+	position: absolute;
+	right: 3mm;
+}
+
+.netgis-popup .netgis-loader
+{
+	top: 0mm;
+	left: 0mm;
+	font-size: 6mm;
+	text-align: center;
+}
+
+.netgis-popup .netgis-loader .netgis-icon
+{
+	width: auto;
+	left: 46%;
+	top: 30%;
+}
+
+.netgis-popup .netgis-wrapper
+{
+	max-height: 80mm;
+	margin-top: 5mm;
+	padding: 0mm 3mm;
+	overflow: auto;
+}
+
+.netgis-popup table
+{
+	width: 100%;
+	border: 0mm;
+	border-collapse: collapse;
+	table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.netgis-popup th,
+.netgis-popup td
+{
+	padding: 2mm;
+	text-align: left;
+	vertical-align: top;
+}
+
+.netgis-popup th[ colspan ]
+{
+	padding-top: 4mm;
+}
+
+.netgis-popup tr:first-of-type th[ colspan ]
+{
+	padding-top: 0mm;
+}
+
+.netgis-popup .netgis-wrapper button
+{
+	width: 100%;
+	height: 12mm;
+	text-align: left;
+}
+
+.netgis-popup details
+{
+	margin-bottom: 2mm;
+}
+
+.netgis-popup summary
+{
+	display: block;
+	height: 12mm;
+	line-height: 12mm;
+	font-weight: bold;
+}
+
+.netgis-popup details > div
+{
+	padding: 2mm;
+	overflow-x: auto;
+}
+
+.netgis-popup details pre
+{
+	margin: 0mm;
+	cursor: auto;
+}
+
+.netgis-popup label
+{
+	display: block;
+	height: 12mm;
+	line-height: 12mm;
+	padding: 0mm 2mm;
+}
+
+.netgis-popup input[ type = checkbox ]:first-child
+{
+	margin-right: 3mm;
+}

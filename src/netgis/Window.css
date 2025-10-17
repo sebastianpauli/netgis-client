@@ -1,0 +1,69 @@
+.netgis-window
+{
+	position: absolute;
+	min-width: 40mm;
+	min-height: 12mm;
+	max-width: 100%;
+	max-height: 100%;
+	resize: both;
+	overflow: auto;
+	
+	z-index: 22000 !important;
+	
+	background: #fff;
+}
+
+.netgis-window.netgis-hide
+{
+	display: none;
+}
+
+.netgis-window .netgis-mover
+{
+	cursor: grab;
+}
+
+.netgis-window.netgis-dragging,
+.netgis-window.netgis-dragging *
+{
+	cursor: grabbing !important;
+}
+
+.netgis-window.netgis-dragging .netgis-content
+{
+	pointer-events: none;
+}
+
+.netgis-window .netgis-mover
+{
+	display: block;
+	width: 100%;
+	min-height: 12mm;
+	text-align: left;
+}
+
+.netgis-window .netgis-closer
+{
+	position: absolute;
+	width: 12mm;
+	height: 12mm;
+	right: 0mm;
+	top: 0mm;
+	
+	background: none;
+	
+	z-index: 1000;
+}
+
+.netgis-window .netgis-content
+{
+	position: absolute;
+	top: 12mm;
+	bottom: 0mm;
+	left: 0mm;
+	right: 0mm;
+}
+
+@media ( max-width: 599px )
+{
+}

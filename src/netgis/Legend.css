@@ -1,0 +1,29 @@
+.netgis-legend
+{
+	padding: 3mm;
+}
+
+/* TODO: refactor with popup details ? */
+
+.netgis-legend details
+{
+	margin-bottom: 2mm;
+}
+
+.netgis-legend summary
+{
+	display: block;
+	height: 12mm;
+	line-height: 12mm;
+	font-weight: bold;
+}
+
+.netgis-legend details > div
+{
+	padding: 2mm;
+}
+
+.netgis-legend details > div img
+{
+	max-width: 100%;
+}

@@ -1,0 +1,123 @@
+.netgis-dropdown
+{
+	display: inline-block;
+	position: relative;
+	padding: 0mm !important;
+}
+
+.netgis-dropdown > :first-child
+{
+	height: 12mm;
+	z-index: 10;
+	padding: 0mm 4mm;
+}
+
+.netgis-dropdown ul
+{
+	display: none;
+	position: absolute;
+	min-width: 100%;
+	left: 0mm;
+	margin: 0mm;
+	padding: 0mm;
+	list-style-type: none;
+}
+
+.netgis-dropdown li
+{
+	position: relative;
+	height: 12mm;
+}
+
+.netgis-dropdown li > button,
+.netgis-dropdown li > a
+{
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	text-align: left;
+}
+
+.netgis-dropdown li > ul
+{
+	display: none;
+	top: 0mm;
+	left: 100%;
+	
+	max-height: 100mm;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+.netgis-dropdown li > ul li
+{
+	padding-right: 5mm; /* NOTE: avoid scroll bar clipping in large sub menus */
+}
+
+.netgis-dropdown li:hover > ul
+{
+	display: block;
+}
+
+.netgis-dropdown li i:first-child
+{
+	margin-right: 4mm !important;
+}
+
+.netgis-dropdown li i:last-child
+{
+	margin-left: 4mm !important;
+	margin-right: 0mm !important;
+}
+
+.netgis-dropdown li > label
+{
+	display: block;
+	text-align: left;
+}
+
+.netgis-dropdown li > label input
+{
+	width: 4mm;
+	margin: 0mm;
+	margin-right: 4mm;
+}
+
+/* Compact */
+
+.netgis-compact .netgis-dropdown li
+{
+	height: 9mm;
+	line-height: 9mm;
+}
+
+.netgis-compact .netgis-dropdown li button,
+.netgis-compact .netgis-dropdown li .netgis-button
+{
+	padding: 0mm 3mm;
+}
+
+.netgis-compact .netgis-dropdown li i
+{
+	margin-right: 4mm;
+}
+
+/* Responsive Small Display */
+
+@media ( max-width: 599px )
+{
+	.netgis-dropdown.netgis-active > ul
+	{
+		display: block;
+	}
+}
+
+/* Responsive Large Display */
+
+@media ( min-width: 600px )
+{
+	.netgis-dropdown:hover > ul
+	{
+		display: block;
+	}
+}
