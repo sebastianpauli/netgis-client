@@ -5,6 +5,7 @@
 - [Load a config JSON from a URL](#load-a-config-json-from-a-url)
 - [Include the client in a web form for input submission](#include-the-client-in-a-web-form-for-input-submission)
 - [Load a WMC document at startup](#load-a-wmc-document-at-startup)
+- [Build the Client Library from Sources](#build-the-client-library-from-sources)
 
 ## User Interface
 - [Add a web link to the top menu bar](#add-a-web-link-to-the-top-menu-bar)
@@ -123,6 +124,25 @@ Or from a URL parameter:
 ```
 geoportal.html?wmc_id=14971
 ```
+
+### Build the Client Library from Sources
+
+I don't like complex build systems, so the process to compile this source code to minified JS and CSS files for distribution is pretty simple.
+We use Google's Closure Compiler (and Stylesheets), because it gives us simple command line tools and has no dependencies besides a Java Runtime:
+
+- [Closure Compiler](https://developers.google.com/closure/compiler)
+- [Closure Stylesheets](https://github.com/google/closure-stylesheets)
+
+Once you have put these two executable JAR files on your disk, you could prepare a batch script similar to this (if you are on Windows):
+
+```bat
+SET BUNDLE_NAME=netgis
+
+java -jar C:/dev/closure-compiler/closure-compiler.jar --js_output_file=./dist/%BUNDLE_NAME%.min.js ./src/netgis/*.js
+java -jar C:/dev/closure-stylesheets/closure-stylesheets.jar --allow-unrecognized-functions --allow-unrecognized-properties --output-file ./dist/%BUNDLE_NAME%.min.css ./src/netgis/*.css
+```
+
+If you then execute this from within your client root folder, it should result in fresh ```netgis.min.js``` and ```netgis.min.css``` bundles in your ```/dist``` folder.
 
 ### Add a web link to the top menu bar
 
