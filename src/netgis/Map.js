@@ -4635,12 +4635,27 @@ netgis.Map.prototype.onImportLayerAccept = function( e )
 {
 	var params = e.detail;
 	
-	var layer = this.addLayer( params[ "id" ], params );
-	var source = layer.getSource();
+	var source;
 	
+	if ( ! params[ "editable" ] )
+	{
+		// Add Layer Item
+		var layer = this.addLayer( params[ "id" ], params );
+		source = layer.getSource();
+	}
+	else
+	{
+		// Add To Edit Layer
+		var layer = this.createLayerGeoJSON( params[ "data" ] );
+		source = layer.getSource();
+		
+		this.editLayer.getSource().addFeatures( source.getFeatures() );
+	}
+	
+	// Zoom Added Features
 	if ( source instanceof ol.source.Vector && source.getFeatures().length > 0 )
 	{
-		this.view.fit( layer.getSource().getExtent(), { duration: 600 } );
+		this.view.fit( source.getExtent(), { duration: 600 } );
 	}
 };
 

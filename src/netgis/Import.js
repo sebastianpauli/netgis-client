@@ -37,6 +37,12 @@ netgis.Import.Config =
 	"preview": true,
 	
 	/**
+	 * Add imported vector file features to editable layer
+	 * @type Boolean
+	 */
+	"editable": true,
+	
+	/**
 	 * List of string options for the URL input
 	 * @type Array
 	 */
@@ -1044,7 +1050,7 @@ netgis.Import.prototype.onImportPreviewFeatures = function( e )
 	// TODO: get preview map renderer from config
 	if ( ! ol ) { console.error( "import preview only supported with OL map renderer", layer ); return; }
 	
-	var styleConfig = config[ "styles" ][ "import" ];
+	var styleConfig = this.config[ "styles" ][ "import" ];
 	
 	var style = new ol.style.Style
 	(
@@ -1195,11 +1201,16 @@ netgis.Import.prototype.onPreviewSubmitClick = function( e )
 	var proj = this.previewMap.getView().getProjection().getCode();
 	geojson[ "crs" ] = { "type": "name", "properties": { "name": "urn:ogc:def:crs:" + proj.replace( ":", "::" ) } };
 	
+	// Editable Features
+	var editable = ( this.config[ "import" ] && this.config[ "import" ][ "editable" ] === true );
+	
+	// Final Layer Parameters
 	var params =
 	{
 		id: layerID,
 		folder: null,
 		active: true,
+		editable: editable,
 		order: this.getLayerOrder(),
 		style: this.config[ "styles" ][ "import" ],
 		

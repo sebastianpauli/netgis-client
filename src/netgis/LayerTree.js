@@ -295,6 +295,8 @@ netgis.LayerTree.prototype.onImportLayerAccept = function( e )
 	var params = e.detail;
 	var layer = params;
 	
+	if ( params[ "editable" ] === true ) return;
+	
 	if ( ! this.importFolder )
 	{
 		this.importFolder = this.tree.addFolder( null, "_import", "Import", true, false );
