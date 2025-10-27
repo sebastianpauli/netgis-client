@@ -241,7 +241,7 @@ netgis.Info.prototype.onMapClick = function( e )
 		{
 			var url = params.info[ id ];
 			
-			if ( cfg[ "proxy" ] && cfg[ "proxy" ].length > 0 ) url = cfg[ "proxy" ] + url;
+			if ( cfg && cfg[ "proxy" ] && cfg[ "proxy" ].length > 0 ) url = cfg[ "proxy" ] + url;
 			
 			netgis.util.request( url, this.onLayerResponseWMS.bind( this ), { title: layer[ "title" ] } );
 
@@ -283,7 +283,7 @@ netgis.Info.prototype.onMapClick = function( e )
 
 					url = url + ( url.indexOf( "?" ) === -1 ? "?" : "" ) + request.join( "&" );
 					
-					if ( cfg[ "proxy" ] && cfg[ "proxy" ].length > 0 ) url = cfg[ "proxy" ] + url;
+					if ( cfg && cfg[ "proxy" ] && cfg[ "proxy" ].length > 0 ) url = cfg[ "proxy" ] + url;
 					
 					netgis.util.request( url, this.onLayerResponseWMS.bind( this ), { title: layer[ "title" ] } );
 
@@ -312,7 +312,7 @@ netgis.Info.prototype.onMapClick = function( e )
 			url = netgis.util.replace( url, "{lon}", params.lon );
 			url = netgis.util.replace( url, "{lat}", params.lat );
 			
-			if ( cfg[ "proxy" ] && cfg[ "proxy" ].length > 0 ) url = cfg[ "proxy" ] + url;
+			if ( cfg && cfg[ "proxy" ] && cfg[ "proxy" ].length > 0 ) url = cfg[ "proxy" ] + url;
 
 			netgis.util.request( url, this.onLayerResponseWMS.bind( this ), { title: layer[ "title" ] } );
 

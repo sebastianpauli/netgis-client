@@ -4005,6 +4005,9 @@ netgis.Map.prototype.onPointerClick = function( e )
 		
 		var clickable = false;
 		if ( this.mode === netgis.Modes.VIEW ) clickable = true;
+		if ( this.mode === netgis.Modes.DELETE_FEATURES ) clickable = true;
+		if ( this.mode === netgis.Modes.BUFFER_FEATURES_DYNAMIC ) clickable = true;
+		if ( this.mode === netgis.Modes.CUT_FEATURES ) clickable = true;
 		if ( this.mode === netgis.Modes.SEARCH_PARCEL ) clickable = true;
 		
 		if ( clickable ) this.onFeatureClick( feature.feature, feature.layer, pixel, coords );
