@@ -4,8 +4,9 @@ var netgis = netgis || {};
 
 netgis.Tabs = function( titles )
 {
-	this.initElements( titles );
+	this.activeSection = null;
 	
+	this.initElements( titles );
 	this.setActiveTab( 0 );
 };
 
@@ -47,6 +48,8 @@ netgis.Tabs.prototype.setActiveTab = function( t )
 	var buttons = this.header.getElementsByClassName( "netgis-button" );
 	var sections = this.content.getElementsByTagName( "section" );
 	
+	this.activeSection = null;
+	
 	for ( var i = 0; i < buttons.length; i++ )
 	{
 		var button = buttons[ i ];
@@ -59,12 +62,12 @@ netgis.Tabs.prototype.setActiveTab = function( t )
 			button.classList.add( "netgis-text-a" );
 			button.classList.add( "netgis-bar-a" );
 			button.classList.add( "netgis-active" );
-			
 			button.scrollIntoView( { behavior: "smooth" } );
 			
 			section.classList.remove( "netgis-hide" );
-			
 			section.scrollTop = 0;
+			
+			this.activeSection = section;
 		}
 		else
 		{
@@ -77,6 +80,8 @@ netgis.Tabs.prototype.setActiveTab = function( t )
 			section.classList.add( "netgis-hide" );
 		}
 	}
+	
+	netgis.util.invoke( this.container, netgis.Events.TABS_CHANGE, { index: t, section: this.activeSection } );
 };
 
 netgis.Tabs.prototype.getContentSection = function( t )

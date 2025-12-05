@@ -24,8 +24,14 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
-	max-width: 150mm;
+	max-width: 200mm;
 	margin: 0mm auto;
+	
+	/*
+	resize: horizontal;
+	overflow: auto;
+	max-width: none;
+	*/
 }
 
 .netgis-modal .netgis-content

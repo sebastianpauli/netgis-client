@@ -81,6 +81,7 @@ netgis.LayerTree.prototype.initElements = function( config )
 	this.tree.container.addEventListener( netgis.Events.TREE_ITEM_CHANGE, this.onTreeItemChange.bind( this ) );
 	this.tree.container.addEventListener( netgis.Events.TREE_ITEM_SLIDER_CHANGE, this.onTreeItemSliderChange.bind( this ) );
 	this.tree.container.addEventListener( netgis.Events.TREE_ITEM_ORDER_CHANGE, this.onTreeItemOrderChange.bind( this ) );
+	this.tree.container.addEventListener( netgis.Events.TREE_ITEM_REMOVE, this.onTreeItemRemove.bind( this ) );
 	
 	if ( cfg[ "draggable" ] === true )
 	{
@@ -125,7 +126,7 @@ netgis.LayerTree.prototype.initConfig = function( config, prependFolders )
 		{
 			var folder = configFolders[ i ];
 
-			var item = this.tree.addFolder( null, folder[ "id" ], folder[ "title" ], prependFolders, false, folder[ "draggable" ] );
+			var item = this.tree.addFolder( null, folder[ "id" ], folder[ "title" ], prependFolders, false, folder[ "draggable" ], folder[ "removable" ] );
 			folders[ folder[ "id" ] ] = item;
 
 			if ( folder[ "open" ] === true ) this.tree.setFolderOpen( folder[ "id" ], true );
@@ -336,7 +337,7 @@ netgis.LayerTree.prototype.onImportGeoportalSubmit = function( e )
 	var folder = this.tree.getFolder( fid );
 	
 	if ( ! folder )
-		folder = this.tree.addFolder( null, fid, params.folder.title, true, false );
+		folder = this.tree.addFolder( null, fid, params.folder.title, true, false, true, true );
 	
 	var id = params.layer.id;
 	
@@ -486,11 +487,17 @@ netgis.LayerTree.prototype.onTreeItemDeleteClick = function( e )
 	var details = label.parentNode.parentNode;
 	var item = details.parentNode;
 	var check = item.getElementsByTagName( "input" )[ 0 ];
-	var id = check .getAttribute( "data-id" );
-	
-	netgis.util.invoke( this.tree.container, netgis.Events.MAP_LAYER_DELETE, { id: id } );
+	var id = check.getAttribute( "data-id" );
 	
 	this.tree.removeItem( id );
+};
+
+netgis.LayerTree.prototype.onTreeItemRemove = function( e )
+{
+	var params = e.detail;
+	var id = params.id;
+	
+	netgis.util.invoke( this.tree.container, netgis.Events.MAP_LAYER_DELETE, { id: id } );
 };
 
 netgis.LayerTree.prototype.onMapEditLayerChange = function( e )

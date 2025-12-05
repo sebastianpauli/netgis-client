@@ -43,7 +43,7 @@
 
 .netgis-import .netgis-geoportal .netgis-search > label > button
 {
-	top: 9mm;
+	top: 8.5mm;
 }
 
 .netgis-import .netgis-geoportal .netgis-search > label > button:last-of-type
@@ -107,6 +107,27 @@
 .netgis-import .netgis-geoportal .netgis-tree .netgis-item input
 {
 	margin-left: 4mm;
+}
+
+.netgis-import .netgis-geoportal .netgis-tree .netgis-button > .netgis-loader
+{
+	top: 0mm;
+	left: 0mm;
+	line-height: 12mm;
+	font-size: 5mm;
+	
+	/*text-align: left;
+	padding-left: 3.5mm;*/
+}
+
+.netgis-import .netgis-geoportal .netgis-tree .netgis-button > .netgis-loader *
+{
+	position: static;
+	
+	/*width: 5mm;
+	height: 5mm;*/
+	
+	pointer-events: none;
 }
 
 .netgis-import .netgis-geoportal > button:last-of-type

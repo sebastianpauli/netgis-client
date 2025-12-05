@@ -105,6 +105,7 @@ netgis.Import.prototype.initElements = function( config )
 	this.tabs.container.style.right = "0mm";
 	this.tabs.container.style.top = "12mm";
 	this.tabs.container.style.bottom = "0mm";
+	this.tabs.container.addEventListener( netgis.Events.TABS_CHANGE, this.onTabsChange.bind( this ) );
 	this.tabs.attachTo( this.modal.content );
 };
 
@@ -150,14 +151,28 @@ netgis.Import.prototype.initSections = function( config )
 		this.geoportalResults.container.addEventListener( netgis.Events.TREE_ITEM_CHANGE, this.onGeoportalTreeItemChange.bind( this ) );
 		this.geoportalResults.attachTo( this.sections.geoportal );
 		
-		this.geoportalSubmit = this.addButton( this.sections.geoportal, "<i class='netgis-icon fas fa-check'></i><span>Hinzufügen<span class='netgis-count'></span></span>", this.onGeoportalSubmit.bind( this ) );
+		var submitWrapper = document.createElement( "div" );
+		submitWrapper.style.position = "absolute";
+		submitWrapper.style.left = "0mm";
+		submitWrapper.style.right = "0mm";
+		submitWrapper.style.bottom = "0mm";
+		submitWrapper.style.padding = "8mm";
+		submitWrapper.style.paddingTop = "0mm";
+		this.sections.geoportal.appendChild( submitWrapper );
+		
+		this.geoportalSubmit = this.addButton( submitWrapper, "<i class='netgis-icon fas fa-check'></i><span>Hinzufügen<span class='netgis-count'></span></span>", this.onGeoportalSubmit.bind( this ) );
 	}
 	
 	// WMS
 	this.sections.wms = this.tabs.getContentSection( i );
 	i += 1;
 	
-	this.addInputText( this.sections.wms, "WMS-URL:", this.config[ "import" ][ "wms_options" ] );
+	var wmsWrapper = document.createElement( "div" );
+	wmsWrapper.className = "netgis-search";
+	this.sections.wms.appendChild( wmsWrapper );
+	
+	var wmsInput = this.addInputText( wmsWrapper, "WMS-URL:", this.config[ "import" ][ "wms_options" ] );
+	wmsInput.classList.add( "netgis-round", "netgis-shadow" );
 	this.addButton( this.sections.wms, "<i class='netgis-icon fas fa-cloud-download-alt'></i><span>Dienst laden</span>", this.onWMSLoadClick.bind( this ) );
 	
 	this.addInputText( this.sections.wms, "Bezeichnung:" );
@@ -171,7 +186,12 @@ netgis.Import.prototype.initSections = function( config )
 	this.sections.wfs = this.tabs.getContentSection( i );
 	i += 1;
 	
-	this.addInputText( this.sections.wfs, "WFS-URL:", this.config[ "import" ][ "wfs_options" ] );
+	var wfsWrapper = document.createElement( "div" );
+	wfsWrapper.className = "netgis-search";
+	this.sections.wfs.appendChild( wfsWrapper );
+	
+	var wfsInput = this.addInputText( wfsWrapper, "WFS-URL:", this.config[ "import" ][ "wfs_options" ] );
+	wfsInput.classList.add( "netgis-round", "netgis-shadow" );
 	this.addButton( this.sections.wfs, "<i class='netgis-icon fas fa-cloud-download-alt'></i><span>Dienst laden</span>", this.onWFSLoadClick.bind( this ) );
 	
 	this.addInputText( this.sections.wfs, "Bezeichnung:" );
@@ -433,6 +453,34 @@ netgis.Import.prototype.onImportShow = function( e )
 {
 	this.modal.show();
 	this.tabs.updateHeaderScroll();
+	
+	this.onTabsChange( { detail: { section: this.tabs.activeSection } } );
+};
+
+netgis.Import.prototype.onTabsChange = function( e )
+{
+	var params = e.detail;
+	
+	switch ( params.section )
+	{
+		case this.sections.geoportal:
+		{
+			this.geoportalSearch.focus();
+			break;
+		}
+		
+		case this.sections.wms:
+		{
+			this.sections.wms.getElementsByTagName( "input" )[ 0 ].focus();
+			break;
+		}
+		
+		case this.sections.wfs:
+		{
+			this.sections.wfs.getElementsByTagName( "input" )[ 0 ].focus();
+			break;
+		}
+	}
 };
 
 netgis.Import.prototype.onWMSLoadClick = function( e )
@@ -846,7 +894,7 @@ netgis.Import.prototype.onGeoJSONLoad = function( e )
 		folder: null,
 		active: true,
 		order: this.getLayerOrder(),
-		style: this.config[ "styles" ][ "import" ],
+		style: ( this.config[ "styles" ] && this.config[ "styles" ][ "import" ] ) ? this.config[ "styles" ][ "import" ] : null,
 		
 		title: title,
 		type: netgis.LayerTypes.GEOJSON,
@@ -1050,17 +1098,20 @@ netgis.Import.prototype.onImportPreviewFeatures = function( e )
 	// TODO: get preview map renderer from config
 	if ( ! ol ) { console.error( "import preview only supported with OL map renderer", layer ); return; }
 	
-	var styleConfig = this.config[ "styles" ][ "import" ];
-	
-	var style = new ol.style.Style
-	(
-		{
-			fill: new ol.style.Fill( { color: styleConfig[ "fill" ] } ),
-			stroke: new ol.style.Stroke( { color: styleConfig[ "stroke" ], width: styleConfig[ "width" ] } )
-		}
-	);
-	
-	layer.setStyle( style );
+	if ( this.config[ "styles" ] && this.config[ "styles" ][ "import" ] )
+	{
+		var styleConfig = this.config[ "styles" ][ "import" ];
+
+		var style = new ol.style.Style
+		(
+			{
+				fill: new ol.style.Fill( { color: styleConfig[ "fill" ] } ),
+				stroke: new ol.style.Stroke( { color: styleConfig[ "stroke" ], width: styleConfig[ "width" ] } )
+			}
+		);
+
+		layer.setStyle( style );
+	}
 	
 	this.previewMap.addLayer( layer );
 	
@@ -1212,7 +1263,7 @@ netgis.Import.prototype.onPreviewSubmitClick = function( e )
 		active: true,
 		editable: editable,
 		order: this.getLayerOrder(),
-		style: this.config[ "styles" ][ "import" ],
+		style: ( this.config[ "styles" ] && this.config[ "styles" ][ "import" ] ) ? this.config[ "styles" ][ "import" ] : null,
 		
 		title: layerTitle,
 		type: netgis.LayerTypes.GEOJSON,
@@ -1279,6 +1330,8 @@ netgis.Import.prototype.onGeoportalSearchChange = function( e )
 	{
 		this.geoportalLoader.classList.remove( "netgis-hide" );
 		
+		this.geoportalResults.clear();
+		
 		query = netgis.util.replace( query, " ", "," );
 		
 		var url = this.config[ "import" ][ "geoportal_search_url" ];
@@ -1299,7 +1352,13 @@ netgis.Import.prototype.onGeoportalSearchResponse = function( data )
 {
 	var json = JSON.parse( data );
 	
-	this.geoportalResults.clear();
+	if ( this.config[ "import" ][ "geoportal_search_dynamic" ] )
+	{
+		this.updateGeoportalResults( json, true );
+		return;
+	}
+	
+	//this.geoportalResults.clear();
 	
 	var searchResults = json[ "wms" ][ "srv" ];
 	
@@ -1324,12 +1383,12 @@ netgis.Import.prototype.onGeoportalSearchResponse = function( data )
 
 	var children;
 
-	function recursive( layer )
+	function findLayersRecursive( layer, children )
 	{
 		if ( layer && layer.layer )
 		{
 			for ( var c = 0; c < layer.layer.length; c++ )
-				recursive( layer.layer[ c ] );
+				findLayersRecursive( layer.layer[ c ], children );
 		}
 		else if ( layer )
 		{
@@ -1340,20 +1399,41 @@ netgis.Import.prototype.onGeoportalSearchResponse = function( data )
 	}
 	
 	this.geoportalData = [];
+	
+	var folders = {};
 
 	for ( var l = 0; l < searchResults.length; l++ )
 	{
 		var layer = searchResults[ l ];
 		
-		// Get children recursively
+		// Get Children Recursively
 		children = [];
-		var count = recursive( layer );
+		var count = findLayersRecursive( layer, children );
 		
 		// Service Folder
-		var title = layer[ "title" ] + " (" + count + ")";
+		var folder;
 		
-		var folder = this.geoportalResults.addFolder( null, l, title );
-		folder.setAttribute( "title", layer[ "abstract" ] );
+		var folderID = layer[ "title" ];
+		if ( layer[ "wmsRootLayerId" ] ) folderID = layer[ "wmsRootLayerId" ];
+		
+		if ( ! folders[ folderID ] )
+		{
+			// New Folder
+			var title = layer[ "title" ] + " (<span class='netgis-count'>" + count + "</span>)";
+			folder = this.geoportalResults.addFolder( null, l, title );
+			folder.setAttribute( "title", layer[ "abstract" ] );
+			
+			folders[ folderID ] = folder;
+		}
+		else
+		{
+			// Existing Folder
+			folder = folders[ folderID ];
+			
+			var title = folder.getElementsByTagName( "summary" )[ 0 ];
+			var titleCount = title.getElementsByClassName( "netgis-count" )[ 0 ];
+			titleCount.innerHTML = Number.parseInt( titleCount.innerText ) + count;
+		}
 		
 		for ( var c = 0; c < children.length; c++ )
 		{
@@ -1372,6 +1452,135 @@ netgis.Import.prototype.onGeoportalSearchResponse = function( data )
 	this.geoportalLoader.classList.add( "netgis-hide" );
 };
 
+netgis.Import.prototype.updateGeoportalResults = function( data, dynamic )
+{
+	this.geoportalData = { data: data, folders: {} };
+	
+	var srv = data[ "wms" ][ "srv" ];
+	
+	if ( dynamic )
+	{
+		var folders = {};
+		
+		for ( var s = 0; s < srv.length; s++ )
+		{
+			var service = srv[ s ];
+			
+			// Service Folder
+			var folder;
+		
+			var folderID = service[ "title" ];
+			if ( service[ "wmsRootLayerId" ] ) folderID = service[ "wmsRootLayerId" ];
+			
+			if ( ! folders[ folderID ] )
+			{
+				// New Folder
+				var title = service[ "title" ];
+				folder = this.geoportalResults.addFolder( null, folderID, title, false, false ); // TODO: fix tree nocheck hidden
+				folder.setAttribute( "title", service[ "abstract" ] );
+				folder.setAttribute( "data-url", service[ "wmsGetCapabilitiesUrl" ] );
+				folder.setAttribute( "data-title", service[ "title" ] );
+				folder.getElementsByTagName( "details" )[ 0 ].addEventListener( "toggle", this.onGeoportalFolderToggle.bind( this ) );
+				
+				folders[ folderID ] = folder;
+			}
+			else
+			{
+				// Existing Folder
+				folder = folders[ folderID ];
+
+				var title = folder.getElementsByTagName( "summary" )[ 0 ];
+			}
+		}
+		
+		this.geoportalData.folders = folders;
+	}
+	
+	this.geoportalResults.container.scrollTop = 0;
+	this.geoportalLoader.classList.add( "netgis-hide" );
+};
+
+netgis.Import.prototype.onGeoportalFolderToggle = function( e )
+{
+	var details = e.currentTarget;
+	var folder = details.parentNode;
+	var items = details.getElementsByTagName( "netgis-item" );
+	
+	if ( ! details.open ) return;
+	if ( items > 0 ) return;
+	
+	// Request Capabilities
+	var url = folder.getAttribute( "data-url" );
+	
+	netgis.util.request( url, function( data ) { this.onGeoportalFolderResponse( folder, data ); }.bind( this ) );
+	
+	folder.getElementsByTagName( "ul" )[ 0 ].innerHTML = "";
+	
+	// Folder Loader
+	if ( folder.getElementsByClassName( "netgis-loader" ).length === 0 )
+		this.geoportalResults.addButton( folder, 0, "<span class='netgis-loader netgis-color-e netgis-text-a'><i class='fas fa-spinner'></i></span>", null );
+};
+
+netgis.Import.prototype.onGeoportalFolderResponse = function( folder, data )
+{	
+	folder.getElementsByTagName( "ul" )[ 0 ].innerHTML = "";
+	
+	var caps = netgis.WMS.parseCapabilities( data );
+	
+	this.createGeoportalLayers( folder, caps, caps.layers, true );
+};
+
+netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, recursive )
+{
+	var fid = folder.getAttribute( "data-id" );
+	
+	var map = caps.requests.map.url;
+	var info = caps.requests.info.url;
+	
+	var mapFormat = null;
+	if ( caps.requests.map.format.indexOf( "image/jpeg" ) > -1 ) mapFormat = "image/jpeg";
+	if ( caps.requests.map.format.indexOf( "image/png" ) > -1 ) mapFormat = "image/png";
+   
+	var infoFormat = null;
+	if ( caps.requests.info.format.indexOf( "text/plain" ) > -1 ) infoFormat = "text/plain";
+	if ( caps.requests.info.format.indexOf( "text/html" ) > -1 ) infoFormat = "text/html";
+	
+	for ( var i = 0; i < layers.length; i++ )
+	{
+		var layer = layers[ i ];
+		
+		// TODO: correct to set layer ids here ?
+		var id = fid + "_" + layer.name;
+		layer.id = id;
+		
+		if ( layer.children.length === 0 )
+		{
+			var item = this.geoportalResults.addCheckbox( folder, id, layer.title );
+			item.setAttribute( "title", layer.abstract );
+			
+			var input = item.getElementsByTagName( "input" )[ 0 ];
+			input.setAttribute( "data-map-url", map );
+			input.setAttribute( "data-info-url", info );
+			input.setAttribute( "data-map-format", mapFormat );
+			input.setAttribute( "data-info-format", infoFormat );
+			input.setAttribute( "data-name", layer.name );
+			input.setAttribute( "data-title", layer.title );
+			input.setAttribute( "data-queryable", layer.queryable );
+		}
+		else
+		{
+			var subfolder = this.geoportalResults.addFolder( folder, id, layer.title );
+			subfolder.setAttribute( "title", layer.abstract );
+			subfolder.setAttribute( "data-title", layer.title );
+			
+			if ( recursive )
+			{
+				this.createGeoportalLayers( subfolder, caps, layer.children, true );
+			}
+		}
+	}
+};
+
 netgis.Import.prototype.onGeoportalSearchButtonClick = function( e )
 {
 	this.geoportalSearch.onInputTimeout();
@@ -1379,8 +1588,6 @@ netgis.Import.prototype.onGeoportalSearchButtonClick = function( e )
 
 netgis.Import.prototype.onGeoportalTreeItemChange = function( e )
 {
-	var params = e.detail;
-	
 	// Update Checked Count
 	var items = this.geoportalResults.container.getElementsByClassName( "netgis-item" );
 	var count = 0;
@@ -1406,8 +1613,68 @@ netgis.Import.prototype.onGeoportalTreeItemChange = function( e )
 	}
 };
 
+netgis.Import.prototype.onGeoportalSubmitDynamic = function( e )
+{
+	var items = this.geoportalResults.container.getElementsByClassName( "netgis-item" );
+	
+	var count = 0;
+	
+	for ( var i = 0; i < items.length; i++ )
+	{
+		var item = items[ i ];
+		var input = item.getElementsByTagName( "input" )[ 0 ];
+		
+		if ( ! input.checked ) continue;
+		
+		count += 1;
+		
+		var list = item.parentNode;
+		var details = list.parentNode;
+		var folder = details.parentNode;
+		
+		var id = input.getAttribute( "data-id" );
+		var fid = folder.getAttribute( "data-id" );
+		
+		id = "geoportal_" + id;
+		fid = "geoportal_" + fid;
+		
+		var ftitle = folder.getAttribute( "data-title" );
+		var title = input.getAttribute( "data-title" );
+		var url = input.getAttribute( "data-map-url" );
+		var name = input.getAttribute( "data-name" );
+		
+		var params =
+		{
+			folder: { id: fid, title: ftitle },
+			layer: { id: id, url: url, name: name, title: title }
+		};
+		
+		netgis.util.invoke( this.sections.geoportal, netgis.Events.IMPORT_GEOPORTAL_SUBMIT, params );
+	}
+	
+	// Done
+	if ( count > 0 )
+	{
+		this.modal.hide();
+		
+		// Reset Checkboxes
+		var inputs = this.geoportalResults.container.getElementsByTagName( "input" );
+		for ( var i = 0; i < inputs.length; i++ )
+			inputs[ i ].checked = false;
+		
+		this.geoportalResults.updateFolderChecks();
+		this.onGeoportalTreeItemChange();
+	}
+};
+
 netgis.Import.prototype.onGeoportalSubmit = function( e )
 {
+	if ( this.config[ "import" ][ "geoportal_search_dynamic" ] )
+	{
+		this.onGeoportalSubmitDynamic( e );
+		return;
+	}
+	
 	var items = this.geoportalResults.container.getElementsByClassName( "netgis-item" );
 	
 	var count = 0;
@@ -1435,7 +1702,7 @@ netgis.Import.prototype.onGeoportalSubmit = function( e )
 		var ftitle = fdata[ "title" ];
 		var url = fdata[ "getMapUrl" ];
 		var name = data[ "name" ];
-		var title = data[ "title" ];
+		var title = data[ "title" ]; // ???
 		var abstract = data[ "abstract" ];
 		var queryable = ( data[ "queryable" ] === 1 );
 		

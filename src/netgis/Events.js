@@ -45,11 +45,15 @@ netgis.Events =
 	// Panel
 	WINDOW_TOGGLE: "window-toggle",
 	WINDOW_RESIZE: "window-resize",
+	
+	// Tabs
+	TABS_CHANGE: "tabs-change",
 
 	// Tree
 	TREE_ITEM_CHANGE: "tree-item-change",
 	TREE_ITEM_SLIDER_CHANGE: "tree-item-slider-change",
 	TREE_ITEM_ORDER_CHANGE: "tree-item-order-change",
+	TREE_ITEM_REMOVE: "tree-item-remove",
 	TREE_BUTTON_CLICK: "tree-button-click",
 
 	// Layer Tree

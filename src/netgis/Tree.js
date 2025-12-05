@@ -28,11 +28,12 @@ netgis.Tree.prototype.clear = function()
 	this.container.innerHTML = "";
 };
 
-netgis.Tree.prototype.addFolder = function( parent, id, title, prepend, nocheck, draggable )
+netgis.Tree.prototype.addFolder = function( parent, id, title, prepend, nocheck, draggable, removable )
 {
 	var li = document.createElement( "li" );
 	li.className = "netgis-folder";
 	li.setAttribute( "data-id", id );
+	li.setAttribute( "data-removable", ( ! removable ) ? false : true );
 	
 	var details = document.createElement( "details" );
 	li.appendChild( details );
@@ -55,6 +56,15 @@ netgis.Tree.prototype.addFolder = function( parent, id, title, prepend, nocheck,
 		// TODO: if not draggable change cursor to not allowed when trying to drag
 		//summary.addEventListener( "pointerdown", function( e ) { e.currentTarget.style.cursor = "not-allowed"; } );
 		//summary.addEventListener( "pointerup", function( e ) { e.currentTarget.style.cursor = ""; } );
+	}
+	
+	if ( removable === true )
+	{
+		var closer = document.createElement( "button" );
+		closer.className = "netgis-closer netgis-clickable netgis-color-d netgis-hover-d";
+		closer.innerHTML = "<i class='fas fa-times'></i>";
+		closer.addEventListener( "click", this.onFolderDeleteClick.bind( this ) );
+		summary.appendChild( closer );
 	}
 	
 	var label = document.createElement( "label" );
@@ -348,10 +358,20 @@ netgis.Tree.prototype.removeItem = function( id )
 	var label = wrapper.parentNode;
 	var item = label.parentNode;
 	
+	netgis.util.invoke( item, netgis.Events.TREE_ITEM_REMOVE, { id: id } );
+	
 	item.parentNode.removeChild( item );
 	
 	this.removeEmptyFolders();
 	this.updateFolderChecks();
+};
+
+netgis.Tree.prototype.removeFolder = function( folder )
+{
+	if ( folder.getAttribute( "data-removable" ) !== "true" ) return;
+	
+	folder.parentNode.removeChild( folder );
+	this.removeEmptyFolders();
 };
 
 netgis.Tree.prototype.removeEmptyFolders = function()
@@ -365,7 +385,7 @@ netgis.Tree.prototype.removeEmptyFolders = function()
 		
 		if ( ul.getElementsByTagName( "li" ).length === 0 )
 		{
-			// TODO: remove folder from parent, recursive ?
+			this.removeFolder( folder );
 		}
 	}
 };
@@ -546,6 +566,32 @@ netgis.Tree.prototype.onFolderChange = function( e )
 	}
 	
 	this.updateFolderChecks();
+};
+
+netgis.Tree.prototype.onFolderDeleteClick = function( e )
+{
+	var button = e.currentTarget;
+	var summary = button.parentNode;
+	var details = summary.parentNode;
+	var folder = details.parentNode;
+	
+	var items = folder.getElementsByClassName( "netgis-item" );
+	
+	var ids = [];
+	
+	for ( var i = 0; i < items.length; i++ )
+	{
+		var item = items[ i ];
+		var input = item.getElementsByTagName( "input" )[ 0 ];
+		var id = input.getAttribute( "data-id" );
+		
+		ids.push( id );
+	}
+	
+	for ( var i = 0; i < ids.length; i++ )
+	{
+		this.removeItem( ids[ i ] );
+	}
 };
 
 netgis.Tree.prototype.onItemChange = function( e )
