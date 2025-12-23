@@ -175,6 +175,12 @@ netgis.Import.prototype.initSections = function( config )
 	wmsInput.classList.add( "netgis-round", "netgis-shadow" );
 	this.addButton( this.sections.wms, "<i class='netgis-icon fas fa-cloud-download-alt'></i><span>Dienst laden</span>", this.onWMSLoadClick.bind( this ) );
 	
+	var wmsInputURL = document.createElement( "input" );
+	wmsInputURL.setAttribute( "type", "hidden" );
+	this.sections.wms.appendChild( wmsInputURL );
+	
+	console.info( "WMS INPUT:", wmsInputURL );
+	
 	this.addInputText( this.sections.wms, "Bezeichnung:" );
 	this.addInputSelect( this.sections.wms, "Ebene:" );
 	this.addInputSelect( this.sections.wms, "Format:" );
@@ -497,17 +503,52 @@ netgis.Import.prototype.onWMSLoadClick = function( e )
 	if ( url.length < 1 ) return;
 	
 	// Get Base URL
-	var parsedURL = netgis.util.parseURL( url );
+	/*
+	var parsedURL = netgis.util.parseURL( url, true );
 	var baseURL = parsedURL.base;
 	var params = parsedURL.parameters;
 	
+	/*
 	params.push( "request=GetCapabilities" );
+	
+	console.info( "WMS PARAMS:", params );
+	
 	params = params.join( "&" );
 	
-	if ( params.search( "service=" ) === -1 ) params += "&service=WMS";
+	//if ( params.search( "service=" ) === -1 ) params += "&service=WMS";
+	**
+	
+	// Clean Parameters
+	for ( var key in params )
+	{
+		if ( key.toLowerCase() === "service" ) delete params[ key ];
+		if ( key.toLowerCase() === "request" ) delete params[ key ];
+	}
+	
+	console.info( "CLEAN PARAMS:", params );
+	
+	params[ "service" ] = "WMS";
+	params[ "request" ] = "GetCapabilities";
+	
+	// Merge Final Parameters
+	var parts = [];
+	
+	for ( var key in params )
+	{
+		parts.push( key + "=" + params[ key ] );
+	}
 	
 	// Capabilities URL
-	var capsURL = baseURL + "?" + params;
+	var capsURL = baseURL + "?" + parts.join( "&" );
+	
+	*/
+	
+	// TODO: update url input value for use later on accept ?
+	// TODO: refactor WMS url parsing/building to module ?
+	// TODO: some layers only exist in getmap online resource (e.g. dop2020), secondary request ?
+	
+	var capsURL = netgis.WMS.buildRequestURL( url, "GetCapabilities" );
+	
 	netgis.util.request( capsURL, this.onWMSCapsResponse.bind( this ) );
 };
 
@@ -551,19 +592,29 @@ netgis.Import.prototype.onWMSCapsResponse = function( data )
 		case "WMS_Capabilities":
 		case "WMT_MS_Capabilities":
 		{
+			// TEST:
+			var result = netgis.WMS.parseCapabilities( data );
+			
+			console.info( "WMS PARSED:", result );
+			
 			var version = caps.getAttribute( "version" );
 			var service = caps.getElementsByTagName( "Service" )[ 0 ];
 			var title = service.getElementsByTagName( "Title" )[ 0 ].textContent;
-			inputs[ 1 ].value = title;
+			inputs[ 2 ].value = title;
 			
+			// Layers
 			var layerItems = caps.getElementsByTagName( "Layer" );
 			var layers = [];
+			
+			console.info( "WMS LAYERS:", layerItems.length, "->", layerItems );
 			
 			for ( var l = 0; l < layerItems.length; l++ )
 			{
 				var item = layerItems[ l ];
 				var layerName = item.getElementsByTagName( "Name" )[ 0 ].textContent;
 				var layerTitle = item.getElementsByTagName( "Title" )[ 0 ].textContent;
+				
+				//console.info( "WMS LAYER:", i, layerName, layerTitle );
 				
 				layers.push( { name: layerName, title: layerTitle } );
 				
@@ -573,7 +624,13 @@ netgis.Import.prototype.onWMSCapsResponse = function( data )
 				selectLayer.options.add( option ); 
 			}
 			
+			// TODO: parse layers recursivly or use WMS module ?
+			
+			// Get Map Request
 			var getMap = caps.getElementsByTagName( "GetMap" )[ 0 ];
+			inputs[ 1 ].value = getMap.getElementsByTagName( "Get" )[ 0 ].getElementsByTagName( "OnlineResource" )[ 0 ].getAttribute( "xlink:href" );
+			
+			// Formats
 			var formatItems = getMap.getElementsByTagName( "Format" );
 			var formats = [];
 			
@@ -607,17 +664,18 @@ netgis.Import.prototype.onWMSAcceptClick = function( e )
 	var selects = section.getElementsByTagName( "select" );
 	
 	var id = "import_" + netgis.util.getTimeStamp( true );
-	var serviceURL = inputs[ 0 ].value;
-	var serviceTitle = inputs[ 1 ].value;
+	var serviceURL = inputs[ 1 ].value;
+	var serviceTitle = inputs[ 2 ].value;
 	var layerTitle = selects[ 0 ].selectedOptions[ 0 ].innerText;
 	var layerName = selects[ 0 ].value;
 	var layerFormat = selects[ 1 ].value;
 	
+	/*
 	serviceURL = netgis.util.replace( serviceURL, "request=", "oldrequest=" );
 	serviceURL = netgis.util.replace( serviceURL, "Request=", "oldrequest=" );
 	
 	// Get Base URL
-	var parsedURL = netgis.util.parseURL( serviceURL );
+	var parsedURL = netgis.util.parseURL( serviceURL, true );
 	var baseURL = parsedURL.base;
 	var params = parsedURL.parameters;
 	
@@ -625,6 +683,13 @@ netgis.Import.prototype.onWMSAcceptClick = function( e )
 	if ( params.search( "service=" ) === -1 ) params += "&service=WMS";
 	
 	serviceURL = baseURL + "?" + params;
+	*/
+	
+	////serviceURL = netgis.WMS.buildRequestURL( serviceURL, "GetMap" );
+	
+	
+	
+	var url = "";
 	
 	// Final Layer Params
 	var params =

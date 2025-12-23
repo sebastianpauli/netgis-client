@@ -363,7 +363,7 @@ netgis.util =
 			return ( parts.length <= 1 ) ? "" : parts[ parts.length - 1 ];
 		};
 		
-		var parseURL = function( url )
+		var parseURL = function( url, assoc )
 		{
 			// Get Base URL
 			var qmark = url.indexOf( "?" );
@@ -378,16 +378,37 @@ netgis.util =
 				var parts = url.substr( qmark + 1 );
 				parts = parts.split( "&" );
 
-				for ( var p = 0; p < parts.length; p++ )
+				if ( ! assoc )
 				{
-					var part = parts[ p ];
-					part = part.toLowerCase();
+					for ( var p = 0; p < parts.length; p++ )
+					{
+						var part = parts[ p ];
+						//part = part.toLowerCase();
 
-					//if ( part.search( "service" ) > -1 ) { params.push( part ); continue; }
-					//if ( part.search( "version" ) > -1 ) { params.push( part ); continue; }
-					if ( part.search( "request" ) > -1 ) { continue; }
+						//if ( part.search( "service" ) > -1 ) { params.push( part ); continue; }
+						//if ( part.search( "version" ) > -1 ) { params.push( part ); continue; }
+						////if ( part.toLowerCase().search( "request" ) > -1 ) { continue; }
 
-					params.push( part );
+						params.push( part );
+					}
+				}
+				else
+				{
+					params = {};
+					
+					for ( var p = 0; p < parts.length; p++ )
+					{
+						var part = parts[ p ];
+						var words = part.split( "=" );
+						
+						if ( words[ 0 ].length > 0 )
+						{
+							if ( words.length > 1 )
+								params[ words[ 0 ] ] = words[ 1 ];
+							else
+								params[ words[ 0 ] ] = true;
+						}
+					}
 				}
 			}
 		   

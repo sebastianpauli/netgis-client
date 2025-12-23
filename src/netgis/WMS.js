@@ -171,5 +171,38 @@ netgis.WMS =
 		if ( ! el ) return null;
 		
 		return el.innerHTML;
+	},
+	
+	buildRequestURL: function( url, request )
+	{
+		// Get Base URL
+		var parsedURL = netgis.util.parseURL( url, true );
+		var baseURL = parsedURL.base;
+		var params = parsedURL.parameters;
+		
+		// Clean Parameters
+		for ( var key in params )
+		{
+			if ( key.toLowerCase() === "service" ) delete params[ key ];
+			if ( key.toLowerCase() === "request" ) delete params[ key ];
+		}
+
+		console.info( "CLEAN PARAMS:", params );
+
+		params[ "service" ] = "WMS";
+		params[ "request" ] = request;
+
+		// Merge Final Parameters
+		var parts = [];
+
+		for ( var key in params )
+		{
+			parts.push( key + "=" + params[ key ] );
+		}
+
+		// Capabilities URL
+		var result = baseURL + "?" + parts.join( "&" );
+		
+		return result;
 	}
 };

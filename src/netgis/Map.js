@@ -2067,6 +2067,35 @@ netgis.Map.prototype.createLayerWMS = function( url, layerName, format, tiled, u
 		format = "image/png";
 	}
 	
+	/*
+	url = url.replace( "request=", "_request=" );
+	url = url.replace( "service=", "_service=" );
+	url = url.replace( "version=", "_version=" );
+	*/
+	
+	var parsed = netgis.util.parseURL( url, true );
+	
+	console.info( "MAP WMS URL:", url, parsed );
+	
+	// Prepare Base URL
+	url = parsed.base;
+	
+	var parts = [];
+	
+	for ( var key in parsed.parameters )
+	{
+		if ( key.toLowerCase() === "service" ) continue;
+		if ( key.toLowerCase() === "version" ) continue;
+		if ( key.toLowerCase() === "request" ) continue;
+		
+		parts.push( key + "=" + parsed.parameters[ key ] );
+	}
+	
+	if ( url.search( "\\?" ) > -1 )
+		url += "&" + parts.join( "&" );
+	else
+		url += "?" + parts.join( "&" );
+	
 	var params =
 	{
 		url: url,
@@ -2074,7 +2103,7 @@ netgis.Map.prototype.createLayerWMS = function( url, layerName, format, tiled, u
 		{
 			"LAYERS":		layerName,
 			"FORMAT":		format ? format : "image/png",
-			"TRANSPARENT":	"true"
+			"TRANSPARENT":	"true",
 			//"VERSION":		"1.1.1"
 		},
 		
@@ -2087,6 +2116,23 @@ netgis.Map.prototype.createLayerWMS = function( url, layerName, format, tiled, u
 		
 		hidpi: false
 	};
+	
+	// Overwrite Parameters
+	for ( var key in parsed.parameters )
+	{
+		if ( key.toLowerCase() === "service" ) params.params[ "SERVICE" ] = parsed.parameters[ key ];
+		if ( key.toLowerCase() === "version" ) params.params[ "VERSION" ] = parsed.parameters[ key ];
+		//if ( key.toLowerCase() === "request" ) params.params[  ]
+	}
+	
+	
+	
+	//if ( parsed.params[ "service" ] )
+	
+	//if ( url.toLowerCase().search( "service=" ) === -1 ) params.params[ "service" ] = "WMS";
+	//if ( url.toLowerCase().search( "version=" ) === -1 ) params.params[ "version" ] = "1.1.1";
+	
+	console.info( "MAP WMS PARAMS:", params );
 
 	// User Auth
 	if ( user && password )
