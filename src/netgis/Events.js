@@ -90,6 +90,8 @@ netgis.Events =
 
 	// Search Place
 	SEARCHPLACE_TOGGLE: "searchplace-toggle",
+	SEARCHPLACE_SELECT: "searchplace-select",
+	SEARCHPLACE_CLEAR: "searchplace-clear",
 
 	// Search Parcel
 	SEARCHPARCEL_TOGGLE: "searchparcel-toggle",

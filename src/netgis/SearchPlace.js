@@ -127,6 +127,8 @@ netgis.SearchPlace.prototype.onSearchResponse = function( data )
 	
 	this.search.clearResults();
 	
+	var empty = true;
+	
 	if ( json[ "geonames" ] )
 	{
 		// Old Geoportal API
@@ -137,18 +139,30 @@ netgis.SearchPlace.prototype.onSearchResponse = function( data )
 			var result = results[ i ];
 			var title = result[ "title" ];
 			
-			var lon = ( Number.parseFloat( result[ "minx" ] ) + Number.parseFloat( result[ "maxx" ] ) ) * 0.5;
-			var lat = ( Number.parseFloat( result[ "miny" ] ) + Number.parseFloat( result[ "maxy" ] ) ) * 0.5;
+			var minx = Number.parseFloat( result[ "minx" ] );
+			var miny = Number.parseFloat( result[ "miny" ] );
+			var maxx = Number.parseFloat( result[ "maxx" ] );
+			var maxy = Number.parseFloat( result[ "maxy" ] );
+			
+			var lon = ( minx + maxx ) * 0.5;
+			var lat = ( miny + maxy ) * 0.5;
 
 			var resultData =
 			{
 				type: result[ "category" ],
 				id: i,
+				title: title,
 				lon: lon,
-				lat: lat
+				lat: lat,
+				minlon: minx,
+				minlat: miny,
+				maxlon: maxx,
+				maxlat: maxy
 			};
 
 			this.search.addResult( title, JSON.stringify( resultData ) );
+			
+			empty = false;
 		}
 	}
 	else if ( json[ "data" ] )
@@ -160,17 +174,38 @@ netgis.SearchPlace.prototype.onSearchResponse = function( data )
 		{
 			var result = results[ i ];
 			var title = result[ "name" ];
+			
+			var lon = Number.parseFloat( result[ "wgs_x" ] );
+			var lat = Number.parseFloat( result[ "wgs_y" ] );
 
 			var resultData =
 			{
 				type: "street",
 				id: result[ "strid" ],
-				lon: Number.parseFloat( result[ "wgs_x" ] ),
-				lat: Number.parseFloat( result[ "wgs_y" ] )
+				title: title,
+				lon: lon,
+				lat: lat,
+				minlon: lon - 0.001,
+				minlat: lat - 0.001,
+				maxlon: lon + 0.001,
+				maxlat: lat + 0.001
 			};
 
 			this.search.addResult( title, JSON.stringify( resultData ) );
+			
+			empty = false;
 		}
+	}
+	
+	if ( empty )
+	{
+		this.search.input.classList.add( "netgis-round" );
+		this.search.container.classList.remove( "netgis-round" );
+	}
+	else
+	{
+		this.search.input.classList.remove( "netgis-round" );
+		this.search.container.classList.add( "netgis-round" );
 	}
 };
 
@@ -179,7 +214,9 @@ netgis.SearchPlace.prototype.onSearchSelect = function( e )
 	var params = e.detail;
 	var data = JSON.parse( params.data );
 	
-	netgis.util.invoke( this.container, netgis.Events.MAP_ZOOM_LONLAT, { lon: data.lon, lat: data.lat, zoom: this.config[ "searchplace" ][ "zoom" ] } );
+	////netgis.util.invoke( this.container, netgis.Events.MAP_ZOOM_LONLAT, { lon: data.lon, lat: data.lat, zoom: this.config[ "searchplace" ][ "zoom" ] } );
+	
+	netgis.util.invoke( this.container, netgis.Events.SEARCHPLACE_SELECT, data );
 	
 	// Search Detail Request
 	if ( data.type === "street" )
@@ -223,4 +260,8 @@ netgis.SearchPlace.prototype.onSearchDetailResponse = function( data )
 
 netgis.SearchPlace.prototype.onSearchClear = function( e )
 {
+	this.search.input.classList.add( "netgis-round" );
+	this.search.container.classList.remove( "netgis-round" );
+	
+	netgis.util.invoke( this.container, netgis.Events.SEARCHPLACE_CLEAR, null );
 };

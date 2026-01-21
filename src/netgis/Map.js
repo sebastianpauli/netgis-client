@@ -664,6 +664,73 @@ netgis.Map.prototype.initLayers = function()
 		}
 	}
 	
+	// Search Results Layer
+	this.searchLayer = null;
+	
+	if ( this.config[ "modules" ] && this.config[ "modules" ][ "searchplace" ] === true )
+	{
+		/*var cfg = this.config[ "searchplace" ];
+		
+		if ( ! cfg ) cfg = netgis.SearchPlace.Config;
+		
+		console.info( "SEARCH PLACE CONFIG:", cfg  );*/
+		
+		/*
+		var style = 
+		[
+			new ol.style.Style
+			(
+				{
+					image: new ol.style.Circle
+					(
+						{
+							fill: new ol.style.Fill( { color: "#ffffff" } ),
+							radius: 8.0
+						}
+					)
+				}
+			),
+			new ol.style.Style
+			(
+				{
+					image: new ol.style.Circle
+					(
+						{
+							fill: new ol.style.Fill( { color: cfg[ "marker_color" ] ? cfg[ "marker_color" ] : "#ff0000" } ),
+							radius: 5.0
+						}
+					)
+				}
+			),
+			new ol.style.Style
+			(
+				{
+					text: new ol.style.Text
+					(
+						{
+							text: [ "Search Result", "4mm sans-serif" ],
+							//"text-value": [ "get", "title" ], // NOTE: https://openlayers.org/en/latest/examples/style-expressions.html
+							font: "Arial",
+							fill: new ol.style.Fill( { color: cfg[ "text_color" ] ? cfg[ "text_color" ] : "#ff0000" } ),
+							backgroundFill: new ol.style.Fill( { color: cfg[ "text_back" ] ? cfg[ "text_back" ] : "#ffffff" } ),
+							padding: [ 2, 4, 2, 4 ],
+							overflow: true,
+							offsetY: 25
+						}
+					)
+				}
+			)
+		];
+		*/
+	   
+		var style = this.styleSearch.bind( this );
+		
+		// TODO: marker image style from config ?
+		
+		this.searchLayer = new ol.layer.Vector( { source: new ol.source.Vector( { features: [] } ), style: style, zIndex: 65000 } );
+		this.map.addLayer( this.searchLayer );
+	}
+	
 	// Geolocation Layer
 	this.geolocLayer = null;
 	
@@ -701,6 +768,8 @@ netgis.Map.prototype.initLayers = function()
 			)
 		];
 		
+		// TODO: marker image style from config ?
+		
 		var marker = new ol.Feature( { geometry: new ol.geom.Point( ol.proj.fromLonLat( [ 7.0, 50.0 ], this.view.getProjection() ) ) } );
 		marker.setId( "geolocation" );
 		
@@ -736,6 +805,7 @@ netgis.Map.prototype.initInteractions = function()
 	[
 		new ol.interaction.DragPan(),
 		new ol.interaction.DragPan( { condition: function( e ) { return e.originalEvent.button === 1; } } ),
+		new ol.interaction.PinchZoom(),
 		new ol.interaction.MouseWheelZoom()
 	];
 	
@@ -925,6 +995,9 @@ netgis.Map.prototype.attachTo = function( parent )
 	parent.addEventListener( netgis.Events.IMPORT_GEOPORTAL_SUBMIT, this.onImportGeoportalSubmit.bind( this ) );
 	
 	parent.addEventListener( netgis.Events.MAP_COPY_FEATURE_TO_EDIT, this.onCopyFeatureToEdit.bind( this ) );
+	
+	parent.addEventListener( netgis.Events.SEARCHPLACE_SELECT, this.onSearchPlaceSelect.bind( this ) );
+	parent.addEventListener( netgis.Events.SEARCHPLACE_CLEAR, this.onSearchPlaceClear.bind( this ) );
 	
 	parent.addEventListener( netgis.Events.SEARCHPARCEL_ITEM_ENTER, this.onSearchParcelItemEnter.bind( this ) );
 	parent.addEventListener( netgis.Events.SEARCHPARCEL_ITEM_LEAVE, this.onSearchParcelItemLeave.bind( this ) );
@@ -1368,6 +1441,63 @@ netgis.Map.prototype.createStyle = function( config )
 	};
 	
 	return styler;
+};
+
+netgis.Map.prototype.styleSearch = function( feature )
+{
+	var cfg = this.config[ "searchplace" ];
+		
+	if ( ! cfg ) cfg = netgis.SearchPlace.Config;
+	
+	var props = feature.getProperties();
+	
+	var style = 
+	[
+		new ol.style.Style
+		(
+			{
+				image: new ol.style.Circle
+				(
+					{
+						fill: new ol.style.Fill( { color: "#ffffff" } ),
+						radius: 8.0
+					}
+				)
+			}
+		),
+		new ol.style.Style
+		(
+			{
+				image: new ol.style.Circle
+				(
+					{
+						fill: new ol.style.Fill( { color: cfg[ "marker_color" ] ? cfg[ "marker_color" ] : "#ff0000" } ),
+						radius: 5.0
+					}
+				)
+			}
+		),
+		new ol.style.Style
+		(
+			{
+				text: new ol.style.Text
+				(
+					{
+						text: [ props.title, "4mm sans-serif" ],
+						//"text-value": [ "get", "title" ], // NOTE: https://openlayers.org/en/latest/examples/style-expressions.html
+						font: "Arial",
+						fill: new ol.style.Fill( { color: cfg[ "text_color" ] ? cfg[ "text_color" ] : "#ff0000" } ),
+						backgroundFill: new ol.style.Fill( { color: cfg[ "text_back" ] ? cfg[ "text_back" ] : "#ffffff" } ),
+						padding: [ 2, 4, 2, 4 ],
+						overflow: true,
+						offsetY: 25
+					}
+				)
+			}
+		)
+	];
+	
+	return style;
 };
 
 netgis.Map.prototype.styleMeasure = function( feature )
@@ -2075,8 +2205,6 @@ netgis.Map.prototype.createLayerWMS = function( url, layerName, format, tiled, u
 	
 	var parsed = netgis.util.parseURL( url, true );
 	
-	console.info( "MAP WMS URL:", url, parsed );
-	
 	// Prepare Base URL
 	url = parsed.base;
 	
@@ -2125,15 +2253,11 @@ netgis.Map.prototype.createLayerWMS = function( url, layerName, format, tiled, u
 		//if ( key.toLowerCase() === "request" ) params.params[  ]
 	}
 	
-	
-	
 	//if ( parsed.params[ "service" ] )
 	
 	//if ( url.toLowerCase().search( "service=" ) === -1 ) params.params[ "service" ] = "WMS";
 	//if ( url.toLowerCase().search( "version=" ) === -1 ) params.params[ "version" ] = "1.1.1";
 	
-	console.info( "MAP WMS PARAMS:", params );
-
 	// User Auth
 	if ( user && password )
 	{
@@ -3148,12 +3272,12 @@ netgis.Map.prototype.zoomLonLat = function( lon, lat, zoom )
 	this.view.animate( { zoom: zoom, center: ol.proj.fromLonLat( [ lon, lat ], this.view.getProjection() ), duration: 500 } );
 };
 
-netgis.Map.prototype.zoomExtentLonLat = function( minlon, minlat, maxlon, maxlat )
+netgis.Map.prototype.zoomExtentLonLat = function( minlon, minlat, maxlon, maxlat, anim )
 {
 	var minxy = ol.proj.fromLonLat( [ minlon, minlat ], this.view.getProjection() );
 	var maxxy = ol.proj.fromLonLat( [ maxlon, maxlat ], this.view.getProjection() );
 	
-	this.view.fit( [ minxy[ 0 ], minxy[ 1 ], maxxy[ 0 ], maxxy[ 1 ] ] );
+	this.view.fit( [ minxy[ 0 ], minxy[ 1 ], maxxy[ 0 ], maxxy[ 1 ] ], { duration: anim } );
 };
 
 netgis.Map.prototype.zoomExtent = function( minx, miny, maxx, maxy )
@@ -3927,6 +4051,7 @@ netgis.Map.prototype.onPointerClick = function( e )
 	var pixel = e.pixel;
 	var coords = e.coordinate;
 	
+	// Popup Overlay
 	this.popupOverlay.setPosition( coords );
 	
 	// Map Click Event
@@ -4314,13 +4439,26 @@ netgis.Map.prototype.onFeatureClick = function( feature, layer, pixel, coords )
 {
 	//console.info( "FEATURE CLICK:", feature, layer.get( "id" ), this.selectedFeatures );
 	
+	// Cancel If Parcel Click
 	if ( this.mode === netgis.Modes.SEARCH_PARCEL )
 	{
 		if ( layer.get( "id" ) !== "searchparcel_districts" && layer.get( "id" ) !== "searchparcel_fields" && layer.get( "id" ) !== "searchparcel_parcels" ) return;
 	}
 	
+	// Click Parameters
 	var lonlat = ol.proj.toLonLat( coords, this.view.getProjection() );
+	var props = feature.getProperties();
 	
+	// Center Popup On Marker If Search Result
+	if ( feature.getId() === "searchresult" )
+	{
+		lonlat = [ props.lon, props.lat ];
+		coords = ol.proj.fromLonLat( lonlat, this.view.getProjection() );
+		
+		this.popupOverlay.setPosition( coords );
+	}
+	
+	// Click Event
 	var params =
 	{
 		pixel: pixel,
@@ -4330,7 +4468,7 @@ netgis.Map.prototype.onFeatureClick = function( feature, layer, pixel, coords )
 		overlay: this.popupOverlay.getElement(),
 		layer: layer.get( "id" ),
 		id: feature.getId(),
-		properties: feature.getProperties(),
+		properties: props,
 		mode: this.mode
 	};
 	
@@ -4721,6 +4859,43 @@ netgis.Map.prototype.onImportLayerPreview = function( e )
 	var proj = this.view.getProjection().getCode(); // TODO: layer.getSource().getProjection().getCode() ?
 	
 	netgis.util.invoke( this.container, netgis.Events.IMPORT_LAYER_PREVIEW_FEATURES, { id: params.id, title: params.title, layer: layer, proj: proj } );
+};
+
+netgis.Map.prototype.onSearchPlaceSelect = function( e )
+{
+	var params = e.detail;
+	
+	var marker = new ol.Feature
+	(
+		{
+			geometry: new ol.geom.Point( ol.proj.fromLonLat( [ params.lon, params.lat ], this.view.getProjection() ) ),
+			title: params.title,
+			lon: params.lon,
+			lat: params.lat
+		}
+	);
+	
+	marker.setId( "searchresult" );
+	
+	this.searchLayer.getSource().clear();
+	this.searchLayer.getSource().addFeature( marker );
+	
+	// Delay Zoom To Have Marker Already Updated
+	var self = this;
+	
+	window.setTimeout
+	(
+		function()
+		{
+			self.zoomExtentLonLat( params.minlon, params.minlat, params.maxlon, params.maxlat, 300 );
+		},
+		10
+	);
+};
+
+netgis.Map.prototype.onSearchPlaceClear = function( e )
+{
+	this.searchLayer.getSource().clear();
 };
 
 netgis.Map.prototype.onSearchParcelReset = function( e )

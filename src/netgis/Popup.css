@@ -147,6 +147,11 @@
     word-wrap: break-word;
 }
 
+.netgis-popup th
+{
+	width: 40%;
+}
+
 .netgis-popup th,
 .netgis-popup td
 {

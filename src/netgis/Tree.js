@@ -366,9 +366,9 @@ netgis.Tree.prototype.removeItem = function( id )
 	this.updateFolderChecks();
 };
 
-netgis.Tree.prototype.removeFolder = function( folder )
+netgis.Tree.prototype.removeFolder = function( folder, force )
 {
-	if ( folder.getAttribute( "data-removable" ) !== "true" ) return;
+	if ( folder.getAttribute( "data-removable" ) !== "true" && force !== true ) return;
 	
 	folder.parentNode.removeChild( folder );
 	this.removeEmptyFolders();
@@ -385,8 +385,35 @@ netgis.Tree.prototype.removeEmptyFolders = function()
 		
 		if ( ul.getElementsByTagName( "li" ).length === 0 )
 		{
-			this.removeFolder( folder );
+			this.removeFolder( folder, true );
 		}
+	}
+};
+
+netgis.Tree.prototype.moveItemUp = function( item )
+{
+	console.info( "MOVE ITEM:", item );
+	
+	var parentList = item.parentNode;
+	
+	if ( item.classList.contains( "netgis-folder" ) )
+	{
+		// Folder
+		var parentDetails = parentList.parentNode;
+		var parentFolder = parentDetails.parentNode;
+		
+		var targetList = parentFolder.parentNode;
+		//var parentDetails2 = parentList2.parentNode;
+		//var parentFolder2 = parentDetails2.parentNode;
+		
+		console.info( "PARENT:", parentFolder, targetList );
+		
+		parentList.removeChild( item );
+		targetList.appendChild( item );
+	}
+	else
+	{
+		// Item
 	}
 };
 

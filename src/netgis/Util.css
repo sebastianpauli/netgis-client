@@ -257,6 +257,20 @@
     100% { transform: rotate( 360deg ); }
 }
 
+.netgis-anim-gradient
+{
+	background: linear-gradient( 90deg, white, #F6F5F5, white );
+	background-size: 600% 600%;
+	animation: netgis-anim-gradient 3s linear infinite;
+}
+
+@keyframes netgis-anim-gradient
+{
+	0% { background-position: 0% 50% }
+	50% { background-position: 100% 50% }
+	100% { background-position: 0% 50% }
+}
+
 /* Responsive */
 
 @media ( max-width: 599px )

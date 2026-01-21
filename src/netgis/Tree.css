@@ -31,9 +31,12 @@
 	height: 100%;
 	right: 0mm;
 	top: 0mm;
+	background: none !important;
+	opacity: 0.33;
 }
 
-.netgis-tree .netgis-folder summary:hover > .netgis-closer
+.netgis-tree .netgis-folder summary:hover > .netgis-closer,
+.netgis-tree .netgis-folder > details[ open ] > summary > .netgis-closer
 {
 	display: block;
 }
@@ -104,6 +107,7 @@
 {
 	padding: 0mm 4mm;
 	padding-left: 12mm;
+	padding-right: 10mm;
 }
 
 .netgis-tree .netgis-item > label .netgis-wrapper
@@ -193,6 +197,8 @@
 	right: 0mm;
 	top: 0mm;
 	text-align: center;
+	background: none !important;
+	opacity: 0.33;
 }
 
 .netgis-tree .netgis-item summary + *

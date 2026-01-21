@@ -33,7 +33,7 @@ netgis.Legend.Config =
 
 netgis.Legend.prototype.initElements = function()
 {
-	this.panel = new netgis.Panel( "<i class='netgis-icon fas fa-bars'></i><span>Legende</span>" );
+	this.panel = new netgis.Panel( "<i class='netgis-icon fas fa-list-alt'></i><span>Legende</span>" );
 	this.panel.content.classList.add( "netgis-legend" );
 };
 

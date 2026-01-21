@@ -76,6 +76,9 @@ netgis.Info.prototype.attachTo = function( parent )
 	
 	parent.addEventListener( netgis.Events.MAP_CLICK, this.onMapClick.bind( this ) );
 	parent.addEventListener( netgis.Events.MAP_FEATURE_CLICK, this.onMapFeatureClick.bind( this ) );
+	
+	parent.addEventListener( netgis.Events.SEARCHPLACE_SELECT, this.onSearchPlaceSelect.bind( this ) );
+	parent.addEventListener( netgis.Events.SEARCHPLACE_CLEAR, this.onSearchPlaceClear.bind( this ) );
 };
 
 /**
@@ -351,7 +354,7 @@ netgis.Info.prototype.onMapFeatureClick = function( e )
 	// Filter Feature Properties
 	var title = null;
 	var filtered = [];
-	var blacklist = [ "geometry", "fill", "fill-opacity", "stroke", "stroke-opacity", "stroke-width", "styleUrl" ];
+	var blacklist = [ "geometry", "fill", "fill-opacity", "stroke", "stroke-opacity", "stroke-width", "styleUrl", "lon", "lat" ];
 	
 	for ( var k in props )
 	{
@@ -380,6 +383,21 @@ netgis.Info.prototype.onMapFeatureClick = function( e )
 		filtered.push( [ "Längengrad (Lon.)", params.lon ] );
 		filtered.push( [ "Breitengrad (Lat.)", params.lat ] );
 	}
+	
+	if ( params.id === "searchresult" )
+	{
+		title = this.config[ "searchplace" ][ "marker_title" ];
+		if ( ! title || title === "" ) title = "Search Result";
+		
+		for ( var i = 0; i < filtered.length; i++ )
+		{
+			if ( filtered[ i ][ 0 ] === "title" ) filtered.splice( i, 1 );
+		}
+		
+		filtered.push( [ "Ort", props.title ] );
+		filtered.push( [ "Längengrad (Lon.)", props.lon ] );
+		filtered.push( [ "Breitengrad (Lat.)", props.lat ] );
+	};
 
 	// Build Table
 	var html = [];
@@ -411,6 +429,7 @@ netgis.Info.prototype.onMapFeatureClick = function( e )
 
 	// Add To Popup Content
 	this.addSection( title, html, open );
+	
 	show = true;
 	
 	if ( ! this.popup.isVisible() && show )
@@ -445,4 +464,14 @@ netgis.Info.prototype.onLayerResponseWMS = function( data, requestData, request 
 	// Add To Content
 	this.popup.hideLoader();
 	this.addSection( title, content, false );
+};
+
+netgis.Info.prototype.onSearchPlaceSelect = function( e )
+{
+	this.popup.hide();
+};
+
+netgis.Info.prototype.onSearchPlaceClear = function( e )
+{
+	this.popup.hide();
 };

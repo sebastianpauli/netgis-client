@@ -17,6 +17,11 @@
 	transform: translateY( -200% );
 }
 
+.netgis-search.netgis-round
+{
+	overflow: hidden;
+}
+
 .netgis-search > label
 {
 	display: inline-block;
@@ -44,6 +49,8 @@
 	padding: 1mm 4mm;
 	vertical-align: top;
 	border: none;
+	font-family: inherit;
+	font-size: inherit;
 }
 
 .netgis-search > label > button
@@ -68,7 +75,7 @@
 {
 	width: 100%;
 	height: 12mm;
-	padding: 0mm 3mm;
+	padding: 0mm 4mm;
 	text-align: left;
 }
 

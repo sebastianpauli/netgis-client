@@ -172,7 +172,7 @@
 						{ "id": "geolocation", "icon": "<i class='fas fa-crosshairs'></i>", "title": "Gerätestandort" },
 						{ "id": "zoom_home", "icon": "<i class='fas fa-home'></i>", "title": "Anfangsausdehung" },
 						{ "id": "view", "icon": "<i class='fas fa-hand-paper'></i>", "title": "Betrachten-Modus mit Objekt-Abfrage" },
-						{ "id": "legend", "icon": "<i class='fas fa-bars'></i>", "title": "Legende" }
+						{ "id": "legend", "icon": "<i class='fas fa-list-alt'></i>", "title": "Legende" }
 					]
 				},
 				
@@ -195,8 +195,12 @@
 				"searchplace":
 				{
 					"title": "Adresse...",
-					//"url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/geoportal/gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG=4326&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={query}&name_startsWith={query}"
-					"url": "/mapbender/geoportal/gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG=4326&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={query}&name_startsWith={query}"
+					"url": "https://geoportal.saarland.de/mapbender" + "/geoportal/gaz_geom_mobile.php" + "?outputFormat=json&resultTarget=web&searchEPSG=4326&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={query}&name_startsWith={query}",
+					
+					"marker_title": "Such-Ergebnis",
+					"marker_color": "#990000",
+					"text_color": "#990000",
+					"text_back": "rgba( 255, 255, 255, 0.7 )"
 				},
 				
 				"toolbox":
@@ -224,7 +228,8 @@
 					"geopackage_lib": "../libs/geopackage/4.2.3/",
 					"geoportal_tab": true,
 					"geoportal_search_url": "https://geoportal.saarland.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=99&searchText={query}",
-					"geoportal_search_dynamic": true
+					"geoportal_search_dynamic": true,
+					"geoportal_simplify_folders": true
 				},
 				
 				"measure":

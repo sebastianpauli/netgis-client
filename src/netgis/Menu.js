@@ -370,7 +370,7 @@ netgis.Menu.prototype.createButton = function( id, title )
 	button.className = "netgis-text-e netgis-hover-c";
 	button.setAttribute( "type", "button" );
 	button.setAttribute( "data-id", id );
-	button.addEventListener( "pointerdown", this.onButtonClick.bind( this ) );
+	button.addEventListener( "click", this.onButtonClick.bind( this ) );
 	button.innerHTML = title;
 	
 	return button;

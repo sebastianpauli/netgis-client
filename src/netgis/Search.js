@@ -31,13 +31,13 @@ netgis.Search.prototype.initElements = function( title )
 	var button = document.createElement( "button" );
 	button.setAttribute( "type", "button" );
 	button.innerHTML = "<i class='fas fa-search'></i>";
-	button.className = "netgis-no-background";
+	button.className = "netgis-no-background netgis-text-a";
 	label.appendChild( button );
 	this.button = button;
 	
 	var closer = document.createElement( "button" );
 	closer.setAttribute( "type", "button" );
-	closer.className = "netgis-hide netgis-no-background";
+	closer.className = "netgis-hide netgis-no-background netgis-text-a";
 	closer.innerHTML = "<i class='fas fa-times'></i>";
 	label.appendChild( closer );
 	this.closer = closer;

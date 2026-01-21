@@ -84,7 +84,14 @@ netgis.Import.Config =
 	 * @type Boolean
 	 * @memberof netgis.Import.Config
 	 */
-	"geoportal_autocomplete": true
+	"geoportal_autocomplete": true,
+	
+	/**
+	 * Reduce redundant folder names in Geoportal search results
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"geoportal_simplify_folders": true
 };
 
 netgis.Import.prototype.initElements = function( config )
@@ -178,8 +185,6 @@ netgis.Import.prototype.initSections = function( config )
 	var wmsInputURL = document.createElement( "input" );
 	wmsInputURL.setAttribute( "type", "hidden" );
 	this.sections.wms.appendChild( wmsInputURL );
-	
-	console.info( "WMS INPUT:", wmsInputURL );
 	
 	this.addInputText( this.sections.wms, "Bezeichnung:" );
 	this.addInputSelect( this.sections.wms, "Ebene:" );
@@ -1546,6 +1551,7 @@ netgis.Import.prototype.updateGeoportalResults = function( data, dynamic )
 				folder.setAttribute( "data-url", service[ "wmsGetCapabilitiesUrl" ] );
 				folder.setAttribute( "data-title", service[ "title" ] );
 				folder.getElementsByTagName( "details" )[ 0 ].addEventListener( "toggle", this.onGeoportalFolderToggle.bind( this ) );
+				folder.getElementsByTagName( "input" )[ 0 ].setAttribute( "disabled", "disabled" );
 				
 				folders[ folderID ] = folder;
 			}
@@ -1587,12 +1593,61 @@ netgis.Import.prototype.onGeoportalFolderToggle = function( e )
 };
 
 netgis.Import.prototype.onGeoportalFolderResponse = function( folder, data )
-{	
+{
 	folder.getElementsByTagName( "ul" )[ 0 ].innerHTML = "";
+	folder.getElementsByTagName( "input" )[ 0 ].removeAttribute( "disabled" );
 	
 	var caps = netgis.WMS.parseCapabilities( data );
 	
 	this.createGeoportalLayers( folder, caps, caps.layers, true );
+	
+	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_simplify_folders" ] === true )
+	{
+		this.simplifyGeoportalFolder( folder );
+	}
+};
+
+netgis.Import.prototype.simplifyGeoportalFolder = function( root )
+{
+	var rootTitle = root.getElementsByTagName( "summary" )[ 0 ].innerText;
+	var rootList = root.getElementsByTagName( "ul" )[ 0 ];
+	var rootChildren = rootList.childNodes;
+	
+	// Recursive Folders
+	for ( var i = 0; i < rootChildren.length; i++ )
+		if ( rootChildren[ i ].classList.contains( "netgis-folder" ) )
+			this.simplifyGeoportalFolder( rootChildren[ i ] );
+	
+	// Defer Node List Changes
+	var appends = [];
+	var removes = [];
+	
+	// Remove Single Children With Same Title
+	if ( rootChildren.length === 1 )
+	{
+		var child = rootChildren[ 0 ];
+		
+		if ( ! child.classList.contains( "netgis-folder" ) ) return;
+		
+		var childTitle = child.getElementsByTagName( "summary" )[ 0 ].innerText;
+		var childList = child.getElementsByTagName( "ul" )[ 0 ];
+		
+		if ( childTitle === rootTitle )
+		{
+			for ( var c = 0; c < childList.childNodes.length; c++ )
+			{
+				appends.push( childList.childNodes[ c ] );
+			}
+			
+			removes.push( child );
+		}
+	}
+	
+	for ( var i = 0; i < appends.length; i++ )
+		rootList.appendChild( appends[ i ] );
+	
+	for ( var i = 0; i < removes.length; i++ )
+		rootList.removeChild( removes[ i ] );
 };
 
 netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, recursive )
