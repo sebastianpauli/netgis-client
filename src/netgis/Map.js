@@ -915,9 +915,17 @@ netgis.Map.prototype.initConfig = function( config )
 	if ( cfg )
 	{
 		// Map View Late Init For Lazy Loaded Contexts
-		if ( cfg[ "bbox" ] )
+		var bbox = cfg[ "bbox" ];
+		
+		if ( bbox )
 		{
-			this.zoomBBox( config[ "map" ][ "bbox" ] );
+			var valid = true;
+			
+			for ( var i = 0; i < bbox.length; i++ )
+				if ( Number.isNaN( bbox[ i ] ) )
+					valid = false;
+			
+			if ( valid ) this.zoomBBox( config[ "map" ][ "bbox" ] );
 		}
 
 		if ( cfg[ "zoom" ] && ( ! cfg[ "extent" ] ) && ( ! cfg[ "scale" ] ) )

@@ -644,20 +644,23 @@ netgis.Client.prototype.onContextResponseWMC = function( context )
 	
 	// TODO: pass only final config instead of context ?
 	
-	// Apply Changes To Current Config
-	for ( var i = 0; i < context.config.layers.length; i++ )
+	if ( context && context.config )
 	{
-		var layer = context.config.layers[ i ];
-		this.config[ "layers" ].push( layer );
+		// Apply Changes To Current Config
+		for ( var i = 0; i < context.config.layers.length; i++ )
+		{
+			var layer = context.config.layers[ i ];
+			this.config[ "layers" ].push( layer );
+		}
+
+		if ( context.config[ "map" ][ "bbox" ] )
+		{
+			this.config[ "map" ][ "bbox" ] = context.config[ "map" ][ "bbox" ];
+		}
+
+		// Update Modules
+		netgis.util.invoke( this.container, netgis.Events.CLIENT_CONTEXT_RESPONSE, { context: context } );
 	}
-	
-	if ( context.config[ "map" ][ "bbox" ] )
-	{
-		this.config[ "map" ][ "bbox" ] = context.config[ "map" ][ "bbox" ];
-	}
-	
-	// Update Modules
-	netgis.util.invoke( this.container, netgis.Events.CLIENT_CONTEXT_RESPONSE, { context: context } );
 	
 	this.showLoader( false );
 };

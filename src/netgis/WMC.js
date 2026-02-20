@@ -47,18 +47,28 @@ netgis.WMC.prototype.requestContext = function( url, callback )
 
 netgis.WMC.prototype.onContextResponse = function( data )
 {
-	var json = JSON.parse( data );
+	// Response JSON
+	if ( ! netgis.util.isJSON( data ) )
+	{
+		console.error( "could not parse WMC response:", data );
+		if ( this.callback ) this.callback( { config: null } );
+		return;
+	}
 	
+	var json = JSON.parse( data );
 	this.data = json;
 	
 	// Layers
 	var layerIDs = [];
 	var layerList = json[ "layerList" ];
 	
-	for ( var i = 0; i < layerList.length; i++ )
+	if ( layerList )
 	{
-		var layer = layerList[ i ];
-		layerIDs.push( layer[ "layerId" ] );
+		for ( var i = 0; i < layerList.length; i++ )
+		{
+			var layer = layerList[ i ];
+			layerIDs.push( layer[ "layerId" ] );
+		}
 	}
 	
 	this.requestLayers( layerIDs );
@@ -85,6 +95,7 @@ netgis.WMC.prototype.onLayersResponse = function( data )
 	var json = JSON.parse( data );
 	
 	this.layers = json;
+	
 	console.info( "WMC Layers Response:", json );
 	
 	// Done Loading
