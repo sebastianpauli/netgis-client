@@ -71,7 +71,56 @@ netgis.Import.Config =
 	 * @type Boolean
 	 * @memberof netgis.Import.Config
 	 */
-	"geoportal_tab": true,
+	"geoportal_tab": false,
+	
+	/**
+	 * Show WMS tab in import modal
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"wms_tab": true,
+	
+	/**
+	 * Show WFS tab in import modal
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"wfs_tab": true,
+	
+	/**
+	 * Show GeoJSON tab in import modal
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"geojson_tab": true,
+	
+	/**
+	 * Show GML tab in import modal
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"gml_tab": true,
+	
+	/**
+	 * Show GeoPackage tab in import modal
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"geopackage_tab": true,
+	
+	/**
+	 * Show Spatialite tab in import modal
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"spatialite_tab": true,
+	
+	/**
+	 * Show Shapefile tab in import modal
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"shapefile_tab": true,
 	
 	/**
 	 * URL to send search requests to, should contain <code>{query}</code> placeholder
@@ -102,9 +151,17 @@ netgis.Import.prototype.initElements = function( config )
 	this.modal = new netgis.Modal( cfg[ "title" ] ? cfg[ "title" ] : "Import" );
 	this.modal.container.classList.add( "netgis-import" );
 	
-	// Tabs
-	var tabs = [ "WMS", "WFS", "GeoJSON", "GML", "GeoPackage", "Spatialite", "Shapefile" ];
-	if ( cfg[ "geoportal_tab" ] ) tabs.unshift( "Geoportal" );
+	// Tabs (Geoportal Off By Default)
+	var tabs = [];
+	
+	if ( cfg[ "geoportal_tab" ] === true ) tabs.push( "Geoportal" );
+	if ( ! ( cfg[ "wms_tab" ] === false ) ) tabs.push( "WMS" );
+	if ( ! ( cfg[ "wfs_tab" ] === false ) ) tabs.push( "WFS" );
+	if ( ! ( cfg[ "geojson_tab" ] === false ) ) tabs.push( "GeoJSON" );
+	if ( ! ( cfg[ "gml_tab" ] === false ) ) tabs.push( "GML" );
+	if ( ! ( cfg[ "geopackage_tab" ] === false ) ) tabs.push( "GeoPackage" );
+	if ( ! ( cfg[ "spatialite_tab" ] === false ) ) tabs.push( "Spatialite" );
+	if ( ! ( cfg[ "shapefile_tab" ] === false ) ) tabs.push( "Shapefile" );
 		
 	this.tabs = new netgis.Tabs( tabs );
 	this.tabs.container.style.position = "absolute";
@@ -171,86 +228,107 @@ netgis.Import.prototype.initSections = function( config )
 	}
 	
 	// WMS
-	this.sections.wms = this.tabs.getContentSection( i );
-	i += 1;
-	
-	var wmsWrapper = document.createElement( "div" );
-	wmsWrapper.className = "netgis-search";
-	this.sections.wms.appendChild( wmsWrapper );
-	
-	var wmsInput = this.addInputText( wmsWrapper, "WMS-URL:", this.config[ "import" ][ "wms_options" ] );
-	wmsInput.classList.add( "netgis-round", "netgis-shadow" );
-	this.addButton( this.sections.wms, "<i class='netgis-icon fas fa-cloud-download-alt'></i><span>Dienst laden</span>", this.onWMSLoadClick.bind( this ) );
-	
-	var wmsInputURL = document.createElement( "input" );
-	wmsInputURL.setAttribute( "type", "hidden" );
-	this.sections.wms.appendChild( wmsInputURL );
-	
-	this.addInputText( this.sections.wms, "Bezeichnung:" );
-	this.addInputSelect( this.sections.wms, "Ebene:" );
-	this.addInputSelect( this.sections.wms, "Format:" );
-	this.addButton( this.sections.wms, "<i class='netgis-icon fas fa-check'></i><span>Hinzufügen</span>", this.onWMSAcceptClick.bind( this ) );
-	
-	this.showDetailsWMS( false );
+	if ( config[ "import" ] && ! ( config[ "import" ][ "wms_tab" ] === false ) )
+	{
+		this.sections.wms = this.tabs.getContentSection( i );
+		i += 1;
+
+		var wmsWrapper = document.createElement( "div" );
+		wmsWrapper.className = "netgis-search";
+		this.sections.wms.appendChild( wmsWrapper );
+
+		var wmsInput = this.addInputText( wmsWrapper, "WMS-URL:", this.config[ "import" ][ "wms_options" ] );
+		wmsInput.classList.add( "netgis-round", "netgis-shadow" );
+		this.addButton( this.sections.wms, "<i class='netgis-icon fas fa-cloud-download-alt'></i><span>Dienst laden</span>", this.onWMSLoadClick.bind( this ) );
+
+		var wmsInputURL = document.createElement( "input" );
+		wmsInputURL.setAttribute( "type", "hidden" );
+		this.sections.wms.appendChild( wmsInputURL );
+
+		this.addInputText( this.sections.wms, "Bezeichnung:" );
+		this.addInputSelect( this.sections.wms, "Ebene:" );
+		this.addInputSelect( this.sections.wms, "Format:" );
+		this.addButton( this.sections.wms, "<i class='netgis-icon fas fa-check'></i><span>Hinzufügen</span>", this.onWMSAcceptClick.bind( this ) );
+
+		this.showDetailsWMS( false );
+	}
 	
 	// WFS
-	this.sections.wfs = this.tabs.getContentSection( i );
-	i += 1;
-	
-	var wfsWrapper = document.createElement( "div" );
-	wfsWrapper.className = "netgis-search";
-	this.sections.wfs.appendChild( wfsWrapper );
-	
-	var wfsInput = this.addInputText( wfsWrapper, "WFS-URL:", this.config[ "import" ][ "wfs_options" ] );
-	wfsInput.classList.add( "netgis-round", "netgis-shadow" );
-	this.addButton( this.sections.wfs, "<i class='netgis-icon fas fa-cloud-download-alt'></i><span>Dienst laden</span>", this.onWFSLoadClick.bind( this ) );
-	
-	this.addInputText( this.sections.wfs, "Bezeichnung:" );
-	this.addInputSelect( this.sections.wfs, "Ebene:" );
-	this.addInputSelect( this.sections.wfs, "Format:" );
-	this.addButton( this.sections.wfs, "<i class='netgis-icon fas fa-check'></i><span>Hinzufügen</span>", this.onWFSAcceptClick.bind( this ) );
-	
-	this.showDetailsWFS( false );
+	if ( config[ "import" ] && ! ( config[ "import" ][ "wfs_tab" ] === false ) )
+	{
+		this.sections.wfs = this.tabs.getContentSection( i );
+		i += 1;
+
+		var wfsWrapper = document.createElement( "div" );
+		wfsWrapper.className = "netgis-search";
+		this.sections.wfs.appendChild( wfsWrapper );
+
+		var wfsInput = this.addInputText( wfsWrapper, "WFS-URL:", this.config[ "import" ][ "wfs_options" ] );
+		wfsInput.classList.add( "netgis-round", "netgis-shadow" );
+		this.addButton( this.sections.wfs, "<i class='netgis-icon fas fa-cloud-download-alt'></i><span>Dienst laden</span>", this.onWFSLoadClick.bind( this ) );
+
+		this.addInputText( this.sections.wfs, "Bezeichnung:" );
+		this.addInputSelect( this.sections.wfs, "Ebene:" );
+		this.addInputSelect( this.sections.wfs, "Format:" );
+		this.addButton( this.sections.wfs, "<i class='netgis-icon fas fa-check'></i><span>Hinzufügen</span>", this.onWFSAcceptClick.bind( this ) );
+
+		this.showDetailsWFS( false );
+	}
 	
 	// GeoJSON
-	this.sections.geojson = this.tabs.getContentSection( i );
-	i += 1;
-	
-	this.addInputFile( this.sections.geojson, "GeoJSON-Datei:", ".geojson,.json" );
-	this.addText( this.sections.geojson, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
-	this.addButton( this.sections.geojson, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onGeoJSONAcceptClick.bind( this ) );
+	if ( config[ "import" ] && ! ( config[ "import" ][ "geojson_tab" ] === false ) )
+	{
+		this.sections.geojson = this.tabs.getContentSection( i );
+		i += 1;
+
+		this.addInputFile( this.sections.geojson, "GeoJSON-Datei:", ".geojson,.json" );
+		this.addText( this.sections.geojson, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
+		this.addButton( this.sections.geojson, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onGeoJSONAcceptClick.bind( this ) );
+	}
 	
 	// GML
-	this.sections.gml = this.tabs.getContentSection( i );
-	i += 1;
-	
-	this.addInputFile( this.sections.gml, "GML-Datei:", ".gml,.xml" );
-	this.addText( this.sections.gml, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
-	this.addButton( this.sections.gml, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onGMLAcceptClick.bind( this ) );
+	if ( config[ "import" ] && ! ( config[ "import" ][ "gml_tab" ] === false ) )
+	{
+		this.sections.gml = this.tabs.getContentSection( i );
+		i += 1;
+
+		this.addInputFile( this.sections.gml, "GML-Datei:", ".gml,.xml" );
+		this.addText( this.sections.gml, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
+		this.addButton( this.sections.gml, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onGMLAcceptClick.bind( this ) );
+	}
 	
 	// GeoPackage
-	this.sections.geopackage = this.tabs.getContentSection( i );
-	i += 1;
-	
-	this.addInputFile( this.sections.geopackage, "GeoPackage-Datei:", ".gpkg" );
-	this.addText( this.sections.geopackage, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
-	this.addButton( this.sections.geopackage, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onGeoPackageAcceptClick.bind( this ) );
+	if ( config[ "import" ] && ! ( config[ "import" ][ "geopackage_tab" ] === false ) )
+	{
+		this.sections.geopackage = this.tabs.getContentSection( i );
+		i += 1;
+
+		this.addInputFile( this.sections.geopackage, "GeoPackage-Datei:", ".gpkg" );
+		this.addText( this.sections.geopackage, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
+		this.addButton( this.sections.geopackage, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onGeoPackageAcceptClick.bind( this ) );
+	}
 	
 	// Spatialite
-	this.sections.spatialite = this.tabs.getContentSection( i );
-	i += 1;
-	
-	this.addInputFile( this.sections.spatialite, "Spatialite-Datei:", ".sqlite" );
-	this.addText( this.sections.spatialite, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
-	this.addButton( this.sections.spatialite, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onSpatialiteAcceptClick.bind( this ) );
+	if ( config[ "import" ] && ! ( config[ "import" ][ "spatialite_tab" ] === false ) )
+	{
+		this.sections.spatialite = this.tabs.getContentSection( i );
+		i += 1;
+
+		this.addInputFile( this.sections.spatialite, "Spatialite-Datei:", ".sqlite" );
+		this.addText( this.sections.spatialite, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
+		this.addButton( this.sections.spatialite, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onSpatialiteAcceptClick.bind( this ) );
+	}
 	
 	// Shapefile
-	this.sections.shapefile = this.tabs.getContentSection( i );
-	i += 1;
-	
-	this.addInputFile( this.sections.shapefile, "Shapefile-Zip-Datei:", ".zip" );
-	this.addText( this.sections.shapefile, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
-	this.addButton( this.sections.shapefile, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onShapefileAcceptClick.bind( this ) );
+	if ( config[ "import" ] && ! ( config[ "import" ][ "shapefile_tab" ] === false ) )
+	{
+		this.sections.shapefile = this.tabs.getContentSection( i );
+		i += 1;
+
+		this.addInputFile( this.sections.shapefile, "Shapefile-Zip-Datei:", ".zip" );
+		this.addText( this.sections.shapefile, "<h3>Unterstützte Koordinatensysteme:</h3><ul><li>Web Mercator (EPSG:3857)</li><li>WGS84 / Lon-Lat (EPSG:4326)</li><li>ETRS89 / UTM Zone 32N (EPSG:25832)</li></ul>" );
+		this.addButton( this.sections.shapefile, "<i class='netgis-icon fas fa-check'></i><span>Datei laden</span>", this.onShapefileAcceptClick.bind( this ) );
+	}
 };
 
 netgis.Import.prototype.initPreview = function()

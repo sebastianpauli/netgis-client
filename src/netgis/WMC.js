@@ -34,7 +34,13 @@ netgis.WMC.Config =
 	 * Should contain a <code>{ids}</code> placeholder.
 	 * @type String
 	 */
-	"layers_url": ""
+	"layers_url": "",
+	
+	/**
+	 * Sets loaded WMC layers to be removable in the Layer Tree.
+	 * @type Boolean
+	 */
+	"layers_removable": false
 };
 
 // NOTE: https://www.geoportal.rlp.de/mapbender/extensions/mobilemap2/index.html?wmc_id=27581
@@ -274,7 +280,9 @@ netgis.WMC.prototype.parseServiceLayer = function( id, service, folder, serviceL
 		type: netgis.LayerTypes.WMS,
 		url: service[ "getMapUrl" ],
 		name: serviceLayer[ "name" ],
-		format: meta ? meta[ "currentFormat" ] : "image/png"
+		format: meta ? meta[ "currentFormat" ] : "image/png",
+		
+		removable: ( this.config[ "wmc" ] && this.config[ "wmc" ][ "layers_removable" ] === true ) ? true : false
 	};
 	
 	return item;

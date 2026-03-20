@@ -128,8 +128,9 @@
 				
 				"wmc":
 				{
-					"url": "../../mapbender/php/mod_exportWmc2Json.php?confFileName=mobilemap2&epsg=25832&withHierarchy=1&wmc_id={id}",
-					"layers_url": "./proxy.php?https://lapllgeopte02.lkvk.saarland.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=40&resourceIds={ids}"
+					"url": "./proxy.php?https://geoportal.saarland.de/mapbender/php/mod_exportWmc2Json.php?confFileName=mobilemap2&epsg=25832&withHierarchy=1&wmc_id={id}",
+					"layers_url": "./proxy.php?https://geoportal.saarland.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=40&resourceIds={ids}",
+					"layers_removable": true
 					
 					// Use this to directly load a WMC by ID:
 					// "id": 27581
@@ -226,10 +227,18 @@
 					"wfs_options": [ "http://213.139.159.34:80/geoserver/uesg/wfs" ],
 					"wfs_proxy": "./proxy.php?",
 					"geopackage_lib": "../libs/geopackage/4.2.3/",
-					"geoportal_tab": true,
 					"geoportal_search_url": "https://geoportal.saarland.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=99&searchText={query}",
 					"geoportal_search_dynamic": true,
-					"geoportal_simplify_folders": true
+					"geoportal_simplify_folders": true,
+					
+					"geoportal_tab": true,
+					"wms_tab": false,
+					"wfs_tab": false,
+					"geojson_tab": true,
+					"gml_tab": false,
+					"geopackage_tab": false,
+					"spatialite_tab": false,
+					"shapefile_tab": false
 				},
 				
 				"measure":
