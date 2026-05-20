@@ -7,7 +7,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-		<title>Geoportal Saarland | NetGIS Client</title>
+		<title>Geoportal RLP | NetGIS Client</title>
 		
 		<!-- Library Styles -->
 		<link rel="stylesheet" type="text/css" href="/libs/fontawesome/5.12.0/css/all.min.css" />
@@ -116,24 +116,25 @@
 				"map":
 				{
 					"projection": "EPSG:25832",
-					"center": [ 342000, 5470000 ],
-					"zoom": 14,
+					"center": [ 329766.1782104631, 5513621.076679279 ],
+					"zoom": 10,
 					"min_zoom": 5,
 					"max_zoom": 19,
 					
 					//Initial RLP Extent
-					"extent": [ 306939, 5440707, 385426, 5502344 ],
+					"extent": [ 293315.97, 5423948.96, 464350.97, 5644103.06 ],
 					"scales": [ 500, 1000, 3000, 5000, 8000, 10000, 15000, 25000, 50000, 100000, 150000, 250000, 500000, 1000000, 1500000, 2000000 ],
 					"scalebar": true
 				},
 				
 				"wmc":
 				{
-					"url": "./proxy.php?https://geoportal.saarland.de/mapbender/php/mod_exportWmc2Json.php?confFileName=mobilemap2&epsg=25832&withHierarchy=1&wmc_id={id}",
-					"layers_url": "./proxy.php?https://geoportal.saarland.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=40&resourceIds={ids}",
+					
+					"url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/php/mod_exportWmc2Json.php?confFileName=mobilemap2&epsg=25832&withHierarchy=1&wmc_id={id}",
+					"layers_url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=40&resourceIds={ids}",
 					
 					"layers_removable": true,
-					"layers_inverse": true
+					"layers_inverse": false
 					
 					// Use this to directly load a WMC by ID:
 					// "id": 27581
@@ -157,6 +158,7 @@
 					
 					// Hidden Layer For Height Queries
 					{ "id": "dem_hidden", "title": "Digitales Höhenmodell", "hidden": true, "active": true, "query": true, "type": "HIDDEN", "query_url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/extensions/mobilemap2/scripts/heightRequest.php?&lang=de&coord={x},{y}" }
+					
 				],
 				
 				"layertree":
@@ -203,7 +205,10 @@
 				"searchplace":
 				{
 					"title": "Adresse...",
-					"url": "https://geoportal.saarland.de/mapbender/extensions/mobilemap2/" + "../../geoportal/gaz_geom_mobile.php" + "?outputFormat=json&resultTarget=web&searchEPSG=4326&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={query}&name_startsWith={query}",
+					"url": "./proxy.php?https://www.geoportal.rlp.de/mapbender/geoportal/gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG=4326&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={query}&name_startsWith={query}",
+					//"url": "https://geoportal.saarland.de/mapbender/" + "gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG=4326&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={query}&name_startsWith={query}"
+					////"url": "/mapbender/geoportal/gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG=4326&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={query}&name_startsWith={query}"
+					//"url": "https://geoportal.saarland.de/mapbender/extensions/mobilemap2/" + "../../geoportal/gaz_geom_mobile.php" + "?outputFormat=json&resultTarget=web&searchEPSG=4326&maxResults=5&maxRows=5&featureClass=P&style=full&searchText={query}&name_startsWith={query}",
 					
 					"marker_title": "Such-Ergebnis",
 					"marker_color": "#990000",
@@ -238,7 +243,8 @@
 					
 					"geopackage_lib": "../libs/geopackage/4.2.3/",
 					
-					"geoportal_search_url": "https://geoportal.saarland.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=99&searchText={query}",
+					//"geoportal_search_url": "./proxy.php?" +  "https://lapllgeopte02.lkvk.saarland.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=99&searchText={query}"
+					"geoportal_search_url": "https://geoportal.rlp.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=99&searchText={query}",
 					"geoportal_search_dynamic": true,
 					"geoportal_simplify_folders": true,
 					
