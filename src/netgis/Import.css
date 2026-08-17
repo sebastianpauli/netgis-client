@@ -147,17 +147,23 @@
 
 @media ( max-width: 599px )
 {
+	.netgis-import .netgis-geoportal .netgis-search > label
+	{
+		right: 0mm;
+	}
+	
 	.netgis-import .netgis-geoportal .netgis-tree
 	{
 		left: 4mm;
 		right: 4mm;
-		top: 25mm;
+		top: 27mm;
 	}
 	
 	.netgis-import .netgis-geoportal button:last-of-type
 	{
-		width: auto;
-		right: 4mm;
+		/*width: auto;
+		right: 4mm;*/
+		width: 100%;
 		padding-right: 8mm;
 	}
 }

@@ -31,6 +31,12 @@ netgis.Import.Config =
 	"title": "Import Layer",
 	
 	/**
+	 * Clip long title strings for search results, layer names, etc.
+	 * @type Boolean
+	 */
+	"clip_titles": false,
+	
+	/**
 	 * Show feature preview for certain formats
 	 * @type Boolean
 	 */
@@ -133,7 +139,7 @@ netgis.Import.Config =
 	 * @type Boolean
 	 * @memberof netgis.Import.Config
 	 */
-	"geoportal_autocomplete": true,
+	"geoportal_search_dynamic": true,
 	
 	/**
 	 * Reduce redundant folder names in Geoportal search results
@@ -188,7 +194,7 @@ netgis.Import.prototype.initSections = function( config )
 		this.sections.geoportal.classList.add( "netgis-geoportal" );
 		
 		this.geoportalSearch = new netgis.Search( "Thema, Schlagwort..." );
-		this.geoportalSearch.autocomplete = config[ "import" ][ "geoportal_autocomplete" ];
+		this.geoportalSearch.autocomplete = config[ "import" ][ "geoportal_search_dynamic" ];
 		this.geoportalSearch.container.addEventListener( netgis.Events.SEARCH_CHANGE, this.onGeoportalSearchChange.bind( this ) );
 		this.geoportalSearch.container.addEventListener( netgis.Events.SEARCH_CLEAR, this.onGeoportalSearchClear.bind( this ) );
 		this.geoportalSearch.attachTo( this.sections.geoportal );
@@ -1443,7 +1449,8 @@ netgis.Import.prototype.onPreviewTreeItemChange = function( e )
 	}
 };
 
-netgis.Import.prototype.onGeoportalSearchKeyUp = function( e )
+/*
+netgis.Import.prototype.onGeoportalSearchInput = function( e )
 {
 	var key = e.keyCode;
 	
@@ -1463,11 +1470,12 @@ netgis.Import.prototype.onGeoportalSearchKeyUp = function( e )
 		
 		default:
 		{
-			this.onGeoportalSearchChange();
+			this.onGeoportalSearchChange( e );
 			break;
 		}
 	}
 };
+*/
 
 netgis.Import.prototype.onGeoportalSearchChange = function( e )
 {
@@ -1568,7 +1576,7 @@ netgis.Import.prototype.onGeoportalSearchResponse = function( data )
 		{
 			// New Folder
 			var title = layer[ "title" ] + " (<span class='netgis-count'>" + count + "</span>)";
-			folder = this.geoportalResults.addFolder( null, l, title );
+			folder = this.geoportalResults.addFolder( null, l, title, false, false, false, false, this.config[ "import" ][ "clip_titles" ] );
 			folder.setAttribute( "title", layer[ "abstract" ] );
 			
 			folders[ folderID ] = folder;
@@ -1588,7 +1596,7 @@ netgis.Import.prototype.onGeoportalSearchResponse = function( data )
 			var child = children[ c ];
 			
 			// Layer Item
-			this.geoportalResults.addCheckbox( folder, c, child[ "title" ] );
+			this.geoportalResults.addCheckbox( folder, c, child[ "title" ], false, false, null, this.config[ "import" ][ "clip_titles" ] );
 		}
 		
 		layer.children = children;
@@ -1624,7 +1632,7 @@ netgis.Import.prototype.updateGeoportalResults = function( data, dynamic )
 			{
 				// New Folder
 				var title = service[ "title" ];
-				folder = this.geoportalResults.addFolder( null, folderID, title, false, false ); // TODO: fix tree nocheck hidden
+				folder = this.geoportalResults.addFolder( null, folderID, title, false, false, false, false, this.config[ "import" ][ "clip_titles" ] ); // TODO: fix tree nocheck hidden
 				folder.setAttribute( "title", service[ "abstract" ] );
 				folder.setAttribute( "data-url", service[ "wmsGetCapabilitiesUrl" ] );
 				folder.setAttribute( "data-title", service[ "title" ] );
@@ -1753,7 +1761,7 @@ netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, 
 		
 		if ( layer.children.length === 0 )
 		{
-			var item = this.geoportalResults.addCheckbox( folder, id, layer.title );
+			var item = this.geoportalResults.addCheckbox( folder, id, layer.title, false, false, null, this.config[ "import" ][ "clip_titles" ] );
 			item.setAttribute( "title", layer.abstract );
 			
 			var input = item.getElementsByTagName( "input" )[ 0 ];
@@ -1767,7 +1775,7 @@ netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, 
 		}
 		else
 		{
-			var subfolder = this.geoportalResults.addFolder( folder, id, layer.title );
+			var subfolder = this.geoportalResults.addFolder( folder, id, layer.title, false, false, false, false, this.config[ "import" ][ "clip_titles" ] );
 			subfolder.setAttribute( "title", layer.abstract );
 			subfolder.setAttribute( "data-title", layer.title );
 			

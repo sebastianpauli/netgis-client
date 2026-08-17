@@ -36,6 +36,12 @@ netgis.Geolocation.Config =
 	 */
 	"marker_title": "Geolocation",
 	
+	/**
+	 * The zoom level used to show the geolocation marker.
+	 * @type Number
+	 */
+	"zoom": 16.0,
+	
 	"timeout": 10000
 };
 
@@ -119,7 +125,7 @@ netgis.Geolocation.prototype.onActiveChange = function( e )
 
 netgis.Geolocation.prototype.onCenterChange = function( e )
 {
-	var on = e.currentTarget.checked;
+	//var on = e.currentTarget.checked;
 };
 
 netgis.Geolocation.prototype.onPositionChange = function( e )
@@ -127,7 +133,9 @@ netgis.Geolocation.prototype.onPositionChange = function( e )
 	var lon = e.coords.longitude;
 	var lat = e.coords.latitude;
 	
-	netgis.util.invoke( this.container, netgis.Events.GEOLOCATION_CHANGE, { lon: lon, lat: lat, center: this.center } );
+	var zoom = this.config[ "geolocation" ] ? this.config[ "geolocation" ][ "zoom" ] : undefined;
+	
+	netgis.util.invoke( this.container, netgis.Events.GEOLOCATION_CHANGE, { lon: lon, lat: lat, center: this.center, zoom: zoom } );
 };
 
 netgis.Geolocation.prototype.onPositionError = function( e )

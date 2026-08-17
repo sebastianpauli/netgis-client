@@ -405,6 +405,15 @@ netgis.Client.prototype.initParams = function( config )
 				
 				break;
 			}
+			
+			// GeoRSS
+			case "georss":
+			{
+				if ( ! config[ "georss" ] ) config[ "georss" ] = {};
+				if ( ! config[ "georss" ][ "url" ] ) config[ "georss" ][ "url" ] = window.decodeURIComponent( v );
+				
+				break;
+			}
 		}
 	}
 };
@@ -412,7 +421,7 @@ netgis.Client.prototype.initParams = function( config )
 netgis.Client.prototype.initConfig = function( config )
 {
 	// WMC
-	if ( config && config[ "wmc" ] && config[ "wmc" ][ "url" ] )
+	if ( config && config[ "wmc" ] && config[ "wmc" ][ "url" ] && config[ "wmc" ][ "id" ] )
 	{
 		this.requestContextWMC( config[ "wmc" ][ "url" ], config[ "wmc" ][ "id" ] );
 	}
@@ -619,11 +628,16 @@ netgis.Client.prototype.onConfigResponse = function( data )
 
 netgis.Client.prototype.requestContextWMC = function( url, id )
 {
+	// Fallback To Legacy Mode For Now
+	if ( ! netgis.util.isDefined( this.config[ "wmc" ][ "legacy_mode" ] ) ) this.config[ "wmc" ][ "legacy_mode" ] = true;
+	
+	console.info( "WMC LEGACY MODE:", this.config[ "wmc" ][ "legacy_mode" ] );
+	
 	if ( url.indexOf( "{id}" ) > -1 )
 	{
 		if ( ! id )
 		{
-			console.warn( "No WMC id set in config for url", url );
+			console.warn( "no wmc {id} set in config url", url );
 			return;
 		}
 		else
@@ -632,10 +646,237 @@ netgis.Client.prototype.requestContextWMC = function( url, id )
 		}
 	}
 
-	var wmc = new netgis.WMC( this.config );
-	wmc.requestContext( url, this.onContextResponseWMC.bind( this ) );
+	if ( ! this.config[ "wmc" ][ "legacy_mode" ] )
+	{
+		var wmc = new netgis.WMC( this.config );
+		wmc.requestContext( url, this.onContextResponseWMC.bind( this ) );
+	}
+	else
+	{
+		var wmc = new netgis.WMCLegacy( this.config );
+		wmc.requestContext( url, this.onContextResponseWMCLegacy.bind( this ) );
+	}
+	
+	//wmc.requestContext( url, this.onContextResponseWMC.bind( this ) );
 	
 	this.showLoader( true );
+};
+
+netgis.Client.prototype.onContextResponseWMCLegacy = function( context )
+{
+	console.info( "CLIENT WMC RESPNSE:", context.output, "->", this.config );
+	
+	var cfg = ( this.config && this.config[ "wmc" ] ) ? this.config[ "wmc" ] : null;
+	
+	var defaultFormat = "image/png";
+	var defaultRemovable = ( cfg && cfg[ "layers_removable" ] === true );
+	
+	// Extent
+	var extent = context.output.extent;
+	
+	if ( extent )
+	{
+		this.modules.map.zoomExtent( extent[ 0 ], extent[ 1 ], extent[ 2 ], extent[ 3 ] );
+	}
+	
+	// Layers
+	var entities = context.output.entities;
+	var items = {};
+	
+	for ( var i = 0; i < entities.length; i++ )
+	{
+		var entity = entities[ i ];
+		
+		if ( ! entity.layer ) continue;
+		if ( ! entity.title ) continue;
+		
+		var layer = entity;
+		
+		// Group or Child Item
+		var hasChildren = false;
+
+		for ( var j = 0; j < entities.length; j++ )
+		{
+			var child = entities[ j ];
+
+			var parent = child.parent ? child.parent : null;
+
+			if ( parent && layer === parent )
+			{
+				hasChildren = true;
+				break;
+			}
+		}
+
+		if ( hasChildren )
+		{
+			//layerMenu.loadTemplate( $( "#menu-group-template" ), item, { append: true } );
+			items[ layer.layer.id ] = this.modules.layertree.tree.addFolder( null, layer.layer.id, layer.title, false );
+		}
+		else
+		{
+			//layerMenu.loadTemplate( $( "#menu-layer-template" ), item, { append: true } );
+			////items[ layer.layer.id ] = this.modules.layertree.tree.addCheckbox( null, layer.layer.id, layer.title );
+			
+			items[ layer.layer.id ] = this.modules.layertree.addLayerItem
+			(
+				{
+					"id": layer.layer.id,
+					"title": layer.title,
+					"query": ( layer.queryable === true ),
+					"removable": defaultRemovable,
+					"transparency": layer.opacity ? ( 1.0 - layer.opacity * 0.01 ) : 0.2,
+					"active": false
+				},
+				null
+			);
+			
+			/*
+			var layer = configLayers[ i ];
+			if ( layer[ "active" ] === true ) this.addLayer( layer[ "id" ], layer );
+			*/
+		   
+			//console.info( "CLIENT LAYER:", layer );
+		}
+	}
+	
+	// Append children to parent groups
+	for ( var i = 0; i < entities.length; i++ )
+	{
+		var entity = entities[ i ];
+		
+		if ( ! entity.layer ) continue;
+		if ( ! entity.title ) continue;
+		if ( ! entity.parent ) continue;
+		
+		var layer = entity;
+		
+		var parent = layer.parent ? layer.parent : null;
+		
+		if ( parent && ! parent.service )
+		{
+			this.modules.layertree.tree.setFolderParent( items[ layer.layer.id ], items[ parent.layer.id ] );
+		}
+	}
+	
+	this.modules.layertree.tree.moveItemDown( this.modules.layertree.tree.getFolder( "bg" ) );
+	this.modules.layertree.tree.moveButtonsDown();
+	
+	// KML Layers
+	for ( var i = 0; i < entities.length; i++ )
+	{
+		var entity = entities[ i ];
+		
+		if ( ! entity.layer ) continue;
+		if ( ! entity.kml ) continue;
+		
+		var layer = entity;
+		
+		var configLayer =
+		{
+			"id": layer.layer.id.toString(),
+			"title": layer.title,
+			"order": 50000,
+			"type": "KML",
+			"url": layer.kml,
+			"opacity": layer.opacity ? layer.opacity : 0.8,
+			"active": false,
+			"query": true
+		};
+
+		this.config.layers.push( configLayer );
+	}
+	
+	// WMS Layers
+	var layerList = {};
+	
+	for ( var i = 0; i < entities.length; i++ )
+	{
+		var entity = entities[ i ];
+		
+		if ( ! entity.layer ) continue;
+		if ( ! entity.name ) continue;
+		
+		var layer = entity;
+
+		//console.info( "WMS ENTITY:", layer );
+
+		//var children = netgis.entities.find( netgis.component.Parent, "value", layer );
+		
+		var children = [];
+		
+		for ( var j = 0; j < entities.length; j++ )
+		{
+			if ( entities[ j ].parent === layer ) children.push( entities[ j ] );
+		}
+		
+		var hasChildren = children.length > 0;
+
+		// No group layers
+		if ( hasChildren === false )
+		{
+			// Get root service url
+			var child = layer;
+			var parent = null;
+			var url = layer.url ? layer.url : null;
+
+			do
+			{
+				parent = child.parent ? child.parent : null;
+
+				if ( parent.service ) url = parent.url;
+
+				child = parent;
+			}
+			while ( ! url && parent );
+
+			// Create WMS layer
+			var name = layer.name;
+			var index = entities.length - i; //TODO: real layer order?
+			var opacity = layer.opacity ? layer.opacity : 0.8; // TODO: config default opacity ?
+
+			//TODO: layer list deprecated because of map layer component?
+			//var mapLayer = layerList[ layer.id ] = createLayerWms( url, name, index, opacity );
+
+			//TODO: create only layers without children (non-groups)
+			//layer.set( new netgis.component.MapLayer( mapLayer ) );
+			
+			var configLayer =
+			{
+				"id": layer.layer.id.toString(),
+				"title": layer.title,
+				"order": index,
+				"type": "WMS",
+				"url": url,
+				"name": name,
+				"opacity": opacity,
+				"active": false,
+				"query": ( layer.queryable === true )
+			};
+			
+			this.config.layers.push( configLayer );
+		}
+	}
+	
+	//this.modules.map.initConfig( this.config );
+	
+	// Active Layers
+	for ( var i = 0; i < entities.length; i++ )
+	{
+		var entity = entities[ i ];
+		
+		if ( ! entity.layer ) continue;
+		if ( ! entity.active ) continue;
+		
+		var layer = entity;
+		
+		netgis.util.invoke( this.container, netgis.Events.MAP_LAYER_TOGGLE, { id: layer.layer.id.toString(), on: layer.active } );
+	}
+	
+	console.info( "CONTEXT CONFIG:", this.config );
+	
+	// Done
+	this.showLoader( false );
 };
 
 netgis.Client.prototype.onContextResponseWMC = function( context )
@@ -657,9 +898,12 @@ netgis.Client.prototype.onContextResponseWMC = function( context )
 		{
 			this.config[ "map" ][ "bbox" ] = context.config[ "map" ][ "bbox" ];
 		}
-
+		
 		// Update Modules
 		netgis.util.invoke( this.container, netgis.Events.CLIENT_CONTEXT_RESPONSE, { context: context } );
+		
+		// Reorder To Match WMC
+		if ( this.modules[ "layertree" ] ) this.modules[ "layertree" ].tree.reorderByAttribute( "data-order", true, true );
 	}
 	
 	this.showLoader( false );
@@ -669,18 +913,30 @@ netgis.Client.prototype.onContextResponseLayer = function( data )
 {
 	var json = JSON.parse( data );
 	
-	console.info( "Layer Response:", json );
-	
 	var wmc = new netgis.WMC();
 	
 	var srv = json[ "wms" ][ "srv" ];
+	
+	if ( ! srv || srv.length === 0 )
+	{
+		console.error( "no wmc service layer in context response", json );
+		return;
+	}
+	
 	var layer = srv[ 0 ];
 	
 	var result = wmc.parseServiceLayer( layer[ "id" ].toString(), layer, null, layer.layer[ 0 ], null );
 	
+	console.info( "Parsed Layer:", result );
+	
 	this.config.layers.push( result );
 	
 	netgis.util.invoke( this.container, netgis.Events.MAP_LAYER_CREATE, result );
+	
+	if ( result.bbox )
+	{
+		netgis.util.invoke( this.container, netgis.Events.MAP_ZOOM_BBOX, { minlon: result.bbox[ 0 ], minlat: result.bbox[ 1 ], maxlon: result.bbox[ 2 ], maxlat: result.bbox[ 3 ] } );
+	}
 };
 
 netgis.Client.prototype.requestContextOWS = function( url )

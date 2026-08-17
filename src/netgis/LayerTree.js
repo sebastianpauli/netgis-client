@@ -19,7 +19,7 @@ netgis.LayerTree = function( config )
 	
 	this.initElements( config );
 	this.initFolders();
-	this.initConfig( config );
+	this.initConfig( config, false, true );
 };
 
 /**
@@ -40,6 +40,12 @@ netgis.LayerTree.Config =
 	 * @type String
 	 */
 	"title": "Layers",
+	
+	/**
+	 * Clip long title strings for folders and layers
+	 * @type Boolean
+	 */
+	"clip_titles": false,
 	
 	/**
 	 * Enable drag-and-drop for layers and folders
@@ -74,6 +80,7 @@ netgis.LayerTree.prototype.initElements = function( config )
 	var cfg = config[ "layertree" ];
 	
 	this.panel = new netgis.Panel( "Layers" );
+	this.panel.container.style.minWidth = "82mm";
 	
 	this.tree = new netgis.Tree( cfg[ "draggable" ] );
 	this.tree.attachTo( this.panel.content );
@@ -94,7 +101,7 @@ netgis.LayerTree.prototype.initFolders = function()
 {
 	// TODO: store constant internal folder ids in enum
 	
-	this.editFolder = this.tree.addFolder( null, "edit-folder", "Zeichnung", true, true );
+	this.editFolder = this.tree.addFolder( null, "edit-folder", "Zeichnung", true, true, false, false, this.config[ "layertree" ][ "clip_titles" ] );
 
 	this.tree.addCheckbox( this.editFolder, netgis.LayerID.EDITABLE, "Editierbar" );
 	this.tree.setItemChecked( netgis.LayerID.EDITABLE, true );
@@ -105,15 +112,17 @@ netgis.LayerTree.prototype.initFolders = function()
 	this.editFolder.classList.add( "netgis-hide" );
 };
 
-netgis.LayerTree.prototype.initConfig = function( config, prependFolders )
+netgis.LayerTree.prototype.initConfig = function( config, prependFolders, initial )
 {
-	var cfg = config[ "layertree" ];
+	//var cfg = config[ "layertree" ];
+	var cfg = this.config[ "layertree" ];
 	
 	// Header
 	if ( cfg && cfg[ "title" ] )
 		this.panel.setTitle( cfg[ "title" ] );
 	
 	// TODO: layer tree folders/layers from array functions ?
+	//console.info( "LAYERTREE CONFIG:", this.config, "->", config );
 	
 	// Folders
 	var configFolders = config[ "folders" ];
@@ -126,10 +135,12 @@ netgis.LayerTree.prototype.initConfig = function( config, prependFolders )
 		{
 			var folder = configFolders[ i ];
 
-			var item = this.tree.addFolder( null, folder[ "id" ], folder[ "title" ], prependFolders, false, folder[ "draggable" ], folder[ "removable" ] );
+			var item = this.tree.addFolder( null, folder[ "id" ], folder[ "title" ], prependFolders, false, folder[ "draggable" ], folder[ "removable" ], cfg ? cfg[ "clip_titles" ] : false );
 			folders[ folder[ "id" ] ] = item;
 
 			if ( folder[ "open" ] === true ) this.tree.setFolderOpen( folder[ "id" ], true );
+			
+			if ( folder[ "data" ] )this.tree.setItemData( item, folder[ "data" ] );
 		}
 
 		// Folder Parents
@@ -178,13 +189,16 @@ netgis.LayerTree.prototype.initConfig = function( config, prependFolders )
 			// Label Icons
 			var title = layer[ "title" ];
 			var icon = '<i class="fas fa-mouse-pointer" title="Ebene ist abfragbar"></i>';
+			var queryable = false;
 
-			if ( config[ "layertree" ] && config[ "layertree" ][ "query_icon" ] ) icon = config[ "layertree" ][ "query_icon" ];
+			if ( cfg && cfg[ "query_icon" ] ) icon = cfg[ "query_icon" ];
 
 			if ( ( layer[ "query" ] === true || ( layer[ "query_url" ] && layer[ "query_url" ] !== "" ) ) && icon && icon !== "" )
 			{
-				var wrapper = '<span class="netgis-right">' + icon + "</span>";
-				title += wrapper;
+				//var wrapper = '<span class="netgis-right">' + icon + "</span>";
+				//title += wrapper;
+				
+				queryable = true;
 			}
 
 			// Create Layer Item
@@ -193,11 +207,13 @@ netgis.LayerTree.prototype.initConfig = function( config, prependFolders )
 			var removable = layer[ "removable" ];
 
 			if ( radio === true )
-				item = this.tree.addRadioButton( folder, id, title, layer[ "active" ], this.createDefaultDetails( layer, true, removable ) );
+				item = this.tree.addRadioButton( folder, id, title, layer[ "active" ], this.createDefaultDetails( layer, true, removable, queryable ), cfg ? cfg[ "clip_titles" ] : false );
 			else
-				item = this.tree.addCheckbox( folder, id, title, layer[ "active" ], false, this.createDefaultDetails( layer, true, removable ) );
+				item = this.tree.addCheckbox( folder, id, title, layer[ "active" ], false, this.createDefaultDetails( layer, true, removable, queryable ), cfg ? cfg[ "clip_titles" ] : false );
 
 			item.addEventListener( "contextmenu", this.onTreeItemMenu.bind( this ) );
+			
+			if ( layer[ "data" ] )this.tree.setItemData( item, layer[ "data" ] );
 
 			// Hidden Layers
 			if ( layer[ "hidden" ] === true ) item.classList.add( "netgis-hide" );
@@ -207,20 +223,24 @@ netgis.LayerTree.prototype.initConfig = function( config, prependFolders )
 	// Folder Checks
 	this.tree.updateFolderChecks();
 	
-	// Buttons
-	if ( cfg && cfg[ "buttons" ] )
+	if ( initial === true )
 	{
-		var buttons = config[ "layertree" ][ "buttons" ];
-
-		for ( var i = 0; i < buttons.length; i++ )
+		// Buttons
+		if ( cfg && cfg[ "buttons" ] )
 		{
-			var button = buttons[ i ];
-			this.tree.addButton( null, button[ "id" ], button[ "title" ], this.onTreeButtonClick.bind( this ) );
+			//var buttons = config[ "layertree" ][ "buttons" ];
+			var buttons = cfg[ "buttons" ];
+
+			for ( var i = 0; i < buttons.length; i++ )
+			{
+				var button = buttons[ i ];
+				this.tree.addButton( null, button[ "id" ], button[ "title" ], this.onTreeButtonClick.bind( this ) );
+			}
 		}
+
+		// Initial State
+		if ( cfg && cfg[ "open" ] === true ) this.panel.show();
 	}
-	
-	// Initial State
-	if ( cfg && cfg[ "open" ] === true ) this.panel.show();
 };
 
 netgis.LayerTree.prototype.attachTo = function( parent )
@@ -239,10 +259,11 @@ netgis.LayerTree.prototype.attachTo = function( parent )
 	parent.addEventListener( netgis.Events.MAP_EDIT_LAYER_CHANGE, this.onMapEditLayerChange.bind( this ) );
 };
 
-netgis.LayerTree.prototype.createDefaultDetails = function( layer, opacitySlider, deleteButton )
+netgis.LayerTree.prototype.createDefaultDetails = function( layer, opacitySlider, deleteButton, queryable )
 {
 	var details = [];
 	
+	details.push( { title: "<i class='netgis-icon fas fa-mouse-pointer'></i> Abfragbar:", type: "checkbox", val: ( queryable === true ), locked: true } );
 	if ( opacitySlider === true ) details.push( { title: "<i class='netgis-icon fas fa-eye-slash'></i> Transparenz:", type: "slider", val: layer[ "transparency" ] ? Math.round( layer[ "transparency" ] * 100 ) : 0 } );
 	if ( deleteButton === true ) details.push( { title: "<i class='netgis-icon fas fa-times'></i> Entfernen", type: "button", callback: this.onTreeItemDeleteClick.bind( this ) } );
 	
@@ -258,7 +279,7 @@ netgis.LayerTree.prototype.onTreeItemChange = function( e )
 netgis.LayerTree.prototype.onClientContextResponse = function( e )
 {
 	var params = e.detail;
-	this.initConfig( params.context.config, true );
+	this.initConfig( params.context.config, true, false );
 };
 
 netgis.LayerTree.prototype.onLayerTreeToggle = function( e )
@@ -300,7 +321,7 @@ netgis.LayerTree.prototype.onImportLayerAccept = function( e )
 	
 	if ( ! this.importFolder )
 	{
-		this.importFolder = this.tree.addFolder( null, "_import", "Import", true, false );
+		this.importFolder = this.tree.addFolder( null, "_import", "Import", true, false, true, this.config[ "layertree" ][ "clip_titles" ] );
 	}
 	
 	this.addLayerItem( layer, this.importFolder );
@@ -313,20 +334,25 @@ netgis.LayerTree.prototype.addLayerItem = function( params, folder )
 	// Label Icons
 	var title = params[ "title" ];
 	var icon = '<i class="fas fa-mouse-pointer" title="Ebene ist abfragbar"></i>';
-
-	if ( config[ "layertree" ] && config[ "layertree" ][ "query_icon" ] ) icon = config[ "layertree" ][ "query_icon" ];
+	var queryable = false;
+	
+	if ( this.config[ "layertree" ] && this.config[ "layertree" ][ "query_icon" ] ) icon = this.config[ "layertree" ][ "query_icon" ];
 
 	if ( ( params[ "query" ] === true || ( params[ "query_url" ] && params[ "query_url" ] !== "" ) ) && icon && icon !== "" )
 	{
-		var wrapper = '<span class="netgis-right">' + icon + "</span>";
-		title += wrapper;
+		//var wrapper = '<span class="netgis-right">' + icon + "</span>";
+		//title += wrapper;
+		
+		queryable = true;
 	}
 	
 	// TODO: refactor layer item creation with init config, import handlers
 	
-	var item = this.tree.addCheckbox( folder, params[ "id" ], title, true, true, this.createDefaultDetails( params, true, true ) );
+	var item = this.tree.addCheckbox( folder, params[ "id" ], title, ( params[ "active" ] === true ), true, this.createDefaultDetails( params, true, true, queryable ), this.config[ "layertree" ][ "clip_titles" ] );
 	
 	item.addEventListener( "contextmenu", this.onTreeItemMenu.bind( this ) );
+	
+	return item;
 };
 
 netgis.LayerTree.prototype.onImportGeoportalSubmit = function( e )
@@ -337,7 +363,7 @@ netgis.LayerTree.prototype.onImportGeoportalSubmit = function( e )
 	var folder = this.tree.getFolder( fid );
 	
 	if ( ! folder )
-		folder = this.tree.addFolder( null, fid, params.folder.title, true, false, true, true );
+		folder = this.tree.addFolder( null, fid, params.folder.title, true, false, true, true, this.config[ "layertree" ][ "clip_titles" ] );
 	
 	var id = params.layer.id;
 	
@@ -358,7 +384,7 @@ netgis.LayerTree.prototype.onImportGeoportalSubmit = function( e )
 	
 	// TODO: refactor layer item creation with init config, import handlers
 	
-	this.tree.addCheckbox( folder, id, params.layer.title, false, false, this.createDefaultDetails( config, true, true ) );
+	this.tree.addCheckbox( folder, id, params.layer.title, false, false, this.createDefaultDetails( config, true, true ), this.config[ "layertree" ][ "clip_titles" ] );
 	this.tree.setItemChecked( id, true, false );
 };
 

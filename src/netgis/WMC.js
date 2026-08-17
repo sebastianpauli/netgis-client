@@ -43,8 +43,6 @@ netgis.WMC.Config =
 	"layers_removable": false
 };
 
-// NOTE: https://www.geoportal.rlp.de/mapbender/extensions/mobilemap2/index.html?wmc_id=27581
-
 netgis.WMC.prototype.requestContext = function( url, callback )
 {
 	this.callback = callback;
@@ -62,7 +60,9 @@ netgis.WMC.prototype.onContextResponse = function( data )
 	}
 	
 	var json = JSON.parse( data );
-	this.data = json;
+	
+	// Store Export WMC Data
+	this.exportData = json;
 	
 	// Layers
 	var layerIDs = [];
@@ -76,6 +76,8 @@ netgis.WMC.prototype.onContextResponse = function( data )
 			layerIDs.push( layer[ "layerId" ] );
 		}
 	}
+	
+	console.info( "Layer IDs:", layerIDs );
 	
 	this.requestLayers( layerIDs );
 };
@@ -100,9 +102,11 @@ netgis.WMC.prototype.onLayersResponse = function( data )
 {
 	var json = JSON.parse( data );
 	
-	this.layers = json;
+	// Store Call Meta Data
+	this.metaData = json;
 	
-	console.info( "WMC Layers Response:", json );
+	console.info( "WMC Export Data:", this.exportData );
+	console.info( "WMC Meta Data:", this.metaData );
 	
 	// Done Loading
 	if ( this.callback )
@@ -116,9 +120,13 @@ netgis.WMC.prototype.onLayersResponse = function( data )
 netgis.WMC.prototype.toConfig = function()
 {
 	// Input Data
-	var wmc = this.data[ "wmc" ];
-	var layerList = this.data[ "layerList" ];
-	var services = this.layers[ "wms" ][ "srv" ];
+	var wmc = this.exportData[ "wmc" ];
+	var layerList = this.exportData[ "layerList" ];
+	
+	var cfg = ( this.config && this.config[ "wmc" ] ) ? this.config[ "wmc" ] : null;
+	
+	var defaultFormat = "image/png";
+	var defaultRemovable = ( cfg && cfg[ "layers_removable" ] === true );
 	
 	// Build Config
 	var config = {};
@@ -141,28 +149,242 @@ netgis.WMC.prototype.toConfig = function()
 	else
 		config[ "attribution" ][ "prefix" ] = wmc[ "title" ];
 	
-	// Layers
+	// Layer Tree
 	var folders = config[ "folders" ] = [];
 	var layers = config[ "layers" ] = [];
 	
-	// Parse Service Layers
-	this.parseServiceLayers( services, layerList, folders, layers );
-	
-	// Set Layer Order
-	var order = 1000;
-	
-	for ( var f = 0; f < folders.length; f++ )
+	// Top Folders
+	for ( var i = layerList.length - 1; i >= 0; i-- )
 	{
-		var folder = folders[ f ];
+		var layer = layerList[ i ];
 		
-		for ( var l = layers.length - 1; l >= 0; l-- )
+		if ( layer[ "layerParent" ] === null )
 		{
-			var layer = layers[ l ];
+			var meta = this.getLayerMetaData( layer[ "layerId" ] );
 			
-			if ( layer.folder !== folder.id ) continue;
+			if ( meta )
+			{
+				var folder =
+				{
+					parent: null,
+
+					id: layer[ "layerId" ],
+					title: layer[ "layerId" ],
+
+					removable: defaultRemovable,
+
+					data: { order: layerList.length - i }
+
+					//open: ( service[ "isopen" ] === "1" )
+				};
+
+				////var meta = this.getLayerMetaData( layer[ "layerId" ] );
+
+				////if ( meta )
+				{
+					folder.title = meta[ "title" ];
+				}
+
+				folders.push( folder );
+			}
+			else
+			{
+				// No Folder But Top Level Layer
+				/*
+				var layer =
+				{
+					folder: null,
+
+					id: layer[ "layerId" ],
+					title: child[ "title" ],
+
+					active: ex[ "active" ],
+					query: ( ex[ "layerQueryable" ] === 1 ),
+					transparency: ( 1.0 - ex[ "opacity" ] * 0.01 ),
+
+					type: netgis.LayerTypes.WMS,
+					url: this.getLayerMapURL( child[ "id" ] ),
+					name: child[ "name" ],
+
+					format: defaultFormat, // TODO: meta layer "downloadOptions" "format" ?
+					bbox: bbox,
+
+					removable: defaultRemovable,
+
+					data: { order: this.getLayerExportData( child[ "id" ] )[ "layerPos" ] }
+				};
+
+				//console.info( "LAYER:", i, j, ex, meta, "=>", layer );
+
+				layers.push( layer );
+				*/
+			}
+		}
+	}
+	
+	// Sub Folders
+	var adds = [];
+	var tops = [];
+	
+	for ( var i = 0; i < folders.length; i++ )
+	{
+		var folder = folders[ i ];
+		var meta = this.getLayerMetaData( folder.id );
+		
+		//console.info( "SUB META:", i, folder.id, meta );
+		
+		if ( ! meta ) { console.error( "no metadata found for sub folder", folder.id ); continue; }
+		else
+		{
+			// No Folder But Top Level Layer
+			////tops.push( folder.id );
+		}
+		
+		var children = meta[ "layer" ];
+		
+		if ( ! children ) { console.error( "sub folder without children", folder.id ); continue; }
+		
+		//for ( var j = 0; j < children.length; j++ )
+		for ( var j = children.length - 1; j >= 0; j-- )
+		{
+			var child = children[ j ];
+			
+			// Skip Child Layers
+			if ( ! child[ "layer" ] || child[ "layer" ].length === 0 ) continue;
+			
+			var sub =
+			{
+				parent: folder.id,
 				
-			layer.order = order;
-			order += 1;
+				id: child[ "id" ],
+				title: child[ "title" ],
+				
+				removable: defaultRemovable,
+				
+				data: { order: this.getLayerExportData( child[ "id" ] )[ "layerPos" ] }
+			};
+			
+			//console.info( "SUB FOLDER:", i, j, child, this.getLayerExportData( child[ "id" ] ), "->", sub );
+	
+			adds.push( sub );
+		}
+	}
+	
+	for ( var i = 0; i < adds.length; i++ )
+	{
+		folders.push( adds[ i ] );
+	}
+	
+	// Layer Items
+	for ( var i = 0; i < folders.length; i++ )
+	{
+		var folder = folders[ i ];
+		var meta = this.getLayerMetaData( folder.id );
+		
+		if ( ! meta ) { console.error( "no metadata found for layer folder", folder.id ); continue; }
+		
+		var children = meta[ "layer" ];
+		
+		if ( ! children ) { console.error( "layer folder without children", folder.id ); continue; }
+		
+		//for ( var j = 0; j < children.length; j++ )
+		for ( var j = children.length - 1; j >= 0; j-- )
+		{
+			var child = children[ j ];
+			
+			//console.info( "CHILD LAYER:", i, j, child );
+			
+			// Skip Folder Layers
+			if ( child[ "layer" ] && child[ "layer" ].length > 0 ) continue;
+			
+			// Create Layer Item
+			var ex = this.getLayerExportData( child[ "id" ] );
+			
+			var bbox = child[ "bbox" ];
+	
+			if ( bbox )
+			{
+				bbox = bbox.split( "," );
+				for ( var k = 0; k < bbox.length; k++ )
+					bbox[ k ] = Number.parseFloat( bbox[ k ] );
+			}
+			
+			var layer =
+			{
+				folder: folder.id,
+				
+				id: child[ "id" ],
+				title: child[ "title" ],
+
+				active: ex[ "active" ],
+				query: ( ex[ "layerQueryable" ] === 1 ),
+				transparency: ( 1.0 - ex[ "opacity" ] * 0.01 ),
+				
+				type: netgis.LayerTypes.WMS,
+				url: this.getLayerMapURL( child[ "id" ] ),
+				name: child[ "name" ],
+				
+				format: defaultFormat, // TODO: meta layer "downloadOptions" "format" ?
+				bbox: bbox,
+				
+				removable: defaultRemovable,
+				
+				data: { order: this.getLayerExportData( child[ "id" ] )[ "layerPos" ] }
+			};
+			
+			//console.info( "LAYER:", i, j, ex, meta, "=>", layer );
+			
+			layers.push( layer );
+		}
+	}
+	
+	// Layer Order
+	var self = this;
+	
+	layers.sort
+	(
+		function( a, b )
+		{
+			var ida = a[ "id" ];
+			var idb = b[ "id" ];
+
+			var da = self.getLayerExportData( ida );
+			var db = self.getLayerExportData( idb );
+			
+			var pa = da[ "layerPos" ];
+			var pb = db[ "layerPos" ];
+			
+			// RLP: order/layerPos = top -> bottom = 1,2,...
+			// SL: order/layerPos = bottom -> top = 1,2,...
+
+			if ( ! cfg[ "layers_inverse" ] )
+			{
+				if ( pa < pb ) return -1;
+				if ( pa > pb ) return 1;
+			}
+			else
+			{
+				if ( pa < pb ) return 1;
+				if ( pa > pb ) return -1;
+			}
+
+			return 0;
+		}
+	);
+	
+	// Layer Order
+	var order = 1000 + layerList.length;
+	
+	for ( var i = 0; i < layerList.length; i++ )
+	{
+		var item = layerList[ i ];
+		var id = item[ "layerId" ].toString();
+		
+		for ( var j = 0; j < layers.length; j++ )
+		{
+			var layer = layers[ j ];
+			if ( layer.id !== id ) continue;
+			layer.order = order - i;
 		}
 	}
 	
@@ -170,178 +392,64 @@ netgis.WMC.prototype.toConfig = function()
 	return config;
 };
 
-netgis.WMC.prototype.parseServiceLayers = function( srv, layerList, folders, layers )
+netgis.WMC.prototype.getLayerExportData = function( id )
 {
-	if ( ! folders ) folders = [];
-	if ( ! layers ) layers = [];
+	var list = this.exportData[ "layerList" ];
 	
-	for ( var s = 0; s < srv.length; s++ )
+	for ( var i = 0; i < list.length; i++ )
 	{
-		var service = srv[ s ];
+		var item = list[ i ];
 		
-		// Service Layers
-		for ( var l = 0; l < service[ "layer" ].length; l++ )
-		{	
-			var layer = service[ "layer" ][ l ];
-			
-			if ( layer[ "isRoot" ] )
-			{
-				// Service Folder
-				var folder =
-				{
-					id: layer[ "id" ],
-					title: layer[ "title" ],
-					open: ( service[ "isopen" ] === "1" )
-				};
-
-				folders.push( folder );
-			}
-			
-			// Child Layers
-			var serviceLayers = layer[ "layer" ];
-			
-			if ( serviceLayers )
-			{
-				// Sort By Position
-				if ( layerList )
-				{
-					serviceLayers.sort
-					(
-						function( a, b )
-						{
-							var ida = a[ "id" ];
-							var idb = b[ "id" ];
-
-							var la = null;
-							var lb = null;
-
-							for ( var i = 0; i < layerList.length; i++ )
-							{
-								var layer = layerList[ i ];
-								if ( layer[ "layerId" ].toString() === ida ) la = layer;
-								if ( layer[ "layerId" ].toString() === idb ) lb = layer;
-							}
-
-							var va = la[ "layerPos" ];
-							var vb = lb[ "layerPos" ];
-
-							if ( va < vb ) return -1;
-							if ( va > vb ) return 1;
-
-							return 0;
-						}
-					);
-				}
-				
-				for ( var i = serviceLayers.length - 1; i >= 0; i-- )
-				{
-					var child = serviceLayers[ i ];
-					var cid = child[ "id" ];
-					var meta = null;
-					
-					if ( layerList )
-					{
-						for ( var m = 0; m < layerList.length; m++ )
-						{
-							if ( layerList[ m ][ "layerId" ].toString() === cid )
-							{
-								meta = layerList[ m ];
-								break;
-							}
-						}
-					}
-					
-					var item = this.parseServiceLayer( cid, service, layer[ "id" ], child, meta );
-
-					layers.push( item );
-				}
-			}
-		}
+		// Expecting String IDs
+		if ( item[ "layerId" ].toString() === id ) return item;
 	}
 	
-	return { folders: folders, layers: layers };
+	return null;
 };
 
-netgis.WMC.prototype.parseServiceLayer = function( id, service, folder, serviceLayer, meta )
+netgis.WMC.prototype.getLayerMetaData = function( id, list )
 {
-	var defaultOrder = 1000;
+	if ( ! list ) list = this.metaData[ "wms" ][ "srv" ];
 	
-	var item =
+	for ( var i = 0; i < list.length; i++ )
 	{
-		id: id,
-		folder: folder,
-		title: serviceLayer[ "title" ],
-
-		active: meta ? meta[ "active" ] : true,
-		query: ( serviceLayer[ "queryable" ] === 1 ),
-		transparency: meta ? ( 1.0 - meta[ "opacity" ] * 0.01 ) : 0.0,
-		order: defaultOrder,
-
-		type: netgis.LayerTypes.WMS,
-		url: service[ "getMapUrl" ],
-		name: serviceLayer[ "name" ],
-		format: meta ? meta[ "currentFormat" ] : "image/png",
+		var item = list[ i ];
 		
-		removable: ( this.config[ "wmc" ] && this.config[ "wmc" ][ "layers_removable" ] === true ) ? true : false
-	};
+		// Recursion
+		if ( item[ "layer" ] )
+		{
+			var sub = this.getLayerMetaData( id, item[ "layer" ] );
+			if ( sub ) return sub;
+		}
+		
+		if ( item[ "id" ] === id ) return item;
+	}
 	
-	return item;
+	return null;
 };
 
-netgis.WMC.prototype.parseLayer = function( layer, parentID, items )
+netgis.WMC.prototype.getLayerMapURL = function( id, list, result )
 {
-	var item = null;
-			
-	for ( var k = 0; k < items.length; k++ )
+	if ( ! list ) list = this.metaData[ "wms" ][ "srv" ];
+	
+	for ( var i = 0; i < list.length; i++ )
 	{
-		if ( items[ k ].id === Number.parseInt( layer[ "id" ] ) ) // NOTE: assuming integer ids
-		{
-			item = items[ k ];
-			break;
-		}
-	}
-
-	if ( ! item )
-	{
-		item =
-		{
-			id: Number.parseInt( layer[ "id" ] ),
-			type: "layer"
-		};
+		var item = list[ i ];
 		
-		items.push( item );
-	}
-
-	item.title = layer[ "title" ];
-	item.name = layer[ "name" ];
-	item.parent = parentID;
-	
-	if ( layer[ "getLegendGraphicUrl" ] && layer[ "getLegendGraphicUrlFormat" ] )
-	{
-		item.legendURL = layer[ "getLegendGraphicUrl" ];
-		item.legendFormat = layer[ "getLegendGraphicUrlFormat" ];
-	}	
-
-	if ( layer[ "legendUrl" ] )
-	{
-		item.legendURL = window.decodeURIComponent( layer[ "legendUrl" ] );
-		item.legendFormat = layer[ "getLegendGraphicUrlFormat" ];
-	}
-
-	if ( layer[ "layerQueryable" ] === 1 || layer[ "queryable" ] === 1 ) // NOTE: these two props should have the same name !
-		item.queryable = true;
-	else
-		item.queryable = false;
-
-	if ( layer.bbox )
-	{
-		var bbox = layer.bbox.split( "," );
-
-		for ( var i = 0; i < bbox.length; i++ )
-			bbox[ i ] = parseFloat( bbox[ i ] );
-
-		item.bbox = [ bbox[ 0 ], bbox[ 1 ], bbox[ 2 ], bbox[ 3 ] ];
+		if ( item[ "getMapUrl" ] && item[ "getMapUrl" ] !== "" )
+		{
+			result = item[ "getMapUrl" ];
+		}
+		
+		// Recursion
+		if ( item[ "layer" ] )
+		{
+			var sub = this.getLayerMapURL( id, item[ "layer" ], result );
+			if ( sub ) return sub;
+		}
+		
+		if ( item[ "id" ] === id ) return result;
 	}
 	
-	return item;
+	return null;
 };

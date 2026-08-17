@@ -192,7 +192,7 @@ netgis.Controls.prototype.onGeolocShowOptions = function( e )
 	this.popupGeoloc.show();
 	
 	var rect = button.getBoundingClientRect();
-	this.popupGeoloc.setPosition( rect.x + 4, rect.y + rect.height * 0.3 );
+	this.popupGeoloc.setPosition( rect.x + 4, rect.y + rect.height * 0.5 );
 };
 
 netgis.Controls.prototype.onParentPointerDown = function( e )

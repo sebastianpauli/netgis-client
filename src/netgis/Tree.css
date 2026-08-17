@@ -58,6 +58,11 @@
 	color: #eab000;
 }
 
+.netgis-tree .netgis-folder > details > summary
+{
+	padding-right: 8mm;
+}
+
 .netgis-tree .netgis-folder .netgis-partial
 {
 	opacity: 0.5;
@@ -123,6 +128,14 @@
 
 .netgis-tree .netgis-item > label input
 {
+}
+
+.netgis-tree .netgis-item > label:not( .netgis-clip-text ) span:last-of-type,
+.netgis-tree .netgis-folder > details > summary:not( .netgis-clip-text ) > span:last-of-type
+{
+	display: inline-block;
+	line-height: 1.5em;
+	padding: 3mm 0mm;
 }
 
 .netgis-tree .netgis-space
@@ -230,6 +243,7 @@
 	padding: 2mm;
 	padding-left: 0mm;
 	padding-right: 4mm;
+	line-height: 8mm;
 }
 
 .netgis-tree .netgis-item details label input[ type = range ]

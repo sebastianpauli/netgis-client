@@ -954,6 +954,12 @@ netgis.Map.prototype.initConfig = function( config )
 			if ( layer[ "active" ] === true ) this.addLayer( layer[ "id" ], layer );
 		}
 	}
+	
+	// Add GeoRSS Layer
+	if ( config[ "georss" ] && config[ "georss" ][ "url" ] )
+	{
+		// TODO: request georss xml and parse features
+	}
 };
 
 netgis.Map.prototype.attachTo = function( parent )
@@ -973,6 +979,7 @@ netgis.Map.prototype.attachTo = function( parent )
 	parent.addEventListener( netgis.Events.MAP_ZOOM_SCALE, this.onMapZoomScale.bind( this ) );
 	parent.addEventListener( netgis.Events.MAP_ZOOM_LAYER, this.onMapZoomLayer.bind( this ) );
 	parent.addEventListener( netgis.Events.MAP_ZOOM_LEVEL, this.onMapZoomLevel.bind( this ) );
+	parent.addEventListener( netgis.Events.MAP_ZOOM_BBOX, this.onMapZoomBBox.bind( this ) );
 	
 	parent.addEventListener( netgis.Events.MAP_LAYER_CREATE, this.onMapLayerCreate.bind( this ) );
 	parent.addEventListener( netgis.Events.MAP_LAYER_TOGGLE, this.onMapLayerToggle.bind( this ) );
@@ -3290,7 +3297,8 @@ netgis.Map.prototype.zoomExtentLonLat = function( minlon, minlat, maxlon, maxlat
 
 netgis.Map.prototype.zoomExtent = function( minx, miny, maxx, maxy )
 {
-	this.view.fit( [ minx, miny, maxx, maxy ] );
+	var extent = [ minx, miny, maxx, maxy ];
+	this.view.fit( extent );
 };
 
 netgis.Map.prototype.zoomBBox = function( bbox, anim )
@@ -3791,6 +3799,12 @@ netgis.Map.prototype.onMapZoomLevel = function( e )
 {
 	var params = e.detail;
 	this.view.setZoom( params.z );
+};
+
+netgis.Map.prototype.onMapZoomBBox = function( e )
+{
+	var params = e.detail;
+	this.zoomExtentLonLat( params[ "minlon" ], params[ "minlat" ], params[ "maxlon" ], params[ "maxlat" ] );
 };
 
 netgis.Map.prototype.onMapViewPrev = function( e )
@@ -4633,7 +4647,7 @@ netgis.Map.prototype.onGeolocChange = function( e )
 	
 	if ( params.center === true )
 	{
-		this.zoomLonLat( params.lon, params.lat, this.view.getZoom() );
+		this.zoomLonLat( params.lon, params.lat, params.zoom ? params.zoom : this.view.getZoom() );
 	}
 };
 

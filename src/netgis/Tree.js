@@ -28,7 +28,7 @@ netgis.Tree.prototype.clear = function()
 	this.container.innerHTML = "";
 };
 
-netgis.Tree.prototype.addFolder = function( parent, id, title, prepend, nocheck, draggable, removable )
+netgis.Tree.prototype.addFolder = function( parent, id, title, prepend, nocheck, draggable, removable, clipTitle )
 {
 	var li = document.createElement( "li" );
 	li.className = "netgis-folder";
@@ -42,7 +42,8 @@ netgis.Tree.prototype.addFolder = function( parent, id, title, prepend, nocheck,
 	var iconOpen = "<i class='netgis-icon netgis-show-open fas fa-folder-open'></i>";
 	
 	var summary = document.createElement( "summary" );
-	summary.className = "netgis-button netgis-noselect netgis-clip-text netgis-color-e netgis-hover-d";
+	summary.className = "netgis-button netgis-noselect netgis-color-e netgis-hover-d";
+	if ( clipTitle === true ) summary.className += " netgis-clip-text";
 	summary.innerHTML = iconClosed + iconOpen + "<span>" + title + "</span>";
 	details.appendChild( summary );
 	
@@ -97,7 +98,7 @@ netgis.Tree.prototype.addFolder = function( parent, id, title, prepend, nocheck,
 	return li;
 };
 
-netgis.Tree.prototype.addCheckbox = function( parent, id, title, checked, prepend, details )
+netgis.Tree.prototype.addCheckbox = function( parent, id, title, checked, prepend, details, clipTitle )
 {
 	var li = document.createElement( "li" );
 	li.className = "netgis-item";
@@ -105,7 +106,8 @@ netgis.Tree.prototype.addCheckbox = function( parent, id, title, checked, prepen
 	if ( this.draggable === true ) this.setItemDraggable( li );
 	
 	var label = document.createElement( "label" );
-	label.className = "netgis-button netgis-noselect netgis-clip-text netgis-color-e netgis-hover-d";
+	label.className = "netgis-button netgis-noselect netgis-color-e netgis-hover-d";
+	if ( clipTitle === true ) label.className += " netgis-clip-text";
 	label.innerHTML = "<span>" + title + "</span>";
 	li.appendChild( label );
 	
@@ -148,13 +150,14 @@ netgis.Tree.prototype.addCheckbox = function( parent, id, title, checked, prepen
 	return li;
 };
 
-netgis.Tree.prototype.addRadioButton = function( parent, id, title, checked, details )
+netgis.Tree.prototype.addRadioButton = function( parent, id, title, checked, details, clipTitle )
 {
 	var li = document.createElement( "li" );
 	li.className = "netgis-item";
 	
 	var label = document.createElement( "label" );
-	label.className = "netgis-button netgis-noselect netgis-clip-text netgis-color-e netgis-hover-d";
+	label.className = "netgis-button netgis-noselect netgis-color-e netgis-hover-d";
+	if ( clipTitle === true ) label.className += " netgis-clip-text";
 	label.innerHTML = "<span>" + title + "</span>";
 	li.appendChild( label );
 	
@@ -268,6 +271,31 @@ netgis.Tree.prototype.addItemDetails = function( li, id, details )
 				break;
 			}
 			
+			case "checkbox":
+			{
+				var detailHead = document.createElement( "span" );
+				detailHead.className = "netgis-clip-text";
+				detailHead.innerHTML = detail.title;
+				detailLabel.appendChild( detailHead );
+				
+				var detailWrapper = document.createElement( "span" );
+				detailLabel.appendChild( detailWrapper );
+
+				var detailInput = document.createElement( "input" );
+				detailInput.setAttribute( "type", "checkbox" );
+				detailInput.setAttribute( "data-id", id );
+				if ( detail.locked ) detailInput.setAttribute( "disabled", "disabled" );
+				if ( detail.val === true ) detailInput.setAttribute( "checked", "checked" );
+				//detailInput.addEventListener( "change", this.onItemSliderChange.bind( this ) );
+				//detailInput.addEventListener( "input", this.onItemSliderChange.bind( this ) );
+				
+				// TODO: handle unlocked checkbox events
+				
+				detailWrapper.appendChild( detailInput );
+				
+				break;
+			}
+			
 			case "slider":
 			{
 				var detailHead = document.createElement( "span" );
@@ -316,6 +344,98 @@ netgis.Tree.prototype.setItemDraggable = function( li )
 	li.addEventListener( "dragleave", this.onDragLeave.bind( this ) );
 	li.addEventListener( "drop", this.onDragDrop.bind( this ) );
 	li.addEventListener( "dragend", this.onDragEnd.bind( this ) );
+};
+
+/**
+ * Set custom data attributes on any tree item (folders, checkboxes, etc.)
+ * @param {type} li List item element
+ * @param {type} data Object with key-value pairs
+ * @returns {undefined} */
+netgis.Tree.prototype.setItemData = function( li, data )
+{
+	for ( var k in data )
+	{
+		var v = data[ k ];
+		li.setAttribute( "data-" + k, v );
+	}
+};
+
+netgis.Tree.prototype.reorderByAttribute = function( attrib, desc, numeric, parent )
+{
+	if ( ! parent ) parent = this.container;
+	
+	var items = parent.children;
+	var order = [];
+	
+	for ( var i = 0; i < items.length; i++ )
+	{
+		var item = items[ i ];
+		
+		if ( item.hasAttribute( attrib ) )
+		{
+			var val = item.getAttribute( attrib );
+			if ( numeric ) val = Number.parseInt( val );
+			
+			order.push( { ref: item, val: val } );
+		}
+	}
+	
+	order.sort
+	(
+		function( a, b )
+		{
+			var va = a.val;
+			var vb = b.val;
+
+			if ( ! desc )
+			{
+				if ( va < vb ) return -1;
+				if ( va > vb ) return 1;
+			}
+			else
+			{
+				if ( va < vb ) return 1;
+				if ( va > vb ) return -1;
+			}
+
+			return 0;
+		}
+	);
+	
+	if ( parent === this.container )
+	{
+		// Keep Internal Items If Root
+		for ( var i = 0; i < order.length - 1; i++ )
+		{
+			var child = order[ i ].ref;
+
+			parent.removeChild( child );
+			parent.insertBefore( child, order[ i + 1 ].ref );
+		}
+	}
+	else
+	{
+		for ( var i = 0; i < order.length; i++ )
+		{
+			var child = order[ i ].ref;
+
+			parent.removeChild( child );
+			parent.appendChild( child );
+		}
+	}
+	
+	// Recursion
+	for ( var i = 0; i < order.length; i++ )
+	{
+		var child = order[ i ].ref;
+		var sub = child.getElementsByTagName( "ul" );
+		
+		if ( sub.length > 0 )
+		{
+			sub = sub[ 0 ];
+			this.reorderByAttribute( attrib, desc, numeric, sub );
+		}
+	}
 };
 
 netgis.Tree.prototype.getFolder = function( id )
@@ -417,6 +537,42 @@ netgis.Tree.prototype.moveItemUp = function( item )
 	}
 };
 
+netgis.Tree.prototype.moveItemDown = function( item )
+{
+	var parent = item.parentNode;
+	
+	parent.removeChild( item );
+	parent.appendChild( item );
+};
+
+netgis.Tree.prototype.moveButtonsDown = function()
+{
+	var root = this.container;
+	var items = root.getElementsByTagName( "li" );
+	
+	// TODO: moving not necessary if root wrapper around folders/items ?
+	
+	var moves = [];
+	
+	for ( var i = 0; i < items.length; i++ )
+	{
+		var item = items[ i ];
+		
+		if ( item.classList.contains( "netgis-folder" ) ) continue;
+		if ( item.classList.contains( "netgis-item" ) ) continue;
+		if ( item.parentNode !== root ) continue;
+		
+		moves.push( item );
+	}
+	
+	for ( var i = 0; i < moves.length; i++ )
+	{
+		var item = moves[ i ];
+		root.removeChild( item );
+		root.appendChild( item );
+	}
+};
+
 netgis.Tree.prototype.setFolderOpen = function( id, open )
 {
 	var folders = this.container.getElementsByClassName( "netgis-folder" );
@@ -488,7 +644,7 @@ netgis.Tree.prototype.setItemChecked = function( id, checked, silent )
 	}
 };
 
-netgis.Tree.prototype.setFolderParent = function( folder, parent )
+netgis.Tree.prototype.setFolderParent = function( folder, parent ) // TODO: rename to set item parent ?
 {
 	var oldParent = folder.parentNode;
 	

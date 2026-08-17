@@ -21,6 +21,7 @@ netgis.Events =
 	MAP_ZOOM_SCALE: "map-zoom-scale",
 	MAP_ZOOM_LAYER: "map-zoom-layer",
 	MAP_ZOOM_LEVEL: "map-zoom-level",
+	MAP_ZOOM_BBOX: "map-zoom-bbox",
 	MAP_LAYER_CREATE: "map-layer-create",
 	MAP_LAYER_TOGGLE: "map-layer-toggle",
 	MAP_LAYER_TRANSPARENCY: "map-layer-transparency",
