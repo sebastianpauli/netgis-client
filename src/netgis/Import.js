@@ -1823,6 +1823,9 @@ netgis.Import.prototype.onGeoportalSubmitDynamic = function( e )
 {
 	var items = this.geoportalResults.container.getElementsByClassName( "netgis-item" );
 	
+	var importHierarchy = false;
+	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_import_hierarchy" ] === true ) importHierarchy = true;
+	
 	var count = 0;
 	
 	for ( var i = 0; i < items.length; i++ )
@@ -1854,6 +1857,25 @@ netgis.Import.prototype.onGeoportalSubmitDynamic = function( e )
 			folder: { id: fid, title: ftitle },
 			layer: { id: id, url: url, name: name, title: title }
 		};
+		
+		// Import Full Folder Hierarchy
+		if ( importHierarchy )
+		{
+			params.folders = [];
+			
+			var parentList = folder.parentNode;
+			var parentDetails = parentList.parentNode;
+			var parent = parentDetails.parentNode;
+			
+			while ( parent.classList.contains( "netgis-folder" ) )
+			{
+				params.folders.push( { el: parent, id: "geoportal_" + parent.getAttribute( "data-id" ), title: parent.getAttribute( "data-title" ) } );
+				
+				parentList = parent.parentNode;
+				parentDetails = parentList.parentNode;
+				parent = parentDetails.parentNode;
+			}
+		}
 		
 		netgis.util.invoke( this.sections.geoportal, netgis.Events.IMPORT_GEOPORTAL_SUBMIT, params );
 	}

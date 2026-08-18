@@ -33,10 +33,15 @@
 				height: 100%;
 			}
 			
-			.netgis-map
-			{
-				background: white;
-			}
+			/* Custom Theme Overrides */
+			
+			.netgis-map { background: white; }
+			.netgis-gradient-a { background-image: linear-gradient( to bottom, #b5d1a7 0%, #99bf86 100% ); }
+			.netgis-text-a { color: #7B996C; }
+			.netgis-hover-text-a:hover { color: #7B996C; }
+			.netgis-color-a { background-color: #7B996C; }
+			.netgis-hover-a:hover { background-color: #7B996C; }
+			.netgis-hover-c:hover { background-color: #99bf86; }
 			
 		</style>
 		
@@ -163,9 +168,9 @@
 				
 				"layertree":
 				{
-					"open": !false,
+					"open": true,
 					"title": "Inhalte",
-					"clip_titles": !false,
+					"clip_titles": false,
 					"buttons":
 					[
 						{ "id": "import_layer", "title": "<i class='netgis-icon fas fa-plus' style='font-size: 1em;'></i><span>Hinzufügen...</span>" }
@@ -242,7 +247,8 @@
 					
 					"geoportal_search_url": "https://geoportal.saarland.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=99&searchText={query}",
 					"geoportal_search_dynamic": true,
-					"geoportal_simplify_folders": true,
+					"geoportal_simplify_folders": false,
+					"geoportal_import_hierarchy": true,
 					
 					"geoportal_tab": true,
 					"wms_tab": true,

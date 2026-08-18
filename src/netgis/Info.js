@@ -446,6 +446,8 @@ netgis.Info.prototype.onLayerResponseWMS = function( data, requestData, request 
 	// Nothing Returned
 	if ( ! data || data === "" ) data = "<p style='padding: 0mm 2mm;'><i>Keine Daten gefunden...</i></p>";
 	
+	// TODO: hide from results if html body empty ?
+	
 	// Check Content Type
 	var contentType = request.getResponseHeader( "Content-Type" );
 	

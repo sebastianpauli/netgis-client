@@ -263,8 +263,8 @@ netgis.LayerTree.prototype.createDefaultDetails = function( layer, opacitySlider
 {
 	var details = [];
 	
-	details.push( { title: "<i class='netgis-icon fas fa-mouse-pointer'></i> Abfragbar:", type: "checkbox", val: ( queryable === true ), locked: true } );
-	if ( opacitySlider === true ) details.push( { title: "<i class='netgis-icon fas fa-eye-slash'></i> Transparenz:", type: "slider", val: layer[ "transparency" ] ? Math.round( layer[ "transparency" ] * 100 ) : 0 } );
+	details.push( { title: "<i class='netgis-icon fas fa-mouse-pointer'></i> Abfragbar", type: "checkbox", val: ( queryable === true ), locked: true } );
+	if ( opacitySlider === true ) details.push( { title: "<i class='netgis-icon fas fa-eye-slash'></i> Transparenz", type: "slider", val: layer[ "transparency" ] ? Math.round( layer[ "transparency" ] * 100 ) : 0 } );
 	if ( deleteButton === true ) details.push( { title: "<i class='netgis-icon fas fa-times'></i> Entfernen", type: "button", callback: this.onTreeItemDeleteClick.bind( this ) } );
 	
 	return details;
@@ -359,12 +359,44 @@ netgis.LayerTree.prototype.onImportGeoportalSubmit = function( e )
 {
 	var params = e.detail;
 	
+	// Folder
 	var fid = params.folder.id;
 	var folder = this.tree.getFolder( fid );
 	
 	if ( ! folder )
-		folder = this.tree.addFolder( null, fid, params.folder.title, true, false, true, true, this.config[ "layertree" ][ "clip_titles" ] );
+	{
+		if ( ! params.folders )
+		{
+			// Simple Folder Import
+			folder = this.tree.addFolder( null, fid, params.folder.title, true, false, true, true, this.config[ "layertree" ][ "clip_titles" ] );
+		}
+		else
+		{
+			// Full Import Hierarchy
+			var folders = params.folders;
+			var parent = null;
+			
+			for ( var i = folders.length - 1; i >= 0; i-- )
+			{
+				var parentFolder = folders[ i ];
+				
+				var found = this.tree.getFolder( parentFolder.id );
+				
+				if ( ! found )
+				{
+					parent = this.tree.addFolder( parent, parentFolder.id, parentFolder.title, true, false, true, true, this.config[ "layertree" ][ "clip_titles" ] );
+				}
+				else
+				{
+					parent = found;
+				}
+			}
+			
+			folder = this.tree.addFolder( parent, fid, params.folder.title, true, false, true, true, this.config[ "layertree" ][ "clip_titles" ] );
+		}
+	}
 	
+	// Layer
 	var id = params.layer.id;
 	
 	var config =
@@ -373,6 +405,7 @@ netgis.LayerTree.prototype.onImportGeoportalSubmit = function( e )
 		folder: fid,
 		title: params.layer.title,
 		active: true,
+		query: true,
 		type: netgis.LayerTypes.WMS,
 		url: params.layer.url,
 		name: params.layer.name,
@@ -382,9 +415,10 @@ netgis.LayerTree.prototype.onImportGeoportalSubmit = function( e )
 	
 	this.config[ "layers" ].push( config );
 	
+	// TODO: get queryable property from wms results
 	// TODO: refactor layer item creation with init config, import handlers
 	
-	this.tree.addCheckbox( folder, id, params.layer.title, false, false, this.createDefaultDetails( config, true, true ), this.config[ "layertree" ][ "clip_titles" ] );
+	this.tree.addCheckbox( folder, id, params.layer.title, false, false, this.createDefaultDetails( config, true, true, true ), this.config[ "layertree" ][ "clip_titles" ] );
 	this.tree.setItemChecked( id, true, false );
 };
 
