@@ -1165,7 +1165,7 @@ netgis.Map.prototype.setMode = function( mode )
 
 netgis.Map.prototype.addLayer = function( id, params )
 {
-	//console.info( "Add Layer:", id, params );
+	//console.info( "ADD LAYER:", id, params );
 	
 	var layer = this.createLayer( params );
 	
@@ -2982,6 +2982,8 @@ netgis.Map.prototype.createLayerKML = function( url )
 		{			
 			var format = new ol.format.KML();
 			var features = format.readFeatures( data, { featureProjection: self.view.getProjection() } );
+			
+			//console.info( "KML FEATURES:", features );
 			
 			for ( var i = 0; i < features.length; i++ )
 			{

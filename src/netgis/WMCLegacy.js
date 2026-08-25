@@ -76,10 +76,14 @@ netgis.WMCLegacy.prototype.onContextResponse = function( data )
 	// WMC Extent
 	var bbox = data.wmc.bbox;
 
-	if ( bbox )
+	if ( bbox && bbox !== "" && bbox !== ",,," )
 	{
 		bbox = bbox.split( "," );
-		for ( var b = 0; b < bbox.length; b++ ) bbox[ b ] = parseFloat( bbox[ b ] );
+		
+		for ( var b = 0; b < bbox.length; b++ )
+		{
+			bbox[ b ] = Number.parseFloat( bbox[ b ] );
+		}
 
 		// Parse BBox CRS If Not String
 		if ( data.wmc.crs && !( typeof data.wmc.crs === "string" || data.wmc.crs instanceof String ) )
@@ -98,8 +102,7 @@ netgis.WMCLegacy.prototype.onContextResponse = function( data )
 			bbox[ 2 ] = max[ 0 ];
 			bbox[ 3 ] = max[ 1 ];
 		}
-
-		//netgis.map.viewExtent( bbox[ 0 ], bbox[ 1 ], bbox[ 2 ], bbox[ 3 ] );
+		
 		this.output.extent = [ bbox[ 0 ], bbox[ 1 ], bbox[ 2 ], bbox[ 3 ] ];
 	}
 
@@ -107,23 +110,10 @@ netgis.WMCLegacy.prototype.onContextResponse = function( data )
 	var kml = data.wmc.kmloverlay;
 
 	if ( kml && kml.length > 0 )
-	{
-		/*
-		netgis.entities.create
-		(
-			[
-				new netgis.component.Layer( -1 ),
-				new netgis.component.Title( "KML" ),
-				new netgis.component.KML( kml ),
-				new netgis.component.Active()
-			]
-		);
-		*/
-		
+	{		
 		this.output.entities.push
 		(
 			{
-				//layer: { id: -1 },
 				layer: { id: "kml" },
 				title: "KML",
 				kml: kml,
@@ -135,45 +125,27 @@ netgis.WMCLegacy.prototype.onContextResponse = function( data )
 	// Map Layers
 	var ids = [];
 
-	for ( var l = 0; l < data.layerList.length; l++ )
+	if ( data.layerList )
 	{
-		var layer = data.layerList[ l ];
+		for ( var l = 0; l < data.layerList.length; l++ )
+		{
+			var layer = data.layerList[ l ];
 
-		ids.push( layer.layerId );
+			ids.push( layer.layerId );
 
-		// Layer Entity
-		/*
-		var entity = netgis.entities.create
-		(
-			[
-				new netgis.component.Layer( parseInt( layer.layerId ) ), //NOTE: assuming layer id as integer
-				new netgis.component.Position( layer.layerPos )
-			]
-		);
-		*/
-
-		/*
-		// Set active from WMC
-		if ( layer.active === true )
-			entity.set( new netgis.component.Active() );
-
-		if ( layer.opacity )
-			entity.set( new netgis.component.Opacity( parseFloat( layer.opacity ) * 0.01 ) );
-		*/
-		
-		//console.info( "WMC Layer:", layer );
-		
-		this.output.entities.push
-		(
-			{
-				layer: { id: Number.parseInt( layer.layerId ) },
-				position: layer.layerPos,
-				active: layer.active,
-				opacity: layer.opacity ? ( Number.parseFloat( layer.opacity ) * 0.01 ) : 1.0
-			}
-		);
+			// Layer Entity
+			this.output.entities.push
+			(
+				{
+					layer: { id: Number.parseInt( layer.layerId ) },
+					position: layer.layerPos,
+					active: layer.active,
+					opacity: layer.opacity ? ( Number.parseFloat( layer.opacity ) * 0.01 ) : 1.0
+				}
+			);
+		}
 	}
-
+	
 	this.requestLayers( ids );
 	
 	// End Legacy Code
@@ -221,26 +193,22 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 			{
 				bbox = bbox.split( "," );
 				for ( var b = 0; b < bbox.length; b++ ) bbox[ b ] = Number.parseFloat( bbox[ b ] );
-
-				//netgis.map.viewExtent( bbox[ 0 ], bbox[ 1 ], bbox[ 2 ], bbox[ 3 ], true );
 				
 				this.output.extent = [ bbox[ 0 ], bbox[ 1 ], bbox[ 2 ], bbox[ 3 ] ];
 			}
 		}
 
 		// Service Group Layer
-		//var serviceEntity = createService( service );
 		var serviceEntity = this.createService( service );
 
 		// Service Layers
 		for ( var i = 0; i < service.layer.length; i++ )
 		{
 			var layer = service.layer[ i ];
-
-			//var layerEntity = createLayer( layer, serviceEntity );
+			
 			var layerEntity = this.createLayer( layer, serviceEntity );
 
-			//TODO: recursive layer adding
+			// TODO: recursive layer adding
 
 			// Child Layers
 			if ( layer.layer )
@@ -248,8 +216,7 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 				for ( var j = 0; j < layer.layer.length; j++ )
 				{
 					var child = layer.layer[ j ];
-
-					//var childEntity = createLayer( child, layerEntity );
+					
 					var childEntity = this.createLayer( child, layerEntity );
 
 					if ( child.layer )
@@ -257,8 +224,7 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 						for ( var k = 0; k < child.layer.length; k++ )
 						{
 							var child2 = child.layer[ k ];
-
-							//var child2Entity = netgis.layers.createLayer( child2, childEntity, true );
+							
 							var child2Entity = this.createLayer( child2, childEntity, true );
 
 							if ( child2.layer )
@@ -266,8 +232,7 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 								for ( var m = 0; m < child2.layer.length; m++ )
 								{
 									var child3 = child2.layer[ m ];
-
-									//var child3Entity = netgis.layers.createLayer( child3, child2Entity, true );
+									
 									var child3Entity = this.createLayer( child3, child2Entity, true );
 								}
 							}
@@ -279,20 +244,6 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 		}
 
 	}
-
-	//console.info( "ENTITIES:", netgis.entities.getAll() );
-
-	/*
-	// Set order
-	var layers = netgis.entities.get( [ netgis.component.Layer, netgis.component.Active ] );
-
-	for ( var l = 0; l < layers.length; l++ )
-	{
-		layers[ l ].set( new netgis.component.Order( layers.length - l ) );
-	}
-
-	netgis.events.call( netgis.events.LAYERS_LOADING, { loading: false } );
-	*/
    
 	for ( var i = 0; i < this.output.entities.length; i++ )
 	{
@@ -324,6 +275,7 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
    
 	if ( singleLayerRequest )
 	{
+		// TODO: single layer requests
 	}
 	
 	// End Legacy Code

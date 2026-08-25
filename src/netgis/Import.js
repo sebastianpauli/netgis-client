@@ -1603,7 +1603,7 @@ netgis.Import.prototype.onGeoportalSearchResponse = function( data )
 		this.geoportalData.push( layer );
 	}
 
-	//TODO: add click handler for layer result child
+	// TODO: add click handler for layer result child
 	
 	this.geoportalLoader.classList.add( "netgis-hide" );
 };
@@ -1611,7 +1611,7 @@ netgis.Import.prototype.onGeoportalSearchResponse = function( data )
 netgis.Import.prototype.updateGeoportalResults = function( data, dynamic )
 {
 	this.geoportalData = { data: data, folders: {} };
-	
+	console.info( "GEOPORTAL DATA:", this.geoportalData );
 	var srv = data[ "wms" ][ "srv" ];
 	
 	if ( dynamic )
@@ -1636,6 +1636,7 @@ netgis.Import.prototype.updateGeoportalResults = function( data, dynamic )
 				folder.setAttribute( "title", service[ "abstract" ] );
 				folder.setAttribute( "data-url", service[ "wmsGetCapabilitiesUrl" ] );
 				folder.setAttribute( "data-title", service[ "title" ] );
+				folder.setAttribute( "data-root-id", service[ "wmsRootLayerId" ] );
 				folder.getElementsByTagName( "details" )[ 0 ].addEventListener( "toggle", this.onGeoportalFolderToggle.bind( this ) );
 				folder.getElementsByTagName( "input" )[ 0 ].setAttribute( "disabled", "disabled" );
 				
@@ -1691,6 +1692,47 @@ netgis.Import.prototype.onGeoportalFolderResponse = function( folder, data )
 	{
 		this.simplifyGeoportalFolder( folder );
 	}
+	
+	// Reorder Items By WMS Metadata, Because Not Sorted In Caps Response
+	var order = [];
+	var srv = this.geoportalData.data[ "wms" ][ "srv" ];
+	
+	for ( var i = 0; i < srv.length; i++ )
+	{
+		order.push( srv[ i ][ "title" ] );
+		
+		var layers2 = srv[ i ][ "layer" ];
+		
+		if ( ! layers2 ) continue;
+		
+		for ( var j = 0; j < layers2.length; j++ )
+		{
+			order.push( layers2[ j ][ "title" ] );
+			
+			var layers3 = layers2[ j ][ "layer" ];
+			
+			if ( ! layers3 ) continue;
+			
+			for ( var k = 0; k < layers3.length; k++ )
+			{
+				order.push( layers3[ k ][ "title" ] );
+			}
+		}
+		
+		// TODO: recursion
+	}
+	
+	var items = folder.getElementsByTagName( "li" );
+	
+	for ( var i = 0; i < items.length; i++ )
+	{
+		var item = items[ i ];
+		var title = item.innerText;
+		var o = order.indexOf( title );
+		item.setAttribute( "data-order", o );
+	}
+	
+	this.geoportalResults.reorderByAttribute( "data-order", false, true, folder.getElementsByTagName( "ul" )[ 0 ] );
 };
 
 netgis.Import.prototype.simplifyGeoportalFolder = function( root )
@@ -1739,7 +1781,7 @@ netgis.Import.prototype.simplifyGeoportalFolder = function( root )
 netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, recursive )
 {
 	var fid = folder.getAttribute( "data-id" );
-	
+	//console.info( "GEOPORTAL LAYERS:", fid, folder.getAttribute( "data-root-id" ), folder, layers );
 	var map = caps.requests.map.url;
 	var info = caps.requests.info.url;
 	
@@ -1785,6 +1827,77 @@ netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, 
 			}
 		}
 	}
+};
+
+netgis.Import.prototype.getGeoportalLayerMetadata = function( id, layers )
+{
+	if ( ! id ) return null;
+	
+	if ( ! layers ) layers = this.geoportalData.data[ "wms" ][ "srv" ];
+	
+	for ( var i = 0; i < layers.length; i++ )
+	{
+		var layer = layers[ i ];
+		
+		var layerID = layer[ "id" ];
+		layerID = Number.parseInt( layerID );
+		
+		if ( layerID === id )
+		{
+			// Found
+			return layer;
+		}
+		else
+		{
+			// Recursion
+			/*var result = this.getGeoportalLayerMetadata( id, layer[ "layer" ] );
+			if ( result ) return result;*/
+			
+			if ( layer[ "layer" ] )
+			{
+				var layers2 = layer[ "layer" ];
+				
+				for ( var j = 0; j < layers2.length; j++ )
+				{
+					var layer2 = layers2[ j ];
+					
+					var layerID2 = layer2[ "id" ];
+					layerID2 = Number.parseInt( layerID2 );
+
+					if ( layerID2 === id )
+					{
+						// Found
+						return layer2;
+					}
+					else
+					{
+						if ( layer2[ "layer" ] )
+						{
+							var layers3 = layer2[ "layer" ];
+
+							for ( var k = 0; k < layers3.length; k++ )
+							{
+								var layer3 = layers3[ k ];
+
+								var layerID3 = layer3[ "id" ];
+								layerID3 = Number.parseInt( layerID3 );
+
+								if ( layerID3 === id )
+								{
+									// Found
+									return layer3;
+								}
+								
+							}
+						}
+					}
+				}
+			}
+			
+		}
+	}
+	
+	return null;
 };
 
 netgis.Import.prototype.onGeoportalSearchButtonClick = function( e )

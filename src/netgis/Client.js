@@ -666,6 +666,12 @@ netgis.Client.prototype.onContextResponseWMCLegacy = function( context )
 {
 	console.info( "CLIENT WMC RESPNSE:", context.output, "->", this.config );
 	
+	if ( ! context || ! context.output || ! context.output.entities )
+	{
+		this.showLoader( false );
+		return;
+	}
+	
 	var cfg = ( this.config && this.config[ "wmc" ] ) ? this.config[ "wmc" ] : null;
 	
 	var defaultFormat = "image/png";

@@ -85,6 +85,17 @@ netgis.WMS =
 	
 	parseLayer: function( layer, recursive )
 	{
+		// Parse ID From Data URL, Not In Caps Attributes?!
+		var id = null;
+		
+		var dataURL = this.getChild( layer, "DataURL" );
+		
+		if ( dataURL )
+		{
+			var onlineResource = this.getChild( dataURL, "OnlineResource" );
+			if ( onlineResource ) id = onlineResource.getAttribute( "xlink:href" ).split( "id=" )[ 1 ];
+		}
+		
 		// Metadata
 		var name = this.getChildString( layer, "Name" );
 		var title = this.getChildString( layer, "Title" );
@@ -125,6 +136,7 @@ netgis.WMS =
 		var result =
 		{
 			//parent: parentName,
+			id: id,
 			name: name,
 			title: title,
 			abstract: abstract,
