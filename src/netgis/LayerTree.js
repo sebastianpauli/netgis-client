@@ -359,6 +359,57 @@ netgis.LayerTree.prototype.onImportGeoportalSubmit = function( e )
 {
 	var params = e.detail;
 	
+	// Import Folder
+	if ( params.folder )
+	{
+		var fid = params.folder.id;
+		var folder = this.tree.getFolder( fid );
+
+		if ( ! folder )
+		{
+			var prepend = params.folder.parent ? false : true;
+			this.tree.addFolder( this.tree.getFolder( params.folder.parent ), fid, params.folder.title, prepend, false, true, true, this.config[ "layertree" ][ "clip_titles" ] );
+			if ( params.folder.open ) this.tree.setFolderOpen( fid, true );
+		}
+	}
+	
+	// Import Layer
+	if ( params.layer )
+	{
+		var id = params.layer.id;
+		var fid = params.layer.folder;
+
+		var config =
+		{
+			id: id,
+			folder: fid,
+			title: params.layer.title,
+			active: true,
+			query: true,
+			type: netgis.LayerTypes.WMS,
+			url: params.layer.url,
+			name: params.layer.name,
+			order: 10000,
+			transparency: 0.0
+		};
+
+		this.config[ "layers" ].push( config );
+
+		// TODO: get queryable property from wms results
+		// TODO: refactor layer item creation with init config, import handlers
+		
+		var folder = this.tree.getFolder( fid );
+		
+		var prepend = params.layer.folder ? false : true;
+		this.tree.addCheckbox( folder, id, params.layer.title, false, prepend, this.createDefaultDetails( config, true, true, true ), this.config[ "layertree" ][ "clip_titles" ] );
+		this.tree.setItemChecked( id, true, false );
+	}
+};
+
+netgis.LayerTree.prototype.onImportGeoportalSubmit_01 = function( e )
+{
+	var params = e.detail;
+	
 	// Folder
 	var fid = params.folder.id;
 	var folder = this.tree.getFolder( fid );

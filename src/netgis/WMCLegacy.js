@@ -184,7 +184,7 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 	{
 		var service = services[ s ];
 
-		// Bounds (if not from WMC)
+		// Bounds If Not From WMC
 		if ( singleLayerRequest )
 		{
 			var bbox = service.bbox;
@@ -291,7 +291,6 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 
 netgis.WMCLegacy.prototype.find = function( component, key, value )
 {
-	//return entities.filter( findFilter( component, key, value ) );
 	return this.output.entities.filter( this.findFilter( component, key, value ) );
 };
 
@@ -299,11 +298,9 @@ netgis.WMCLegacy.prototype.findFilter = function( component, key, value )
 {
 	return function( entity )
 	{
-		//var c = entity.get( component );
 		var c = entity[ component ];
 
 		if ( c && c[ key ] === value ) return true;
-		//if ( c && c === value ) return true;
 
 		return false;
 	};
@@ -312,20 +309,11 @@ netgis.WMCLegacy.prototype.findFilter = function( component, key, value )
 netgis.WMCLegacy.prototype.createLayer = function( layerData, parentEntity, prepend )
 {			
 	// Check if layer entity with this id already exists
-	var id = Number.parseInt( layerData.id ); //NOTE: assuming layer id as integer
-	//var entity = netgis.entities.find( netgis.component.Layer, "id", id )[ 0 ];
+	var id = Number.parseInt( layerData.id ); // NOTE: assuming layer id as integer
 	var entity = this.find( "layer", "id", id )[ 0 ];
 
 	if ( ! entity )
 	{
-		/*entity = netgis.entities.create
-		(
-			[
-				new netgis.component.Layer( id )
-			],
-			prepend
-		);*/
-		
 		entity =
 		{
 			layer: { id: id }
@@ -347,19 +335,14 @@ netgis.WMCLegacy.prototype.createLayer = function( layerData, parentEntity, prep
 	entity.title = layerData.title;
 	entity.name = layerData.name;
 	entity.parent = parentEntity;
-
-	//entity.print();
-
+	
 	if ( layerData.getLegendGraphicUrl && layerData.getLegendGraphicUrlFormat )
-		//entity.set( new netgis.component.Legend( layerData.getLegendGraphicUrl, layerData.getLegendGraphicUrlFormat ) );
 		entity.legend = { url: layerData.getLegendGraphicUrl, format: layerData.getLegendGraphicUrlFormat };
 
 	if ( layerData.legendUrl )
-		//entity.set( new netgis.component.Legend( decodeURIComponent( layerData.legendUrl ), layerData.getLegendGraphicUrlFormat ) );
 		entity.legend = { url: window.decodeURIComponent( layerData.legendUrl ), format: layerData.getLegendGraphicUrlFormat };
 
-	if ( layerData.layerQueryable === 1 || layerData.queryable === 1 ) //NOTE: these two props should have the same name!
-		//entity.set( new netgis.component.Queryable() );
+	if ( layerData.layerQueryable === 1 || layerData.queryable === 1 ) // NOTE: these two props should have the same name!
 		entity.queryable = true;
 
 	if ( layerData.bbox )
@@ -368,8 +351,7 @@ netgis.WMCLegacy.prototype.createLayer = function( layerData, parentEntity, prep
 
 		for ( var i = 0; i < bbox.length; i++ )
 			bbox[ i ] = Number.parseFloat( bbox[ i ] );
-
-		//entity.set( new netgis.component.Extent( bbox[ 0 ], bbox[ 1 ], bbox[ 2 ], bbox[ 3 ] ) );
+		
 		entity.extent = [ bbox[ 0 ], bbox[ 1 ], bbox[ 2 ], bbox[ 3 ] ];
 	}
 
@@ -378,18 +360,6 @@ netgis.WMCLegacy.prototype.createLayer = function( layerData, parentEntity, prep
 
 netgis.WMCLegacy.prototype.createService = function( serviceData, prepend )
 {
-	/*
-	var serviceEntity = netgis.entities.create
-	(
-		[
-			new netgis.component.Service( serviceData.id ),
-			new netgis.component.Title( serviceData.title ),
-			new netgis.component.Url( serviceData.getMapUrl )
-		],
-		prepend
-	);
-	*/
-	
 	var serviceEntity =
 	{
 		service: { id: serviceData.id },

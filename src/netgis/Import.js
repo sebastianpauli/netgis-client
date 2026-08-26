@@ -1933,6 +1933,89 @@ netgis.Import.prototype.onGeoportalTreeItemChange = function( e )
 };
 
 netgis.Import.prototype.onGeoportalSubmitDynamic = function( e )
+{	
+	var count = 0;
+	
+	var importHierarchy = false;
+	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_import_hierarchy" ] === true ) importHierarchy = true;
+	
+	var items = this.geoportalResults.container.getElementsByTagName( "li" );
+	
+	for ( var i = 0; i < items.length; i++ )
+	{
+		var item = items[ i ];
+		
+		var checkbox = item.getElementsByTagName( "input" )[ 0 ];
+		var checked = checkbox.checked;
+		
+		if ( ! checked ) continue;
+		
+		count += 1;
+		
+		var parent = null;
+		var ul = item.parentNode;
+
+		if ( ! ul.classList.contains( "netgis-tree" ) )
+		{
+			var ul = item.parentNode;
+			var details = ul.parentNode;
+			var li = details.parentNode;
+			parent = "geoportal_" + li.getAttribute( "data-id" );
+		}
+		
+		if ( item.classList.contains( "netgis-folder" ) )
+		{
+			// Folder
+			var fid = item.getAttribute( "data-id" );
+			fid = "geoportal_" + fid;
+		
+			var ftitle = item.getAttribute( "data-title" );
+			var open = item.getElementsByTagName( "details" )[ 0 ].hasAttribute( "open" );
+			
+			var params =
+			{
+				folder: { parent: importHierarchy ? parent : null, id: fid, title: ftitle, open: open }
+			};
+			
+			netgis.util.invoke( this.sections.geoportal, netgis.Events.IMPORT_GEOPORTAL_SUBMIT, params );
+		}
+		else if ( item.classList.contains( "netgis-item" ) )
+		{
+			// Layer
+			var id = checkbox.getAttribute( "data-id" );
+
+			id = "geoportal_" + id;
+			
+			var title = checkbox.getAttribute( "data-title" );
+			var url = checkbox.getAttribute( "data-map-url" );
+			var name = checkbox.getAttribute( "data-name" );
+			
+			var params =
+			{
+				layer: { folder: parent, id: id, url: url, name: name, title: title }
+			};
+			
+			netgis.util.invoke( this.sections.geoportal, netgis.Events.IMPORT_GEOPORTAL_SUBMIT, params );
+		}
+	}
+	
+	// Done
+	if ( count > 0 )
+	{
+		this.modal.hide();
+		
+		// Reset Checkboxes
+		var inputs = this.geoportalResults.container.getElementsByTagName( "input" );
+		
+		for ( var i = 0; i < inputs.length; i++ )
+			inputs[ i ].checked = false;
+		
+		this.geoportalResults.updateFolderChecks();
+		this.onGeoportalTreeItemChange();
+	}
+};
+
+netgis.Import.prototype.onGeoportalSubmitDynamic_01 = function( e )
 {
 	var items = this.geoportalResults.container.getElementsByClassName( "netgis-item" );
 	
@@ -2000,6 +2083,7 @@ netgis.Import.prototype.onGeoportalSubmitDynamic = function( e )
 		
 		// Reset Checkboxes
 		var inputs = this.geoportalResults.container.getElementsByTagName( "input" );
+		
 		for ( var i = 0; i < inputs.length; i++ )
 			inputs[ i ].checked = false;
 		
