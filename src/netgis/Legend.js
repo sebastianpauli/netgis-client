@@ -84,21 +84,21 @@ netgis.Legend.prototype.hide = function()
 
 netgis.Legend.prototype.addSection = function( id, title, content, open )
 {
-	var html =
-	[
-		( open === true ) ? "<details data-id='" + id + "' open='open'>" : "<details data-id='" + id + "'>",
-		"<summary class='netgis-button netgis-noselect netgis-clip-text netgis-color-d netgis-hover-text-a netgis-hover-d'>",
-		title,
-		"</summary>",
-		"<div class='netgis-border-d'>",
-		content,
-		"</div>",
-		"</details>"
-	];
+	var details = document.createElement( "details" );
+	details.setAttribute( "data-id", id );
+	if ( open ) details.setAttribute( "open", "open" );
 	
-	this.panel.content.innerHTML = html.join( "" ) + this.panel.content.innerHTML;
+	var summary = document.createElement( "summary" );
+	summary.className = "netgis-button netgis-noselect netgis-clip-text netgis-color-d netgis-hover-text-a netgis-hover-d";
+	summary.innerHTML = title;
+	details.appendChild( summary );
 	
-	// TODO: create element without html strings
+	var div = document.createElement( "div" );
+	div.className = "netgis-border-d";
+	div.innerHTML = content;
+	details.appendChild( div );
+	
+	this.panel.content.appendChild( details );
 };
 
 netgis.Legend.prototype.addLayerLegend = function( id )

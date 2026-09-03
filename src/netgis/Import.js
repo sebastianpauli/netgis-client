@@ -146,7 +146,28 @@ netgis.Import.Config =
 	 * @type Boolean
 	 * @memberof netgis.Import.Config
 	 */
-	"geoportal_simplify_folders": true
+	"geoportal_simplify_folders": true,
+	
+	/**
+	 * Import full folder hierarchy from Geoportal results
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"geoportal_import_hierarchy": true,
+	
+	/**
+	 * Import Geoportal layers in reverse order from Capabilities Nodes
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"geoportal_order_reverse": true,
+	
+	/**
+	 * Reorder Geoportal results by search response metadata
+	 * @type Boolean
+	 * @memberof netgis.Import.Config
+	 */
+	"geoportal_order_by_meta": false
 };
 
 netgis.Import.prototype.initElements = function( config )
@@ -1684,55 +1705,70 @@ netgis.Import.prototype.onGeoportalFolderResponse = function( folder, data )
 	folder.getElementsByTagName( "ul" )[ 0 ].innerHTML = "";
 	folder.getElementsByTagName( "input" )[ 0 ].removeAttribute( "disabled" );
 	
+	// Parse Capabilities
 	var caps = netgis.WMS.parseCapabilities( data );
 	
-	this.createGeoportalLayers( folder, caps, caps.layers, true );
+	console.info( "IMPORT CAPS:", caps );
 	
+	// Reverse Layer Order
+	var reverse = true;
+	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_order_reverse" ] === false ) reverse = false;
+	
+	// Create Layers And Folders
+	this.createGeoportalLayers( folder, caps, caps.layers, true, reverse );
+	
+	// Simplify Folders
 	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_simplify_folders" ] === true )
 	{
 		this.simplifyGeoportalFolder( folder );
 	}
 	
 	// Reorder Items By WMS Metadata, Because Not Sorted In Caps Response
-	var order = [];
-	var srv = this.geoportalData.data[ "wms" ][ "srv" ];
+	var orderByMeta = false;
+	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_order_by_meta" ] === true ) orderByMeta = true;
 	
-	for ( var i = 0; i < srv.length; i++ )
+	if ( orderByMeta )
 	{
-		order.push( srv[ i ][ "title" ] );
-		
-		var layers2 = srv[ i ][ "layer" ];
-		
-		if ( ! layers2 ) continue;
-		
-		for ( var j = 0; j < layers2.length; j++ )
+		var order = [];
+		var srv = this.geoportalData.data[ "wms" ][ "srv" ];
+
+		for ( var i = 0; i < srv.length; i++ )
 		{
-			order.push( layers2[ j ][ "title" ] );
-			
-			var layers3 = layers2[ j ][ "layer" ];
-			
-			if ( ! layers3 ) continue;
-			
-			for ( var k = 0; k < layers3.length; k++ )
+			order.push( srv[ i ][ "title" ] );
+
+			var layers2 = srv[ i ][ "layer" ];
+
+			if ( ! layers2 ) continue;
+
+			for ( var j = 0; j < layers2.length; j++ )
 			{
-				order.push( layers3[ k ][ "title" ] );
+				order.push( layers2[ j ][ "title" ] );
+
+				var layers3 = layers2[ j ][ "layer" ];
+
+				if ( ! layers3 ) continue;
+
+				for ( var k = 0; k < layers3.length; k++ )
+				{
+					order.push( layers3[ k ][ "title" ] );
+				}
 			}
+
+			// TODO: recursion
 		}
-		
-		// TODO: recursion
+
+		var items = folder.getElementsByTagName( "li" );
+
+		for ( var i = 0; i < items.length; i++ )
+		{
+			var item = items[ i ];
+			var title = item.innerText;
+			var o = order.indexOf( title );
+			item.setAttribute( "data-order", o );
+		}
+
+		this.geoportalResults.reorderByAttribute( "data-order", false, true, folder.getElementsByTagName( "ul" )[ 0 ] );
 	}
-	
-	var items = folder.getElementsByTagName( "li" );
-	
-	for ( var i = 0; i < items.length; i++ )
-	{
-		var item = items[ i ];
-		var title = item.innerText;
-		var o = order.indexOf( title );
-		item.setAttribute( "data-order", o );
-	}
-	
-	this.geoportalResults.reorderByAttribute( "data-order", false, true, folder.getElementsByTagName( "ul" )[ 0 ] );
 };
 
 netgis.Import.prototype.simplifyGeoportalFolder = function( root )
@@ -1778,7 +1814,7 @@ netgis.Import.prototype.simplifyGeoportalFolder = function( root )
 		rootList.removeChild( removes[ i ] );
 };
 
-netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, recursive )
+netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, recursive, reverse )
 {
 	var fid = folder.getAttribute( "data-id" );
 	//console.info( "GEOPORTAL LAYERS:", fid, folder.getAttribute( "data-root-id" ), folder, layers );
@@ -1803,7 +1839,7 @@ netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, 
 		
 		if ( layer.children.length === 0 )
 		{
-			var item = this.geoportalResults.addCheckbox( folder, id, layer.title, false, false, null, this.config[ "import" ][ "clip_titles" ] );
+			var item = this.geoportalResults.addCheckbox( folder, id, layer.title, false, reverse, null, this.config[ "import" ][ "clip_titles" ] );
 			item.setAttribute( "title", layer.abstract );
 			
 			var input = item.getElementsByTagName( "input" )[ 0 ];
@@ -1817,13 +1853,13 @@ netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, 
 		}
 		else
 		{
-			var subfolder = this.geoportalResults.addFolder( folder, id, layer.title, false, false, false, false, this.config[ "import" ][ "clip_titles" ] );
+			var subfolder = this.geoportalResults.addFolder( folder, id, layer.title, reverse, false, false, false, this.config[ "import" ][ "clip_titles" ] );
 			subfolder.setAttribute( "title", layer.abstract );
 			subfolder.setAttribute( "data-title", layer.title );
 			
 			if ( recursive )
 			{
-				this.createGeoportalLayers( subfolder, caps, layer.children, true );
+				this.createGeoportalLayers( subfolder, caps, layer.children, true, reverse );
 			}
 		}
 	}
@@ -1936,10 +1972,14 @@ netgis.Import.prototype.onGeoportalSubmitDynamic = function( e )
 {	
 	var count = 0;
 	
-	var importHierarchy = false;
-	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_import_hierarchy" ] === true ) importHierarchy = true;
+	var importHierarchy = true;
+	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_import_hierarchy" ] === false ) importHierarchy = false;
 	
 	var items = this.geoportalResults.container.getElementsByTagName( "li" );
+	
+	var orderBase = 11000;
+	
+	// TODO: global order / zindex constants for common layers
 	
 	for ( var i = 0; i < items.length; i++ )
 	{
@@ -1992,7 +2032,7 @@ netgis.Import.prototype.onGeoportalSubmitDynamic = function( e )
 			
 			var params =
 			{
-				layer: { folder: parent, id: id, url: url, name: name, title: title }
+				layer: { folder: parent, id: id, url: url, name: name, title: title, order: orderBase - i }
 			};
 			
 			netgis.util.invoke( this.sections.geoportal, netgis.Events.IMPORT_GEOPORTAL_SUBMIT, params );

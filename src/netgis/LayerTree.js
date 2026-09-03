@@ -389,7 +389,7 @@ netgis.LayerTree.prototype.onImportGeoportalSubmit = function( e )
 			type: netgis.LayerTypes.WMS,
 			url: params.layer.url,
 			name: params.layer.name,
-			order: 10000,
+			order: params.layer.order,
 			transparency: 0.0
 		};
 
