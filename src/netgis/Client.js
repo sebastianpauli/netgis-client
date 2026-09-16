@@ -932,9 +932,6 @@ netgis.Client.prototype.onContextResponseLayer = function( data )
 	var layer = srv[ 0 ];
 	
 	var result = wmc.parseServiceLayer( layer[ "id" ].toString(), layer, null, layer.layer[ 0 ], null );
-	
-	console.info( "Parsed Layer:", result );
-	
 	this.config.layers.push( result );
 	
 	netgis.util.invoke( this.container, netgis.Events.MAP_LAYER_CREATE, result );

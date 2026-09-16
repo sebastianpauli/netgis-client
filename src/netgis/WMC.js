@@ -453,3 +453,192 @@ netgis.WMC.prototype.getLayerMapURL = function( id, list, result )
 	
 	return null;
 };
+
+netgis.WMC.prototype.parseLayer = function( layer, parentID, items )
+{
+	var item = null;
+			
+	for ( var k = 0; k < items.length; k++ )
+	{
+		if ( items[ k ].id === Number.parseInt( layer[ "id" ] ) ) // NOTE: assuming integer ids
+		{
+			item = items[ k ];
+			break;
+		}
+	}
+
+	if ( ! item )
+	{
+		item =
+		{
+			id: Number.parseInt( layer[ "id" ] ),
+			type: "layer"
+		};
+		
+		items.push( item );
+	}
+
+	item.title = layer[ "title" ];
+	item.name = layer[ "name" ];
+	item.parent = parentID;
+	
+	if ( layer[ "getLegendGraphicUrl" ] && layer[ "getLegendGraphicUrlFormat" ] )
+	{
+		item.legendURL = layer[ "getLegendGraphicUrl" ];
+		item.legendFormat = layer[ "getLegendGraphicUrlFormat" ];
+	}	
+
+	if ( layer[ "legendUrl" ] )
+	{
+		item.legendURL = window.decodeURIComponent( layer[ "legendUrl" ] );
+		item.legendFormat = layer[ "getLegendGraphicUrlFormat" ];
+	}
+
+	if ( layer[ "layerQueryable" ] === 1 || layer[ "queryable" ] === 1 ) // NOTE: these two props should have the same name !
+		item.queryable = true;
+	else
+		item.queryable = false;
+
+	if ( layer.bbox )
+	{
+		var bbox = layer.bbox.split( "," );
+
+		for ( var i = 0; i < bbox.length; i++ )
+			bbox[ i ] = parseFloat( bbox[ i ] );
+
+		item.bbox = [ bbox[ 0 ], bbox[ 1 ], bbox[ 2 ], bbox[ 3 ] ];
+	}
+	
+	return item;
+};
+
+netgis.WMC.prototype.parseServiceLayer = function( id, service, folder, serviceLayer, meta )
+{
+	var defaultOrder = 1000;
+	
+	var bbox = service[ "bbox" ];
+	
+	if ( bbox )
+	{
+		bbox = bbox.split( "," );
+		
+		for ( var i = 0; i < bbox.length; i++ ) bbox[ i ] = Number.parseFloat( bbox[ i ] );
+	}
+	
+	var item =
+	{
+		id: id,
+		folder: folder,
+		title: serviceLayer[ "title" ],
+
+		active: meta ? meta[ "active" ] : true,
+		query: ( serviceLayer[ "queryable" ] === 1 ),
+		transparency: meta ? ( 1.0 - meta[ "opacity" ] * 0.01 ) : 0.0,
+		order: defaultOrder,
+
+		type: netgis.LayerTypes.WMS,
+		url: service[ "getMapUrl" ],
+		name: serviceLayer[ "name" ],
+		format: meta ? meta[ "currentFormat" ] : "image/png",
+		bbox: bbox,
+		
+		removable: ( this.config && this.config[ "wmc" ] && this.config[ "wmc" ][ "layers_removable" ] === true ) ? true : false
+	};
+	
+	return item;
+};
+
+netgis.WMC.prototype.parseServiceLayers = function( srv, layerList, folders, layers )
+{
+	if ( ! folders ) folders = [];
+	if ( ! layers ) layers = [];
+	
+	for ( var s = 0; s < srv.length; s++ )
+	{
+		var service = srv[ s ];
+		
+		// Service Layers
+		for ( var l = 0; l < service[ "layer" ].length; l++ )
+		{	
+			var layer = service[ "layer" ][ l ];
+			
+			if ( layer[ "isRoot" ] )
+			{
+				// Service Folder
+				var folder =
+				{
+					id: layer[ "id" ],
+					title: layer[ "title" ],
+					open: ( service[ "isopen" ] === "1" )
+				};
+
+				folders.push( folder );
+			}
+			
+			// Child Layers
+			var serviceLayers = layer[ "layer" ];
+			
+			if ( serviceLayers )
+			{
+				// Sort By Position
+				if ( layerList )
+				{
+					serviceLayers.sort
+					(
+						function( a, b )
+						{
+							var ida = a[ "id" ];
+							var idb = b[ "id" ];
+
+							var la = null;
+							var lb = null;
+
+							for ( var i = 0; i < layerList.length; i++ )
+							{
+								var layer = layerList[ i ];
+								if ( layer[ "layerId" ].toString() === ida ) la = layer;
+								if ( layer[ "layerId" ].toString() === idb ) lb = layer;
+							}
+
+							var va = la[ "layerPos" ];
+							var vb = lb[ "layerPos" ];
+
+							if ( va < vb ) return -1;
+							if ( va > vb ) return 1;
+
+							return 0;
+						}
+					);
+				}
+				
+				for ( var i = serviceLayers.length - 1; i >= 0; i-- )
+				{
+					var child = serviceLayers[ i ];
+					var cid = child[ "id" ];
+					//var cid = child[ "wmsRootLayerId" ]; // ? child[ "wmsRootLayerId" ] : child[ "id" ];
+					var meta = null;
+					
+					//console.info( "Service Child Layer:", i, "=", child[ "id" ], "/", child[ "wmsRootLayerId" ] );
+					
+					if ( layerList )
+					{
+						for ( var m = 0; m < layerList.length; m++ )
+						{
+							if ( layerList[ m ][ "layerId" ].toString() === cid )
+							{
+								meta = layerList[ m ];
+								break;
+							}
+						}
+					}
+					
+					var item = this.parseServiceLayer( cid, service, layer[ "id" ], child, meta );
+
+					layers.push( item );
+				}
+			}
+		}
+	}
+	
+	return { folders: folders, layers: layers };
+};

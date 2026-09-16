@@ -1708,8 +1708,6 @@ netgis.Import.prototype.onGeoportalFolderResponse = function( folder, data )
 	// Parse Capabilities
 	var caps = netgis.WMS.parseCapabilities( data );
 	
-	console.info( "IMPORT CAPS:", caps );
-	
 	// Reverse Layer Order
 	var reverse = true;
 	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_order_reverse" ] === false ) reverse = false;
