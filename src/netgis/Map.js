@@ -4872,7 +4872,9 @@ netgis.Map.prototype.onImportLayerAccept = function( e )
 
 netgis.Map.prototype.onImportGeoportalSubmit = function( e )
 {
-	var params = e.detail;
+	//var params = e.detail;
+	
+	// NOTE: config layers created in layer tree module
 };
 
 netgis.Map.prototype.onImportLayerPreview = function( e )

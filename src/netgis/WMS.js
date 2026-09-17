@@ -198,9 +198,7 @@ netgis.WMS =
 			if ( key.toLowerCase() === "service" ) delete params[ key ];
 			if ( key.toLowerCase() === "request" ) delete params[ key ];
 		}
-
-		console.info( "CLEAN PARAMS:", params );
-
+		
 		params[ "service" ] = "WMS";
 		params[ "request" ] = request;
 

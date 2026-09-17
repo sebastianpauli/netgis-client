@@ -918,9 +918,6 @@ netgis.Client.prototype.onContextResponseWMC = function( context )
 netgis.Client.prototype.onContextResponseLayer = function( data )
 {
 	var json = JSON.parse( data );
-	
-	var wmc = new netgis.WMC();
-	
 	var srv = json[ "wms" ][ "srv" ];
 	
 	if ( ! srv || srv.length === 0 )
@@ -931,14 +928,58 @@ netgis.Client.prototype.onContextResponseLayer = function( data )
 	
 	var layer = srv[ 0 ];
 	
-	var result = wmc.parseServiceLayer( layer[ "id" ].toString(), layer, null, layer.layer[ 0 ], null );
-	this.config.layers.push( result );
-	
-	netgis.util.invoke( this.container, netgis.Events.MAP_LAYER_CREATE, result );
-	
-	if ( result.bbox )
+	// Check If Root Layer With WMS Caps
+	if ( layer[ "layer" ] && layer[ "layer" ].length === 1 )
 	{
-		netgis.util.invoke( this.container, netgis.Events.MAP_ZOOM_BBOX, { minlon: result.bbox[ 0 ], minlat: result.bbox[ 1 ], maxlon: result.bbox[ 2 ], maxlat: result.bbox[ 3 ] } );
+		var rootLayer = layer[ "layer" ][ 0 ];
+		
+		if ( rootLayer[ "isRoot" ] === true )
+		{
+			var url = rootLayer[ "getCapabilitiesUrl" ] + "&withChilds=1";
+			
+			var importModule = this.modules.import;
+			var layertreeModule = this.modules.layertree;
+			
+			// Folder
+			var folderID = "root_" + rootLayer[ "id" ];
+			
+			var folder = layertreeModule.tree.addFolder( null, folderID, rootLayer[ "title" ], true, false, true, true, this.config[ "layertree" ][ "clip_titles" ] );
+			folder.setAttribute( "title", rootLayer[ "abstract" ] );
+			folder.setAttribute( "data-title", rootLayer[ "title" ] );
+			folder.setAttribute( "data-root-id", layer[ "wmsRootLayerId" ] );
+			folder.setAttribute( "data-url", url );
+			
+			layertreeModule.tree.setFolderOpen( folderID, true );
+			
+			// Request Caps And Trigger Import
+			netgis.util.request( url, function( data ) { this.onGeoportalFolderResponse( folder, data, true, layertreeModule.tree ); }.bind( importModule ) );
+			
+			// Zoom Group Extent
+			var bbox = layer[ "bbox" ];
+			
+			if ( bbox )
+			{
+				bbox = bbox.split( "," );
+				for ( var i = 0; i < bbox.length; i++ ) bbox[ i ] = Number.parseFloat( bbox[ i ] );
+				
+				netgis.util.invoke( this.container, netgis.Events.MAP_ZOOM_BBOX, { minlon: bbox[ 0 ], minlat: bbox[ 1 ], maxlon: bbox[ 2 ], maxlat: bbox[ 3 ] } );
+			}
+		}
+	}
+	else
+	{
+		// Parse Single Layer
+		var wmc = new netgis.WMC();
+		var result = wmc.parseServiceLayer( layer[ "id" ].toString(), layer, null, layer.layer[ 0 ], null );
+		this.config.layers.push( result );
+
+		netgis.util.invoke( this.container, netgis.Events.MAP_LAYER_CREATE, result );
+
+		// Zoom Layer Extent
+		if ( result.bbox )
+		{
+			netgis.util.invoke( this.container, netgis.Events.MAP_ZOOM_BBOX, { minlon: result.bbox[ 0 ], minlat: result.bbox[ 1 ], maxlon: result.bbox[ 2 ], maxlat: result.bbox[ 3 ] } );
+		}
 	}
 };
 

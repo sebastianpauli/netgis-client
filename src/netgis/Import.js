@@ -1632,7 +1632,7 @@ netgis.Import.prototype.onGeoportalSearchResponse = function( data )
 netgis.Import.prototype.updateGeoportalResults = function( data, dynamic )
 {
 	this.geoportalData = { data: data, folders: {} };
-	console.info( "GEOPORTAL DATA:", this.geoportalData );
+	
 	var srv = data[ "wms" ][ "srv" ];
 	
 	if ( dynamic )
@@ -1691,7 +1691,7 @@ netgis.Import.prototype.onGeoportalFolderToggle = function( e )
 	// Request Capabilities
 	var url = folder.getAttribute( "data-url" );
 	
-	netgis.util.request( url, function( data ) { this.onGeoportalFolderResponse( folder, data ); }.bind( this ) );
+	netgis.util.request( url, function( data ) { this.onGeoportalFolderResponse( folder, data, false ); }.bind( this ) );
 	
 	folder.getElementsByTagName( "ul" )[ 0 ].innerHTML = "";
 	
@@ -1700,7 +1700,7 @@ netgis.Import.prototype.onGeoportalFolderToggle = function( e )
 		this.geoportalResults.addButton( folder, 0, "<span class='netgis-loader netgis-color-e netgis-text-a'><i class='fas fa-spinner'></i></span>", null );
 };
 
-netgis.Import.prototype.onGeoportalFolderResponse = function( folder, data )
+netgis.Import.prototype.onGeoportalFolderResponse = function( folder, data, addToConfig, parentTree )
 {
 	folder.getElementsByTagName( "ul" )[ 0 ].innerHTML = "";
 	folder.getElementsByTagName( "input" )[ 0 ].removeAttribute( "disabled" );
@@ -1713,7 +1713,7 @@ netgis.Import.prototype.onGeoportalFolderResponse = function( folder, data )
 	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_order_reverse" ] === false ) reverse = false;
 	
 	// Create Layers And Folders
-	this.createGeoportalLayers( folder, caps, caps.layers, true, reverse );
+	this.createGeoportalLayers( folder, caps, caps.layers, true, reverse, addToConfig, parentTree );
 	
 	// Simplify Folders
 	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_simplify_folders" ] === true )
@@ -1812,10 +1812,12 @@ netgis.Import.prototype.simplifyGeoportalFolder = function( root )
 		rootList.removeChild( removes[ i ] );
 };
 
-netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, recursive, reverse )
+netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, recursive, reverse, addToConfig, parentTree )
 {
+	if ( ! parentTree ) parentTree = this.geoportalResults;
+	
 	var fid = folder.getAttribute( "data-id" );
-	//console.info( "GEOPORTAL LAYERS:", fid, folder.getAttribute( "data-root-id" ), folder, layers );
+	
 	var map = caps.requests.map.url;
 	var info = caps.requests.info.url;
 	
@@ -1827,6 +1829,10 @@ netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, 
 	if ( caps.requests.info.format.indexOf( "text/plain" ) > -1 ) infoFormat = "text/plain";
 	if ( caps.requests.info.format.indexOf( "text/html" ) > -1 ) infoFormat = "text/html";
 	
+	var orderBase = 11000;
+	
+	// TODO: global order / zindex constants for common layers
+	
 	for ( var i = 0; i < layers.length; i++ )
 	{
 		var layer = layers[ i ];
@@ -1837,7 +1843,39 @@ netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, 
 		
 		if ( layer.children.length === 0 )
 		{
-			var item = this.geoportalResults.addCheckbox( folder, id, layer.title, false, reverse, null, this.config[ "import" ][ "clip_titles" ] );
+			var details = null;
+			
+			// Add Config Layer
+			if ( addToConfig === true )
+			{
+				var title = layer.title;
+				var url = map;
+				var name = layer.name;
+				var order = orderBase + i;
+				
+				var config =
+				{
+					id: id,
+					folder: fid,
+					title: title,
+					active: true,
+					query: true,
+					type: netgis.LayerTypes.WMS,
+					url: url,
+					name: name,
+					order: order,
+					transparency: 0.0
+				};
+
+				this.config[ "layers" ].push( config );
+				
+				// TODO: how to properly reference layertree here ? refactor default details creation ?
+				
+				details = client.modules.layertree.createDefaultDetails( config, true, true, true );
+			}
+			
+			// Create Checkbox
+			var item = parentTree.addCheckbox( folder, id, layer.title, false, reverse, details, this.config[ "import" ][ "clip_titles" ] );
 			item.setAttribute( "title", layer.abstract );
 			
 			var input = item.getElementsByTagName( "input" )[ 0 ];
@@ -1848,16 +1886,30 @@ netgis.Import.prototype.createGeoportalLayers = function( folder, caps, layers, 
 			input.setAttribute( "data-name", layer.name );
 			input.setAttribute( "data-title", layer.title );
 			input.setAttribute( "data-queryable", layer.queryable );
+			
+			if ( addToConfig === true )
+			{
+				parentTree.setItemChecked( id, true, false );
+			}
 		}
 		else
 		{
-			var subfolder = this.geoportalResults.addFolder( folder, id, layer.title, reverse, false, false, false, this.config[ "import" ][ "clip_titles" ] );
+			var draggable = false;
+			var removable = false;
+			
+			if ( addToConfig === true )
+			{
+				draggable = true;
+				removable = true;
+			}
+			
+			var subfolder = parentTree.addFolder( folder, id, layer.title, reverse, false, draggable, removable, this.config[ "import" ][ "clip_titles" ] );
 			subfolder.setAttribute( "title", layer.abstract );
 			subfolder.setAttribute( "data-title", layer.title );
 			
 			if ( recursive )
 			{
-				this.createGeoportalLayers( subfolder, caps, layer.children, true, reverse );
+				this.createGeoportalLayers( subfolder, caps, layer.children, true, reverse, addToConfig, parentTree );
 			}
 		}
 	}
@@ -1973,7 +2025,8 @@ netgis.Import.prototype.onGeoportalSubmitDynamic = function( e )
 	var importHierarchy = true;
 	if ( this.config[ "import" ] && this.config[ "import" ][ "geoportal_import_hierarchy" ] === false ) importHierarchy = false;
 	
-	var items = this.geoportalResults.container.getElementsByTagName( "li" );
+	var container = this.geoportalResults.container;
+	var items = container.getElementsByTagName( "li" );
 	
 	var orderBase = 11000;
 	
