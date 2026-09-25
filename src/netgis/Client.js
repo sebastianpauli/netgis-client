@@ -929,41 +929,39 @@ netgis.Client.prototype.onContextResponseLayer = function( data )
 	var layer = srv[ 0 ];
 	
 	// Check If Root Layer With WMS Caps
-	if ( layer[ "layer" ] && layer[ "layer" ].length === 1 )
+	if ( layer[ "layer" ] && layer[ "layer" ].length > 0 && layer[ "layer" ][ 0 ][ "isRoot" ] === true )
 	{
 		var rootLayer = layer[ "layer" ][ 0 ];
+		var url = rootLayer[ "getCapabilitiesUrl" ] + "&withChilds=1";
+
+		var importModule = this.modules.import;
+		var layertreeModule = this.modules.layertree;
 		
-		if ( rootLayer[ "isRoot" ] === true )
+		// TODO: refactor modules dependencies ?
+
+		// Folder
+		var folderID = "root_" + rootLayer[ "id" ];
+
+		var folder = layertreeModule.tree.addFolder( null, folderID, rootLayer[ "title" ], true, false, true, true, this.config[ "layertree" ][ "clip_titles" ] );
+		folder.setAttribute( "title", rootLayer[ "abstract" ] );
+		folder.setAttribute( "data-title", rootLayer[ "title" ] );
+		folder.setAttribute( "data-root-id", layer[ "wmsRootLayerId" ] );
+		folder.setAttribute( "data-url", url );
+
+		layertreeModule.tree.setFolderOpen( folderID, true );
+
+		// Request Caps And Trigger Import
+		netgis.util.request( url, function( data ) { this.onGeoportalFolderResponse( folder, data, true, layertreeModule.tree ); }.bind( importModule ) );
+
+		// Zoom Group Extent
+		var bbox = layer[ "bbox" ];
+
+		if ( bbox )
 		{
-			var url = rootLayer[ "getCapabilitiesUrl" ] + "&withChilds=1";
-			
-			var importModule = this.modules.import;
-			var layertreeModule = this.modules.layertree;
-			
-			// Folder
-			var folderID = "root_" + rootLayer[ "id" ];
-			
-			var folder = layertreeModule.tree.addFolder( null, folderID, rootLayer[ "title" ], true, false, true, true, this.config[ "layertree" ][ "clip_titles" ] );
-			folder.setAttribute( "title", rootLayer[ "abstract" ] );
-			folder.setAttribute( "data-title", rootLayer[ "title" ] );
-			folder.setAttribute( "data-root-id", layer[ "wmsRootLayerId" ] );
-			folder.setAttribute( "data-url", url );
-			
-			layertreeModule.tree.setFolderOpen( folderID, true );
-			
-			// Request Caps And Trigger Import
-			netgis.util.request( url, function( data ) { this.onGeoportalFolderResponse( folder, data, true, layertreeModule.tree ); }.bind( importModule ) );
-			
-			// Zoom Group Extent
-			var bbox = layer[ "bbox" ];
-			
-			if ( bbox )
-			{
-				bbox = bbox.split( "," );
-				for ( var i = 0; i < bbox.length; i++ ) bbox[ i ] = Number.parseFloat( bbox[ i ] );
-				
-				netgis.util.invoke( this.container, netgis.Events.MAP_ZOOM_BBOX, { minlon: bbox[ 0 ], minlat: bbox[ 1 ], maxlon: bbox[ 2 ], maxlat: bbox[ 3 ] } );
-			}
+			bbox = bbox.split( "," );
+			for ( var i = 0; i < bbox.length; i++ ) bbox[ i ] = Number.parseFloat( bbox[ i ] );
+
+			netgis.util.invoke( this.container, netgis.Events.MAP_ZOOM_BBOX, { minlon: bbox[ 0 ], minlat: bbox[ 1 ], maxlon: bbox[ 2 ], maxlat: bbox[ 3 ] } );
 		}
 	}
 	else
