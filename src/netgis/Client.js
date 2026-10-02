@@ -689,6 +689,22 @@ netgis.Client.prototype.onContextResponseWMCLegacy = function( context )
 	var entities = context.output.entities;
 	var items = {};
 	
+	// Begin Code CS
+	
+	var childrenByParent = {};
+	
+	for ( var i = 0; i < entities.length; i++ )
+	{
+		var child = entities[ i ];
+		if ( ! child.parent ) continue;
+
+		var parentId = child.parent.layer ? child.parent.layer.id : null;
+		if ( parentId === null ) continue;
+		if ( ! childrenByParent[ parentId ] ) childrenByParent[ parentId ] = true;
+	}
+	
+	// End Code CS
+	
 	for ( var i = 0; i < entities.length; i++ )
 	{
 		var entity = entities[ i ];
@@ -699,7 +715,9 @@ netgis.Client.prototype.onContextResponseWMCLegacy = function( context )
 		var layer = entity;
 		
 		// Group or Child Item
-		var hasChildren = false;
+		//var hasChildren = false;
+		
+		var hasChildren = ( childrenByParent[ layer.layer.id ] === true ); // CS
 
 		for ( var j = 0; j < entities.length; j++ )
 		{
@@ -716,14 +734,10 @@ netgis.Client.prototype.onContextResponseWMCLegacy = function( context )
 
 		if ( hasChildren )
 		{
-			//layerMenu.loadTemplate( $( "#menu-group-template" ), item, { append: true } );
 			items[ layer.layer.id ] = this.modules.layertree.tree.addFolder( null, layer.layer.id, layer.title, false );
 		}
 		else
 		{
-			//layerMenu.loadTemplate( $( "#menu-layer-template" ), item, { append: true } );
-			////items[ layer.layer.id ] = this.modules.layertree.tree.addCheckbox( null, layer.layer.id, layer.title );
-			
 			items[ layer.layer.id ] = this.modules.layertree.addLayerItem
 			(
 				{
@@ -736,13 +750,6 @@ netgis.Client.prototype.onContextResponseWMCLegacy = function( context )
 				},
 				null
 			);
-			
-			/*
-			var layer = configLayers[ i ];
-			if ( layer[ "active" ] === true ) this.addLayer( layer[ "id" ], layer );
-			*/
-		   
-			//console.info( "CLIENT LAYER:", layer );
 		}
 	}
 	
@@ -804,10 +811,6 @@ netgis.Client.prototype.onContextResponseWMCLegacy = function( context )
 		if ( ! entity.name ) continue;
 		
 		var layer = entity;
-
-		//console.info( "WMS ENTITY:", layer );
-
-		//var children = netgis.entities.find( netgis.component.Parent, "value", layer );
 		
 		var children = [];
 		
@@ -816,7 +819,9 @@ netgis.Client.prototype.onContextResponseWMCLegacy = function( context )
 			if ( entities[ j ].parent === layer ) children.push( entities[ j ] );
 		}
 		
-		var hasChildren = children.length > 0;
+		//var hasChildren = children.length > 0;
+		
+		var hasChildren = ( childrenByParent[ layer.layer.id ] === true ); // CS
 
 		// No group layers
 		if ( hasChildren === false )
@@ -864,7 +869,36 @@ netgis.Client.prototype.onContextResponseWMCLegacy = function( context )
 		}
 	}
 	
-	//this.modules.map.initConfig( this.config );
+	// Begin Code CS
+	
+	var activeLeaves = [];
+
+	for ( var i = 0; i < entities.length; i++ )
+	{
+		var entity = entities[ i ];
+		if ( ! entity.layer ) continue;
+		if ( childrenByParent[ entity.layer.id ] === true ) continue;
+		if ( entity.active !== true ) continue;
+
+		activeLeaves.push( entity );
+	}
+
+	var activeLeafThreshold = cfg ? Number.parseInt( cfg[ "active_leaf_threshold" ], 10 ) : Number.NaN;
+	var maxActiveLeaves = cfg ? Number.parseInt( cfg[ "max_active_leaves" ], 10 ) : Number.NaN;
+
+	if ( ! Number.isFinite( activeLeafThreshold ) || activeLeafThreshold < 1 ) activeLeafThreshold = 50;
+	if ( ! Number.isFinite( maxActiveLeaves ) || maxActiveLeaves < 1 ) maxActiveLeaves = 50;
+	if ( maxActiveLeaves > activeLeafThreshold ) maxActiveLeaves = activeLeafThreshold;
+
+	if ( activeLeaves.length > activeLeafThreshold )
+	{
+		// Potentially add toast with information here
+		
+		for ( var i = maxActiveLeaves; i < activeLeaves.length; i++ )
+			activeLeaves[ i ].active = false;
+	}
+	
+	// End Code CS
 	
 	// Active Layers
 	for ( var i = 0; i < entities.length; i++ )

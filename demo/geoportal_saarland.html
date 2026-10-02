@@ -138,7 +138,14 @@
 					"url": "./proxy.php?https://geoportal.saarland.de/mapbender/php/mod_exportWmc2Json.php?confFileName=mobilemap2&epsg=25832&withHierarchy=1&wmc_id={id}",
 					"layers_url": "./proxy.php?https://geoportal.saarland.de/mapbender/php/mod_callMetadata.php?languageCode=de&resultTarget=web&maxResults=40&resourceIds={ids}",
 					
-					"layers_removable": true
+					"layers_removable": true,
+					
+					// Begin Code CS
+					
+					"active_leaf_threshold": 30,
+					"max_active_leaves": 20
+					
+					// End Code CS
 					
 					// Use this to directly load a WMC by ID:
 					// "id": 27581

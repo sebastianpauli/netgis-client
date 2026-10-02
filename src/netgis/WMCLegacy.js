@@ -15,6 +15,15 @@ netgis.WMCLegacy = function( config )
 	this.config = config;
 	
 	this.output = { extent: null, entities: [] };
+	
+	// Begin Code CS
+	
+	this.wmcNodes = [];
+	this.entitiesById = {};
+	this.pendingLayerRequests = 0;
+	this.layerResponseData = [];
+	
+	// End Code CS
 };
 
 /**
@@ -124,7 +133,67 @@ netgis.WMCLegacy.prototype.onContextResponse = function( data )
 
 	// Map Layers
 	var ids = [];
+	
+	// Begin Code CS
+	
+	var layerList = data.layerList ? data.layerList : [];
+	var nodesByPosition = {};
+	var groupRoot = null;
+	
+	for ( var l = layerList.length - 1; l >= 0; l-- )
+	{
+		var layer = layerList[ l ];
 
+		if ( layer.layerParent === null )
+		{
+			groupRoot = layer.layerId;
+			nodesByPosition = {};
+		}
+
+		ids.push( layer.layerId );
+
+		var entity =
+		{
+			layer: { id: Number.parseInt( layer.layerId ) },
+			title: String( layer.layerId ),
+			position: layer.layerPos,
+			active: layer.active,
+			opacity: layer.opacity ? ( Number.parseFloat( layer.opacity ) * 0.01 ) : 1.0
+		};
+
+		this.entitiesById[ entity.layer.id ] = entity;
+
+		var node =
+		{
+			source: layer,
+			entity: entity,
+			isRoot: layer.layerParent === null,
+			groupRoot: groupRoot,
+			parent: null,
+			children: []
+		};
+
+		if ( layer.layerParent !== null )
+		{
+			var parent = nodesByPosition[ String( layer.layerParent ) ];
+
+			if ( parent )
+			{
+				node.parent = parent;
+				parent.children.push( node );
+			}
+			else
+				console.warn( "could not resolve WMC layer parent", layer );
+		}
+
+		nodesByPosition[ String( layer.layerPos ) ] = node;
+		this.wmcNodes.unshift( node );
+		this.output.entities.push( entity );
+	}
+	
+	// End Code CS
+
+	/*
 	if ( data.layerList )
 	{
 		for ( var l = 0; l < data.layerList.length; l++ )
@@ -145,6 +214,7 @@ netgis.WMCLegacy.prototype.onContextResponse = function( data )
 			);
 		}
 	}
+	*/
 	
 	this.requestLayers( ids );
 	
@@ -163,20 +233,94 @@ netgis.WMCLegacy.prototype.requestLayers = function( ids )
 		return;
 	}
 	
+	// Begin Code CS
+	
+	var batchSize = 60;
+	this.pendingLayerRequests = Math.ceil( ids.length / batchSize );
+	this.layerResponseData = [];
+
+	for ( var i = 0; i < ids.length; i += batchSize )
+	{
+		var batch = ids.slice( i, i + batchSize );
+		var url = cfg[ "layers_url" ];
+		url = netgis.util.replace( url, "{ids}", batch.join( "," ) );
+
+		netgis.util.request( url, this.onLayersResponse.bind( this ) );
+	}
+	
+	// End Code CS
+	
+	/*
 	var url = cfg[ "layers_url" ];
 	url = netgis.util.replace( url, "{ids}", ids.join( "," ) );
 	
 	netgis.util.request( url, this.onLayersResponse.bind( this ) );
+	*/
 };
 
 netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 {
-	data = JSON.parse( data );
+	//data = JSON.parse( data );
 	
 	var singleLayerRequest = false; // TODO: true if params "layerid"
 	
-	// Begin Legacy Code
+	// Begin Code CS
 	
+	this.layerResponseData.push( JSON.parse( data ) );
+	this.pendingLayerRequests--;
+
+	if ( this.pendingLayerRequests > 0 ) return;
+	
+	var services = [];
+
+	for ( var r = 0; r < this.layerResponseData.length; r++ )
+	{
+		var response = this.layerResponseData[ r ];
+		if ( response.wms && response.wms.srv ) services = services.concat( response.wms.srv );
+	}
+			
+	// Services
+	for ( var s = 0; s < services.length; s++ )
+	{
+		var service = services[ s ];
+
+		// Bounds If Not From WMC
+		if ( singleLayerRequest )
+		{
+			var bbox = service.bbox;
+
+			if ( bbox )
+			{
+				bbox = bbox.split( "," );
+				for ( var b = 0; b < bbox.length; b++ ) bbox[ b ] = Number.parseFloat( bbox[ b ] );
+				
+				this.output.extent = [ bbox[ 0 ], bbox[ 1 ], bbox[ 2 ], bbox[ 3 ] ];
+			}
+		}
+
+		// Service Group Layer
+		var serviceEntity = this.createService( service );
+
+		this.createServiceLayers( service.layer ? service.layer : [], serviceEntity );
+
+	}
+
+	this.applyWMCNodeHierarchy();
+   
+	for ( var i = 0; i < this.output.entities.length; i++ )
+	{
+		var entity = this.output.entities[ i ];
+		
+		if ( ! entity.layer ) continue;
+		//if ( ! entity.active ) continue;
+		
+		entity.order = this.output.entities.length - 1;
+	}
+	
+	// End Code CS
+	
+	// Begin Legacy Code
+	/*
 	var services = data.wms.srv;
 			
 	// Services
@@ -254,7 +398,8 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 		
 		entity.order = this.output.entities.length - 1;
 	}
-
+	*/
+	
 	/*
 	// Single Layer Request
 	if ( singleLayerRequest )
@@ -288,6 +433,57 @@ netgis.WMCLegacy.prototype.onLayersResponse = function( data )
 		this.callback( { config: this.toConfig(), output: this.output } );
 	}
 };
+
+// Begin Code CS
+
+netgis.WMCLegacy.prototype.applyWMCNodeHierarchy = function()
+{
+	var ordered = [];
+	var known = {};
+
+	var append = function( node )
+	{
+		ordered.push( node.entity );
+		known[ node.entity.layer.id ] = true;
+
+		for ( var i = node.children.length - 1; i >= 0; i-- )
+			append( node.children[ i ] );
+	};
+
+	for ( var i = 0; i < this.wmcNodes.length; i++ )
+	{
+		var node = this.wmcNodes[ i ];
+
+		if ( node.isRoot ) append( node );
+	}
+
+	for ( var i = 0; i < this.wmcNodes.length; i++ )
+	{
+		var node = this.wmcNodes[ i ];
+
+		if ( ! known[ node.entity.layer.id ] ) append( node );
+	}
+
+	for ( var i = 0; i < this.wmcNodes.length; i++ )
+	{
+		var node = this.wmcNodes[ i ];
+		node.entity.parent = node.parent ? node.parent.entity : null;
+	}
+
+	var rest = [];
+
+	for ( var i = 0; i < this.output.entities.length; i++ )
+	{
+		var entity = this.output.entities[ i ];
+
+		if ( ! entity.layer || ! known[ entity.layer.id ] )
+			rest.push( this.output.entities[ i ] );
+	}
+
+	this.output.entities = rest.concat( ordered );
+};
+
+// End Code CS
 
 netgis.WMCLegacy.prototype.find = function( component, key, value )
 {
